@@ -2,7 +2,7 @@
 import BaseLayout from '@/layouts/Base.astro'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import SignIn from '@/svg/sign_in.svg'
+import SignUp from '@/svg/sign_up.svg'
 ---
 
 <BaseLayout>
@@ -10,21 +10,21 @@ import SignIn from '@/svg/sign_in.svg'
     <div class="flex items-center justify-center py-12">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">Log in to LazyLaunch</CardTitle>
+          <CardTitle className="text-center text-2xl">Sign up for LazyLaunch</CardTitle>
         </CardHeader>
         <CardContent>
           <Button className="w-full">Continue with Google</Button>
         </CardContent>
         <CardFooter className="block">
           <div class="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <a href="/signup" class="underline"> Sign up </a>
+            Already have an account?{' '}
+            <a href="/" class="underline"> Sign in </a>
           </div>
         </CardFooter>
       </Card>
     </div>
     <div class="flex items-center justify-center py-12">
-      <img src={SignIn.src} alt="Sign in" class="dark:brightness-[0.2] dark:grayscale" />
+      <img src={SignUp.src} alt="Sign up" class="dark:brightness-[0.2] dark:grayscale" />
     </div>
   </div>
 </BaseLayout>
