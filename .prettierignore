@@ -2,6 +2,8 @@
 *.mdx
 *.md
 node_modules
+migrations
+drizzle
 
 # cache-dirs
 **/.cache

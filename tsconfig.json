@@ -7,7 +7,10 @@
     "paths": {
       "@/*": ["./src/*"],
       "@/layouts/*": ["./src/layouts/*"],
-      "@/svg/*": ["./src/assets/svg/*"]
+      "@/svg/*": ["./src/assets/svg/*"],
+      "@/db/*": ["./src/db/*"],
+      "@/types": ["./src/types.ts"],
+      "@/lib/*": ["./src/lib/*"]
     }
   }
 }

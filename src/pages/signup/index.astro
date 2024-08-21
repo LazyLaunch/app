@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '@/layouts/Base.astro'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import SignUp from '@/svg/sign_up.svg'
+
+if (Astro.locals.user) return Astro.redirect('/')
 ---
 
 <BaseLayout>
@@ -13,7 +15,7 @@ import SignUp from '@/svg/sign_up.svg'
           <CardTitle className="text-center text-2xl">Sign up for LazyLaunch</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button className="w-full">Continue with Google</Button>
+          <a href="/signup/google" class={`${buttonVariants()} w-full`}>Continue with Google</a>
         </CardContent>
         <CardFooter className="block">
           <div class="mt-4 text-center text-sm">
