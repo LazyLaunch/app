@@ -6,6 +6,7 @@ import { getAccountByProvider, linkAccount } from '@/db/models/account'
 import { createUser } from '@/db/models/user'
 import type { SelectSession } from '@/db/schema'
 import type { APIContext } from 'astro'
+import { UserErrorFlowEnum, UserFlow } from '@/types'
 
 const DEFAULT_TYPE = 'oauth'
 const DEFAULT_PROVIDER = 'google'
@@ -55,22 +56,24 @@ export async function GET(context: APIContext): Promise<Response> {
       storedCodeVerifier
     )
     const data = parseJWT(tokens.idToken)!.payload as GoogleUser
-    if (!data.email_verified) return context.redirect('/signup?error=email_not_verified')
+    if (!data.email_verified)
+      return context.redirect(`/signup?error=${UserErrorFlowEnum.EMAIL_NOT_VERIFIED}`)
 
     const account = await getAccountByProvider({
       provider: DEFAULT_PROVIDER,
       providerAccountId: data.sub,
     })
 
-    if (flowType === 'login') {
-      if (!account) return context.redirect('/login?error=not_found')
+    if (flowType === UserFlow.Login) {
+      if (!account) return context.redirect(`/login?error=${UserErrorFlowEnum.ACCOUNT_NOT_FOUND}`)
 
       const session = await lucia.createSession(account.userId, {} as SelectSession)
       const sessionCookie = lucia.createSessionCookie(session.id)
       context.cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
       return context.redirect('/')
-    } else if (flowType === 'signup') {
-      if (account) return context.redirect('/signup?error=already_exists')
+    } else if (flowType === UserFlow.Signup) {
+      if (account)
+        return context.redirect(`/signup?error=${UserErrorFlowEnum.ACCOUNT_ALREADY_EXISTS}`)
 
       const { name, email, picture, sub, exp } = data
       const user = await createUser({ name, email, picture })
@@ -92,7 +95,7 @@ export async function GET(context: APIContext): Promise<Response> {
       return context.redirect('/login')
     }
 
-    return context.redirect('/login?error=invalid_flow')
+    return context.redirect(`/login?error=${UserErrorFlowEnum.INVALID_FLOW}`)
   } catch (e) {
     if (e instanceof OAuth2RequestError) {
       return new Response(null, { status: 400 })

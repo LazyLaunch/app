@@ -3,12 +3,15 @@ import BaseLayout from '@/layouts/Base.astro'
 
 const user = Astro.locals.user
 if (!user) return Astro.redirect('/login')
+
+const csrfToken = Astro.locals.csrfToken
 ---
 
 <BaseLayout>
   <h1>Hi, {user.name}!</h1>
   <p>Your user ID is {user.id}.</p>
-  <form method="post" action="/api/logout">
+  <form method="post" action="/logout">
+    <input type="hidden" name="csrf_token" value={csrfToken} />
     <button>Sign out</button>
   </form>
 </BaseLayout>
