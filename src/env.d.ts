@@ -11,6 +11,7 @@ declare namespace App {
     session: import('lucia').Session | null
     user: import('lucia').User | null
     csrfToken: string | null | undefined
+    formDataParsed?: FormData
   }
 }
 

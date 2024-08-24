@@ -4,8 +4,8 @@ import { parseJWT } from 'oslo/jwt'
 
 import { getAccountByProvider, linkAccount } from '@/db/models/account'
 import { createUser } from '@/db/models/user'
-import type { SelectSession } from '@/db/schema'
-import type { APIContext } from 'astro'
+import type { SelectSession, SelectAccount } from '@/db/schema'
+import type { APIContext, AstroCookies } from 'astro'
 import { UserErrorFlowEnum, UserFlow } from '@/types'
 
 const DEFAULT_TYPE = 'oauth'
@@ -67,9 +67,7 @@ export async function GET(context: APIContext): Promise<Response> {
     if (flowType === UserFlow.Login) {
       if (!account) return context.redirect(`/login?error=${UserErrorFlowEnum.ACCOUNT_NOT_FOUND}`)
 
-      const session = await lucia.createSession(account.userId, {} as SelectSession)
-      const sessionCookie = lucia.createSessionCookie(session.id)
-      context.cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
+      await setSession(account, context.cookies)
       return context.redirect('/')
     } else if (flowType === UserFlow.Signup) {
       if (account)
@@ -79,7 +77,7 @@ export async function GET(context: APIContext): Promise<Response> {
       const user = await createUser({ name, email, picture })
       // const expiresAt = Math.floor(new Date(`${tokens.accessTokenExpiresAt}`).getTime() / 1000)
 
-      await linkAccount({
+      const linkedAccount = await linkAccount({
         userId: user.id,
         type: DEFAULT_TYPE,
         provider: DEFAULT_PROVIDER,
@@ -92,14 +90,22 @@ export async function GET(context: APIContext): Promise<Response> {
         idToken: tokens.idToken,
       })
 
-      return context.redirect('/login')
+      await setSession(linkedAccount, context.cookies)
+      return context.redirect('/get-started')
     }
 
     return context.redirect(`/login?error=${UserErrorFlowEnum.INVALID_FLOW}`)
   } catch (e) {
+    console.warn('DEBUGPRINT[1]: callback.ts:99: e=', e)
     if (e instanceof OAuth2RequestError) {
       return new Response(null, { status: 400 })
     }
     return new Response(null, { status: 500 })
   }
+}
+
+async function setSession(account: SelectAccount, cookies: AstroCookies) {
+  const session = await lucia.createSession(account.userId, {} as SelectSession)
+  const sessionCookie = lucia.createSessionCookie(session.id)
+  cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
 }

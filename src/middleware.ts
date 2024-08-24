@@ -5,19 +5,21 @@ import { createCSRFToken } from '@/lib/csrf-token'
 
 import type { APIContext } from 'astro'
 
-export const onRequest = defineMiddleware(async (context, next) => {
-  if (isSafeMethod(context.request.method)) {
-    await setCSRFTokenInCookie(context)
-  } else {
-    if (validateOrigin(context)) return new Response(null, { status: 403 })
-    const isCsrfValid = await validateCSRFToken(context)
-    if (!isCsrfValid) return new Response('Invalid CSRF token', { status: 403 })
+export const onRequest = defineMiddleware(
+  async (context: APIContext, next: () => Promise<Response>) => {
+    if (isSafeMethod(context.request.method)) {
+      await setCSRFTokenInCookie(context)
+    } else {
+      if (validateOrigin(context)) return new Response(null, { status: 403 })
+      const isCsrfValid = await validateCSRFToken(context)
+      if (!isCsrfValid) return new Response('Invalid CSRF token', { status: 403 })
+    }
+
+    await handleSession(context)
+
+    return next()
   }
-
-  await handleSession(context)
-
-  return next()
-})
+)
 
 async function setCSRFTokenInCookie({ cookies, locals }: APIContext): Promise<void> {
   const csrfToken = cookies.get('csrf_token')?.value
@@ -42,11 +44,11 @@ function validateOrigin({ request }: APIContext): boolean {
   return !isSafeMethod(method) && !verifyOrigin(headers)
 }
 
-async function validateCSRFToken({ request, cookies }: APIContext): Promise<boolean> {
+async function validateCSRFToken({ request, cookies, locals }: APIContext): Promise<boolean> {
   const { headers } = request
 
   const csrfToken = cookies.get('csrf_token')?.value
-  const requestToken = await getCsrfTokenFromRequest(headers, request)
+  const requestToken = await getCsrfTokenFromRequest(headers, request, locals)
 
   const { csrfTokenVerified } = await createCSRFToken({
     cookieValue: csrfToken,
@@ -67,7 +69,11 @@ function verifyOrigin(headers: Headers): boolean {
   return Boolean(originHeader && hostHeader && verifyRequestOrigin(originHeader, [hostHeader]))
 }
 
-async function getCsrfTokenFromRequest(headers: Headers, request: Request): Promise<string | null> {
+async function getCsrfTokenFromRequest(
+  headers: Headers,
+  request: Request,
+  locals: App.Locals
+): Promise<string | null> {
   const contentType = headers.get('Content-Type') || ''
 
   if (contentType.includes('application/json')) {
@@ -80,6 +86,7 @@ async function getCsrfTokenFromRequest(headers: Headers, request: Request): Prom
     contentType.includes('multipart/form-data')
   ) {
     const formData = await request.formData()
+    locals.formDataParsed = formData
     return formData.get('csrf_token') as string
   }
 
