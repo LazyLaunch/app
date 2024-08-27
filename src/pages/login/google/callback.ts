@@ -31,6 +31,8 @@ interface GoogleTokens {
 }
 
 export async function GET(context: APIContext): Promise<Response> {
+  if (context.locals.user) return context.redirect('/')
+
   const searchParams = context.url.searchParams
   const code = searchParams.get('code')
   const state = searchParams.get('state')

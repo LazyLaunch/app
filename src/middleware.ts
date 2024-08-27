@@ -5,6 +5,14 @@ import { createCSRFToken } from '@/lib/csrf-token'
 
 import type { APIContext } from 'astro'
 
+const SKIP_AUTH_URLS: string[] = [
+  '/login',
+  '/login/google',
+  '/login/google/callback',
+  '/signup',
+  '/signup/google',
+]
+
 export const onRequest = defineMiddleware(
   async (context: APIContext, next: () => Promise<Response>) => {
     if (isSafeMethod(context.request.method)) {
@@ -16,6 +24,11 @@ export const onRequest = defineMiddleware(
     }
 
     await handleSession(context)
+
+    const pathname = context.url.pathname
+    if (!SKIP_AUTH_URLS.includes(pathname) && !context.locals.user) {
+      return context.redirect('/login', 302)
+    }
 
     return next()
   }

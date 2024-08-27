@@ -1,0 +1,33 @@
+---
+import BaseLayout from '@/layouts/Base.astro'
+import { UserMenuComponent } from '@/components/UserMenuComponent'
+
+import type { SelectUser } from '@/db/schema'
+
+const user = Astro.locals.user as SelectUser
+const csrfToken = Astro.locals.csrfToken!
+---
+
+<BaseLayout>
+  <div class="flex min-h-screen w-full flex-col bg-muted/40">
+    <aside class="fixed inset-y-0 left-0 z-10 hidden w-14 flex-col border-r bg-background sm:flex">
+      <nav class="flex flex-col items-center gap-4 px-2 sm:py-5">
+        <span
+          class="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
+        >
+          <span>LO</span>
+        </span>
+        <slot name="navLinks" />
+      </nav>
+    </aside>
+    <div class="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+      <header
+        class="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"
+      >
+        <slot name="breadcrumbs" />
+        <UserMenuComponent client:idle user={user} csrfToken={csrfToken} />
+      </header>
+      <slot />
+    </div>
+  </div>
+</BaseLayout>

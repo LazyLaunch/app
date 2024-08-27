@@ -11,7 +11,7 @@ export const usersTable = sqliteTable(
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     email: text('email').notNull(),
-    picture: text('image'),
+    picture: text('picture'),
     updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
@@ -30,7 +30,7 @@ export const usersTable = sqliteTable(
 export const usersRelations = relations(usersTable, ({ many }) => ({
   accounts: many(accountsTable),
   sessions: many(sessionsTable),
-  teams: many(teamsTable)
+  teams: many(teamsTable),
 }))
 
 export const accountsTable = sqliteTable(
@@ -174,8 +174,8 @@ export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
   }),
   team: one(teamsTable, {
     fields: [projectsTable.teamId],
-    references: [teamsTable.id]
-  })
+    references: [teamsTable.id],
+  }),
 }))
 
 export type InsertUser = typeof usersTable.$inferInsert

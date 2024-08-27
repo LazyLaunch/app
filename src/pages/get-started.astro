@@ -1,6 +1,5 @@
 ---
 import slug from 'slug'
-import { getTeamsByUser } from '@/db/models/team'
 import BaseLayout from '@/layouts/Base.astro'
 
 import {
@@ -16,6 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { createProject } from '@/db/models/project'
 import { createTeam } from '@/db/models/team'
+import { anyTeamByUser } from '@/db/models/team'
 
 interface FormProps {
   companyName: string
@@ -23,10 +23,8 @@ interface FormProps {
   address: string
 }
 
-const user = Astro.locals.user
-if (!user) return Astro.redirect('/login')
-const team = await getTeamsByUser(user.id)
-if (team) return Astro.redirect('/')
+const user = Astro.locals.user!
+if (await anyTeamByUser(user.id)) return Astro.redirect('/')
 
 let csrfToken = Astro.locals.csrfToken
 const errors: FormProps = { companyName: '', projectName: '', address: '' }
@@ -90,7 +88,11 @@ if (Astro.request.method === 'POST') {
         </div>
         <div class="grid gap-2">
           <Label>Company Address</Label>
-          <Input type="text" name="address" placeholder="e.g., 456 Oak Road, Unit 8, City, State, 12345" />
+          <Input
+            type="text"
+            name="address"
+            placeholder="e.g., 456 Oak Road, Unit 8, City, State, 12345"
+          />
           <p class="text-sm text-muted-foreground">Enter the address of your company.</p>
           {errors.address && <p class="text-sm font-medium text-destructive">{errors.address}</p>}
         </div>

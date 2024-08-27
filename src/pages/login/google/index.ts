@@ -6,7 +6,9 @@ import type { OauthKeyName, GoogleOAuthScope } from '@/types'
 
 import { OauthKeyNameEnum, GOOGLE_SCOPES, UserFlow } from '@/types'
 
-export async function GET({ cookies, redirect }: APIContext): Promise<Response> {
+export async function GET({ cookies, redirect, locals }: APIContext): Promise<Response> {
+  if (locals.user) return redirect('/')
+
   const state = generateState()
   const codeVerifier = generateCodeVerifier()
   const scopes: GoogleOAuthScope[] = [...GOOGLE_SCOPES]

@@ -1,0 +1,53 @@
+---
+import { getTeamsByUser } from '@/db/models/team'
+
+import { Search, Plus } from 'lucide-react'
+import AccountLayout from '@/layouts/AccountLayout.astro'
+import { buttonVariants } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+import { TeamMenuComponent } from '@/components/team/TeamMenuComponent'
+
+const user = Astro.locals.user!
+const teams = await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] })
+---
+
+<AccountLayout>
+  <div class="mx-auto flex w-full max-w-6xl flex-col space-y-6">
+    <div>
+      <h3 class="text-3xl font-semibold">Teams Overview</h3>
+      <p class="text-sm text-muted-foreground">The teams that are associated with your account.</p>
+    </div>
+    <div class="flex space-x-2.5">
+      <form class="w-full">
+        <div class="relative">
+          <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
+          <Input type="search" placeholder="Search for a team..." className="w-full pl-8" />
+        </div>
+      </form>
+      <a href="/account/new-team" class={buttonVariants()}>
+        <Plus className="mr-2 h-4 w-4" />
+        Create a Team
+      </a>
+    </div>
+    {
+      teams.map((team) => (
+        <Card>
+          <CardContent className="p-3.5 flex justify-between">
+            <div>
+              <CardTitle className="text-sm">
+                <a href={`/${team.slug}`} class="cursor-pointer outline-0 hover:underline">
+                  {team.name}
+                </a>
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground font-normal">
+                Owner
+              </CardDescription>
+            </div>
+            <TeamMenuComponent client:idle team={team} />
+          </CardContent>
+        </Card>
+      ))
+    }
+  </div>
+</AccountLayout>

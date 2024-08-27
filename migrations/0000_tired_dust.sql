@@ -49,7 +49,7 @@ CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
-	`image` text,
+	`picture` text,
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP) NOT NULL
 );

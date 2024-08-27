@@ -1,0 +1,75 @@
+---
+import AppLayout from '@/layouts/AppLayout.astro'
+
+import { Users, Settings } from 'lucide-react'
+
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+
+import { TooltipComponent } from '@/components/TooltipComponent'
+import { BreadcrumbMenuComponent } from '@/components/BreadcrumbMenuComponent'
+import { AvatarComponent } from '@/components/AvatarComponent'
+import { getTeamsByUser } from '@/db/models/team'
+
+import type { UserProps } from '@/components/AvatarComponent'
+import type { ContentRowProps } from '@/components/BreadcrumbMenuComponent'
+
+const user = Astro.locals.user! as UserProps
+
+const teams = (await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] })) || []
+const teamRows: ContentRowProps[] = teams.map((team) => {
+  return {
+    text: `${team.name}`,
+    url: `/${team.slug}`,
+  }
+})
+const currentPath = new URL(Astro.request.url).pathname
+---
+
+<AppLayout>
+  <Fragment slot="navLinks">
+    <TooltipComponent client:load text="Teams" url="/account">
+      <Users className="h-5 w-5" />
+    </TooltipComponent>
+    <TooltipComponent client:load text="Account Settings" url="/account/settings">
+      <Settings className="h-5 w-5" />
+    </TooltipComponent>
+  </Fragment>
+  <Fragment slot="breadcrumbs">
+    <Breadcrumb className="hidden md:flex">
+      <BreadcrumbList>
+        <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
+          <AvatarComponent className="h-6 w-6 text-xs" user={user} client:load />
+          My Account
+          <BreadcrumbMenuComponent
+            client:load
+            title="Teams"
+            btnCreateText="Create a Team"
+            btnCreateUrl="/account/new-team"
+            rows={teamRows}
+            currentPath={currentPath}
+          />
+        </BreadcrumbItem>
+        <BreadcrumbSeparator className="text-gray-300">
+          <svg
+            fill="none"
+            height="16"
+            shape-rendering="geometricPrecision"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            width="16"
+            style="width: 22px; height: 22px;"><path d="M16.88 3.549L7.12 20.451"></path></svg
+          >
+        </BreadcrumbSeparator>
+      </BreadcrumbList>
+    </Breadcrumb>
+  </Fragment>
+  <slot />
+</AppLayout>
