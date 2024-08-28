@@ -28,3 +28,19 @@ export enum UserErrorFlowEnum {
   ACCOUNT_ALREADY_EXISTS = 'already_exists',
   INVALID_FLOW = 'invalid_flow',
 }
+
+export enum ResponseStatus {
+  Success = 'success',
+  Error = 'error',
+}
+
+export enum ResponseCode {
+  Success = 200,
+  Error = 400,
+}
+
+export enum FormActionEnum {
+  Post = 'POST',
+  Put = 'PUT',
+}
+export type FormAction = `${FormActionEnum}`

@@ -26,7 +26,10 @@ export function UserMenuComponent({ user, csrfToken }: Props) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+        <DropdownMenuLabel>
+          <p className="font-medium text-neutral-900">{user.name}</p>
+          <p className="font-light text-muted-foreground">{user.email}</p>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem>Settings</DropdownMenuItem>
         <DropdownMenuItem>Support</DropdownMenuItem>

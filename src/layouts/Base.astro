@@ -1,4 +1,6 @@
 ---
+import { Toaster } from '@/components/ui/sonner'
+
 import '@/styles/globals.css'
 ---
 
@@ -14,5 +16,6 @@ import '@/styles/globals.css'
     <main id="main">
       <slot />
     </main>
+    <Toaster client:idle richColors />
   </body>
 </html>

@@ -1,0 +1,16 @@
+---
+import AccountSettingsLayout from '@/layouts/account/AccountSettingsLayout.astro'
+
+const user = Astro.locals.user!
+const csrfToken: string = Astro.locals.csrfToken!
+
+const title = 'Email Settings'
+const description = 'Manage your email settings and set e-mail preferences.'
+const bodyTitle = 'Add Email'
+const bodyDescription =
+  'Add a new email address to your account. This email, once verified, can be used to login to your account.'
+---
+
+<AccountSettingsLayout {...{ title, description, bodyTitle, bodyDescription }}>
+  This is content
+</AccountSettingsLayout>

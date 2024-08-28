@@ -1,12 +1,15 @@
 ---
-import { getTeamsByUser } from '@/db/models/team'
+import AccountLayout from '@/layouts/account/AccountLayout.astro'
 
 import { Search, Plus } from 'lucide-react'
-import AccountLayout from '@/layouts/AccountLayout.astro'
+
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
+
 import { TeamMenuComponent } from '@/components/team/TeamMenuComponent'
+
+import { getTeamsByUser } from '@/db/models/team'
 
 const user = Astro.locals.user!
 const teams = await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] })
@@ -14,9 +17,9 @@ const teams = await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] }
 
 <AccountLayout>
   <div class="mx-auto flex w-full max-w-6xl flex-col space-y-6">
-    <div>
-      <h3 class="text-3xl font-semibold">Teams Overview</h3>
-      <p class="text-sm text-muted-foreground">The teams that are associated with your account.</p>
+    <div class="space-y-0.5">
+      <h2 class="text-2xl font-bold tracking-tight">Teams Overview</h2>
+      <p class="text-muted-foreground">The teams that are associated with your account.</p>
     </div>
     <div class="flex space-x-2.5">
       <form class="w-full">

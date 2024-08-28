@@ -10,3 +10,7 @@ export async function getUserByEmail(email: string): Promise<SelectUser | undefi
 export async function createUser(data: InsertUser): Promise<SelectUser> {
   return await db.insert(usersTable).values(data).returning().get()
 }
+
+export async function updateUser(userId: string, data: InsertUser): Promise<void> {
+  await db.update(usersTable).set(data).where(eq(usersTable.id, userId))
+}
