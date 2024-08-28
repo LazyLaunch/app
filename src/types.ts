@@ -1,4 +1,6 @@
 export const GOOGLE_SCOPES = ['openid', 'profile', 'email'] as const
+export const CSRF_TOKEN = 'csrfToken'
+
 export type GoogleOAuthScope = (typeof GOOGLE_SCOPES)[number]
 
 export enum ProviderTypeEnum {

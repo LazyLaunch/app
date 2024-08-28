@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import type { FieldError, ControllerRenderProps } from 'react-hook-form'
-import { ResponseStatus } from '@/types'
+import { ResponseStatus, CSRF_TOKEN } from '@/types'
 import type { FormAction } from '@/types'
 
 import { toast } from 'sonner'
@@ -183,9 +183,9 @@ export function CardForm({
     <Form {...form}>
       <form className={className} onSubmit={form.handleSubmit(onSubmit)}>
         <input
-          {...form.register('csrf_token', { required: true })}
+          {...form.register(CSRF_TOKEN, { required: true })}
           type="hidden"
-          name="csrf_token"
+          name={CSRF_TOKEN}
           value={csrfToken}
         />
         <Card>

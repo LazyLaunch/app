@@ -12,6 +12,8 @@ import { AvatarComponent } from '@/components/AvatarComponent'
 
 import type { UserProps } from '@/components/AvatarComponent'
 
+import { CSRF_TOKEN } from '@/types'
+
 interface Props {
   csrfToken: string
   user: UserProps
@@ -36,7 +38,7 @@ export function UserMenuComponent({ user, csrfToken }: Props) {
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <form method="POST" action="/logout">
-            <input type="hidden" name="csrf_token" value={csrfToken} />
+            <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
             <input type="submit" value="Logout" />
           </form>
         </DropdownMenuItem>

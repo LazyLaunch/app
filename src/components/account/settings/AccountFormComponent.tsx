@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 
 import type { Resolver } from 'react-hook-form'
 
-import { ResponseStatus } from '@/types'
+import { ResponseStatus, CSRF_TOKEN } from '@/types'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,7 @@ type FormValues = {
   name: string
   username: string
   email: string
-  csrf_token: string
+  csrfToken: string
 }
 
 const resolver: Resolver<FormValues> = async (values) => {
@@ -81,7 +81,7 @@ export function AccountFormComponent({ user, csrfToken }: Props) {
       name: user.name,
       username: '',
       email: user.email,
-      csrf_token: csrfToken,
+      csrfToken: csrfToken,
     },
   })
 
@@ -112,9 +112,9 @@ export function AccountFormComponent({ user, csrfToken }: Props) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <input
-          {...form.register('csrf_token', { required: true })}
+          {...form.register(CSRF_TOKEN, { required: true })}
           type="hidden"
-          name="csrf_token"
+          name={CSRF_TOKEN}
           value={csrfToken}
         />
         <FormField

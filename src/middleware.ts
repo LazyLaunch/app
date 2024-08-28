@@ -5,6 +5,8 @@ import { createCSRFToken } from '@/lib/csrf-token'
 
 import type { APIContext } from 'astro'
 
+import { CSRF_TOKEN } from '@/types'
+
 const SKIP_AUTH_URLS: string[] = [
   '/login',
   '/login/google',
@@ -35,13 +37,13 @@ export const onRequest = defineMiddleware(
 )
 
 async function setCSRFTokenInCookie({ cookies, locals }: APIContext): Promise<void> {
-  const csrfToken = cookies.get('csrf_token')?.value
+  const csrfToken = cookies.get(CSRF_TOKEN)?.value
 
   if (csrfToken) {
     locals.csrfToken = csrfToken.split('|')[0]
   } else {
     const { cookie: cookieValue, csrfToken } = await createCSRFToken({})
-    cookies.set('csrf_token', cookieValue, {
+    cookies.set(CSRF_TOKEN, cookieValue, {
       path: '/',
       httpOnly: true,
       secure: import.meta.env.PROD,
@@ -60,7 +62,7 @@ function validateOrigin({ request }: APIContext): boolean {
 async function validateCSRFToken({ request, cookies, locals }: APIContext): Promise<boolean> {
   const { headers } = request
 
-  const csrfToken = cookies.get('csrf_token')?.value
+  const csrfToken = cookies.get(CSRF_TOKEN)?.value
   const requestToken = await getCsrfTokenFromRequest(headers, request, locals)
 
   const { csrfTokenVerified } = await createCSRFToken({
@@ -91,7 +93,7 @@ async function getCsrfTokenFromRequest(
 
   if (contentType.includes('application/json')) {
     const body = await request.json()
-    return body.csrf_token
+    return body.csrfToken
   }
 
   if (
@@ -100,7 +102,7 @@ async function getCsrfTokenFromRequest(
   ) {
     const formData = await request.formData()
     locals.formDataParsed = formData
-    return formData.get('csrf_token') as string
+    return formData.get(CSRF_TOKEN) as string
   }
 
   return headers.get('x-csrf-token')

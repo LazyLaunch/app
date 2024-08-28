@@ -2,6 +2,8 @@
 import slug from 'slug'
 import BaseLayout from '@/layouts/Base.astro'
 
+import { CSRF_TOKEN } from '@/types'
+
 import {
   Card,
   CardContent,
@@ -32,7 +34,7 @@ const errors: FormProps = { companyName: '', projectName: '', address: '' }
 if (Astro.request.method === 'POST') {
   const data = Astro.locals.formDataParsed || new Map()
   let isValid: boolean = true
-  csrfToken = data.get('csrf_token')
+  csrfToken = data.get(CSRF_TOKEN)
 
   const companyName = data.get('companyName')
   const projectName = data.get('projectName')
@@ -67,7 +69,7 @@ if (Astro.request.method === 'POST') {
 
 <BaseLayout>
   <form method="POST">
-    <input type="hidden" name="csrf_token" value={csrfToken} />
+    <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
     <Card className="mx-auto mt-8 max-w-xl">
       <CardHeader>
         <CardTitle>Let's set up your account</CardTitle>
