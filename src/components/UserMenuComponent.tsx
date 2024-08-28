@@ -37,7 +37,7 @@ export function UserMenuComponent({ user, csrfToken }: Props) {
         <DropdownMenuItem>Support</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <form method="POST" action="/logout">
+          <form method="POST" action="/api/user/logout">
             <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
             <input type="submit" value="Logout" />
           </form>

@@ -1,3 +1,6 @@
+import * as React from 'react'
+
+import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import type { FieldError, ControllerRenderProps } from 'react-hook-form'
 import { ResponseStatus, CSRF_TOKEN } from '@/types'
@@ -152,6 +155,7 @@ export function CardForm({
   successMsg,
   errorMsg,
 }: Props) {
+  const [isLoading, setLoading] = React.useState(false)
   const form = useForm({
     defaultValues: {
       [inputName]: inputVal,
@@ -161,8 +165,12 @@ export function CardForm({
     string,
     CustomFieldError
   >
+  const isDirty: boolean = form.formState.isDirty
 
   async function onSubmit(values: object) {
+    if (!isDirty) return
+    setLoading(true)
+
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value)
@@ -172,11 +180,13 @@ export function CardForm({
       body: formData,
     })
     const data = await response.json()
+    setLoading(false)
     if (data.status === ResponseStatus.Success) {
-      return toast.info('Account Settings', { duration: 5000, description: successMsg })
+      form.reset(values)
+      return toast.info(title, { duration: 5000, description: successMsg })
     }
 
-    toast.error('Account Settings', { duration: 5000, description: errorMsg })
+    toast.error(title, { duration: 5000, description: errorMsg })
   }
 
   return (
@@ -209,8 +219,14 @@ export function CardForm({
           </CardContent>
           <CardFooter className="justify-between border-t bg-muted py-3">
             <FormDescription dangerouslySetInnerHTML={{ __html: footerTitle }} />
-            <Button type="submit" size="sm">
-              {btnName}
+            <Button disabled={isLoading || !isDirty} type="submit" size="sm">
+              {isLoading && (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait
+                </>
+              )}
+              {!isLoading && btnName}
             </Button>
           </CardFooter>
         </Card>
