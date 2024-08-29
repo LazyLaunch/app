@@ -1,12 +1,16 @@
+import slug from 'slug'
+
 import { googleAuth, lucia } from '@/lib/auth'
 import { OAuth2RequestError } from 'arctic'
+import { generateRandomString, alphabet } from 'oslo/crypto'
 import { parseJWT } from 'oslo/jwt'
 
 import { getAccountByProvider, linkAccount } from '@/db/models/account'
 import { createUser } from '@/db/models/user'
+import { createEmail } from '@/db/models/email'
 import type { SelectSession, SelectAccount } from '@/db/schema'
 import type { APIContext, AstroCookies } from 'astro'
-import { UserErrorFlowEnum, UserFlowEnum } from '@/types'
+import { UserErrorFlowEnum, UserFlowEnum, SLUG_RANDOM_STRING_SIZE } from '@/types'
 
 const DEFAULT_TYPE = 'oauth'
 const DEFAULT_PROVIDER = 'google'
@@ -75,8 +79,17 @@ export async function GET(context: APIContext): Promise<Response> {
       if (account)
         return context.redirect(`/signup?error=${UserErrorFlowEnum.ACCOUNT_ALREADY_EXISTS}`)
 
-      const { name, email, picture, sub, exp } = data
-      const user = await createUser({ name, email, picture })
+      const { name, email, email_verified, picture, sub, exp } = data
+      const username = slug(
+        `${name}-${generateRandomString(SLUG_RANDOM_STRING_SIZE, alphabet('a-z', '0-9'))}`
+      )
+      const user = await createUser({
+        name,
+        email,
+        picture,
+        username,
+      })
+      await createEmail({ name: email, userId: user.id, verified: email_verified })
       // const expiresAt = Math.floor(new Date(`${tokens.accessTokenExpiresAt}`).getTime() / 1000)
 
       const linkedAccount = await linkAccount({
@@ -107,7 +120,7 @@ export async function GET(context: APIContext): Promise<Response> {
 }
 
 async function setSession(account: SelectAccount, cookies: AstroCookies) {
-  const session = await lucia.createSession(account.userId, {} as SelectSession)
+  const session = await lucia.createSession(`${account.userId}`, {} as SelectSession)
   const sessionCookie = lucia.createSessionCookie(session.id)
   cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
 }

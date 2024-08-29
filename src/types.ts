@@ -1,5 +1,6 @@
 export const GOOGLE_SCOPES = ['openid', 'profile', 'email'] as const
 export const CSRF_TOKEN = 'csrfToken' as const
+export const SLUG_RANDOM_STRING_SIZE = 8 as const
 
 export type GoogleOAuthScope = (typeof GOOGLE_SCOPES)[number]
 

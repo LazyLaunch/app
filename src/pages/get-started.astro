@@ -1,5 +1,4 @@
 ---
-import slug from 'slug'
 import BaseLayout from '@/layouts/Base.astro'
 
 import { CSRF_TOKEN } from '@/types'
@@ -54,10 +53,9 @@ if (Astro.request.method === 'POST') {
   }
 
   if (isValid) {
-    const team = await createTeam({ name: companyName, slug: slug(companyName), userId: user.id })
+    const team = await createTeam({ name: companyName, userId: user.id })
     await createProject({
       name: projectName,
-      slug: slug(projectName),
       userId: user.id,
       teamId: team.id,
     })

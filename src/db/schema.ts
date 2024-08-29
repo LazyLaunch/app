@@ -5,24 +5,23 @@ import type { ProviderType } from '@/types'
 export const usersTable = sqliteTable(
   'users',
   {
-    id: text('id')
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
     name: text('name').notNull(),
+    username: text('username').notNull(),
     email: text('email').notNull(),
     picture: text('picture'),
-    updatedAt: text('updated_at')
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at')
+    createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
       userEmailIdx: uniqueIndex('users_email_idx').on(table.email),
+      userUsernameIdx: uniqueIndex('users_username_idx').on(table.username),
     }
   }
 )
@@ -31,28 +30,54 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   accounts: many(accountsTable),
   sessions: many(sessionsTable),
   teams: many(teamsTable),
+  emails: many(emailsTable),
+}))
+
+export const emailsTable = sqliteTable(
+  'emails',
+  {
+    name: text('name').notNull().primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => usersTable.id, { onDelete: 'cascade' }),
+    verified: integer('verified', { mode: 'boolean' }).notNull().default(false),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    createdAt: integer('created_at', { mode: 'timestamp' })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    emailUserIdx: index('emails_user_idx').on(table.userId),
+  })
+)
+
+export const emailsRelations = relations(emailsTable, ({ one }) => ({
+  user: one(usersTable),
 }))
 
 export const accountsTable = sqliteTable(
   'accounts',
   {
-    userId: text('user_id')
+    provider: text('provider').notNull(),
+    providerAccountId: text('provider_account_id').notNull(),
+    userId: integer('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     type: text('type').$type<ProviderType>().notNull(),
-    provider: text('provider').notNull(),
-    providerAccountId: text('provider_account_id').notNull(),
     refreshToken: text('refresh_token'),
     accessToken: text('access_token'),
     expiresAt: integer('expires_at'),
     tokenType: text('token_type'),
     scope: text('scope'),
     idToken: text('id_token'),
-    updatedAt: text('updated_at')
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at')
+    createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -78,12 +103,12 @@ export const sessionsTable = sqliteTable(
       .primaryKey()
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: text('user_id')
+    userId: integer('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     expiresAt: integer('expires_at').notNull(),
     fresh: integer('fresh', { mode: 'boolean' }),
-    createdAt: text('created_at')
+    createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -104,20 +129,17 @@ export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
 export const teamsTable = sqliteTable(
   'teams',
   {
-    id: text('id')
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
-    userId: text('user_id')
+    userId: integer('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    updatedAt: text('updated_at')
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at')
+    createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -140,21 +162,18 @@ export const teamsRelations = relations(teamsTable, ({ one, many }) => ({
 export const projectsTable = sqliteTable(
   'projects',
   {
-    id: text('id')
-      .primaryKey()
-      .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
-    teamId: text('team_id')
+    teamId: integer('team_id')
       .notNull()
       .references(() => teamsTable.id, { onDelete: 'cascade' }),
-    userId: text('user_id').notNull(),
-    updatedAt: text('updated_at')
+    userId: integer('user_id').notNull(),
+    updatedAt: integer('updated_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at')
+    createdAt: integer('created_at', { mode: 'timestamp' })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -192,3 +211,6 @@ export type SelectTeam = typeof teamsTable.$inferSelect
 
 export type InsertProject = typeof projectsTable.$inferInsert
 export type SelectProject = typeof projectsTable.$inferSelect
+
+export type InsertEmail = typeof emailsTable.$inferInsert
+export type SelectEmail = typeof emailsTable.$inferSelect
