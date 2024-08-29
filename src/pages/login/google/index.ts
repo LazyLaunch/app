@@ -4,7 +4,7 @@ import { googleAuth } from '@/lib/auth'
 import type { APIContext, AstroCookies } from 'astro'
 import type { OauthKeyName, GoogleOAuthScope } from '@/types'
 
-import { OauthKeyNameEnum, GOOGLE_SCOPES, UserFlow } from '@/types'
+import { OauthKeyNameEnum, GOOGLE_SCOPES, UserFlowEnum } from '@/types'
 
 export async function GET({ cookies, redirect, locals }: APIContext): Promise<Response> {
   if (locals.user) return redirect('/')
@@ -17,7 +17,7 @@ export async function GET({ cookies, redirect, locals }: APIContext): Promise<Re
 
   setCookie(cookies, OauthKeyNameEnum.GoogleOauthState, state)
   setCookie(cookies, OauthKeyNameEnum.GoogleOauthCodeVerifier, codeVerifier)
-  setCookie(cookies, OauthKeyNameEnum.GoogleOauthFlow, UserFlow.Login)
+  setCookie(cookies, OauthKeyNameEnum.GoogleOauthFlow, UserFlowEnum.Login)
 
   return redirect(url.toString())
 }

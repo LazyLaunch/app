@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 
 import type { Resolver } from 'react-hook-form'
 
-import { ResponseStatus, CSRF_TOKEN } from '@/types'
+import { ResponseStatusEnum, CSRF_TOKEN } from '@/types'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -95,7 +95,7 @@ export function AccountFormComponent({ user, csrfToken }: Props) {
       body: formData,
     })
     const data = await response.json()
-    if (data.status === ResponseStatus.Success) {
+    if (data.status === ResponseStatusEnum.Success) {
       return toast.info('Account Settings', {
         duration: 5000,
         description: 'Your informations have been updated.',

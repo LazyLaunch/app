@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Loader2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import type { FieldError, ControllerRenderProps } from 'react-hook-form'
-import { ResponseStatus, CSRF_TOKEN } from '@/types'
+import { ResponseStatusEnum, CSRF_TOKEN } from '@/types'
 import type { FormAction } from '@/types'
 
 import { toast } from 'sonner'
@@ -181,7 +181,7 @@ export function CardForm({
     })
     const data = await response.json()
     setLoading(false)
-    if (data.status === ResponseStatus.Success) {
+    if (data.status === ResponseStatusEnum.Success) {
       form.reset(values)
       return toast.info(title, { duration: 5000, description: successMsg })
     }

@@ -6,7 +6,7 @@ import { getAccountByProvider, linkAccount } from '@/db/models/account'
 import { createUser } from '@/db/models/user'
 import type { SelectSession, SelectAccount } from '@/db/schema'
 import type { APIContext, AstroCookies } from 'astro'
-import { UserErrorFlowEnum, UserFlow } from '@/types'
+import { UserErrorFlowEnum, UserFlowEnum } from '@/types'
 
 const DEFAULT_TYPE = 'oauth'
 const DEFAULT_PROVIDER = 'google'
@@ -66,12 +66,12 @@ export async function GET(context: APIContext): Promise<Response> {
       providerAccountId: data.sub,
     })
 
-    if (flowType === UserFlow.Login) {
+    if (flowType === UserFlowEnum.Login) {
       if (!account) return context.redirect(`/login?error=${UserErrorFlowEnum.ACCOUNT_NOT_FOUND}`)
 
       await setSession(account, context.cookies)
       return context.redirect('/')
-    } else if (flowType === UserFlow.Signup) {
+    } else if (flowType === UserFlowEnum.Signup) {
       if (account)
         return context.redirect(`/signup?error=${UserErrorFlowEnum.ACCOUNT_ALREADY_EXISTS}`)
 

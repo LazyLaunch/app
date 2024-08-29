@@ -1,7 +1,7 @@
 import type { APIContext } from 'astro'
 
 import type { InsertUser } from '@/db/schema'
-import { ResponseStatus, ResponseCode, CSRF_TOKEN } from '@/types'
+import { ResponseStatusEnum, ResponseCodeEnum, CSRF_TOKEN } from '@/types'
 
 import { updateUser } from '@/db/models/user'
 
@@ -31,10 +31,10 @@ export async function PUT(context: APIContext): Promise<Response> {
     if (!VALID_FIELDS.includes(key as (typeof VALID_FIELDS)[number])) {
       return new Response(
         JSON.stringify({
-          status: ResponseStatus.Error,
+          status: ResponseStatusEnum.Error,
           message: `Couldn't find field: ${key}.`,
         }),
-        { status: ResponseCode.Error }
+        { status: ResponseCodeEnum.Error }
       )
     }
 
@@ -42,10 +42,10 @@ export async function PUT(context: APIContext): Promise<Response> {
     if (!validateField(key, val)) {
       return new Response(
         JSON.stringify({
-          status: ResponseStatus.Error,
+          status: ResponseStatusEnum.Error,
           message: `${key} is not valid.`,
         }),
-        { status: ResponseCode.Error }
+        { status: ResponseCodeEnum.Error }
       )
     }
 
@@ -57,9 +57,9 @@ export async function PUT(context: APIContext): Promise<Response> {
 
   return new Response(
     JSON.stringify({
-      status: ResponseStatus.Success,
+      status: ResponseStatusEnum.Success,
     }),
-    { status: ResponseCode.Success }
+    { status: ResponseCodeEnum.Success }
   )
 }
 

@@ -1,5 +1,5 @@
 export const GOOGLE_SCOPES = ['openid', 'profile', 'email'] as const
-export const CSRF_TOKEN = 'csrfToken'
+export const CSRF_TOKEN = 'csrfToken' as const
 
 export type GoogleOAuthScope = (typeof GOOGLE_SCOPES)[number]
 
@@ -19,7 +19,7 @@ export enum OauthKeyNameEnum {
 export type ProviderType = `${ProviderTypeEnum}`
 export type OauthKeyName = `${OauthKeyNameEnum}`
 
-export enum UserFlow {
+export enum UserFlowEnum {
   Signup = 'signup',
   Login = 'login',
 }
@@ -31,12 +31,12 @@ export enum UserErrorFlowEnum {
   INVALID_FLOW = 'invalid_flow',
 }
 
-export enum ResponseStatus {
+export enum ResponseStatusEnum {
   Success = 'success',
   Error = 'error',
 }
 
-export enum ResponseCode {
+export enum ResponseCodeEnum {
   Success = 200,
   Error = 400,
 }
