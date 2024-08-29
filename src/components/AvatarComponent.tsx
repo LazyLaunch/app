@@ -18,7 +18,7 @@ export function AvatarComponent({ user, className }: Props) {
   return (
     <Avatar className={cn(className)}>
       <AvatarImage src={user.picture} alt={user.name} />
-      <AvatarFallback className="bg-alpha-100">{avaInitials(user.name)}</AvatarFallback>
+      <AvatarFallback className="bg-card">{avaInitials(user.name)}</AvatarFallback>
     </Avatar>
   )
 }
