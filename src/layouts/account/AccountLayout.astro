@@ -27,15 +27,22 @@ const teamRows: ContentRowProps[] = teams.map((team) => {
     url: `/${team.slug}`,
   }
 })
-const currentPath = new URL(Astro.request.url).pathname
+const currentPath: string = new URL(Astro.request.url).pathname as string
 ---
 
 <AppLayout>
   <Fragment slot="navLinks">
-    <TooltipComponent client:load text="Teams" url="/account">
+    <TooltipComponent client:load currentPath={currentPath} text="Teams" url="/account">
       <Users className="h-5 w-5" />
     </TooltipComponent>
-    <TooltipComponent client:load text="Account Settings" url="/account/settings">
+    <TooltipComponent
+      client:load
+      currentPath={currentPath}
+      segments={2}
+      nestedUrl="/account"
+      text="Account Settings"
+      url="/account/settings"
+    >
       <Settings className="h-5 w-5" />
     </TooltipComponent>
   </Fragment>

@@ -32,10 +32,10 @@ const Link = ({ children, url, active, className }: LinkProps) => (
   <a
     href={url}
     className={cn(
-      'flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm hover:text-accent-foreground hover:bg-muted',
+      'flex w-full cursor-pointer items-center justify-between rounded px-2.5 py-1.5 text-sm hover:bg-muted hover:text-accent-foreground',
       className,
       {
-        'bg-muted': active
+        'bg-muted': active,
       }
     )}
   >
@@ -62,7 +62,11 @@ export function BreadcrumbMenuComponent({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="iconSm" className="data-[state=open]:bg-accent text-gray-500 hover:text-gray-500">
+        <Button
+          variant="ghost"
+          size="iconSm"
+          className="text-gray-500 hover:text-gray-500 data-[state=open]:bg-accent"
+        >
           <ChevronsUpDown size={16} strokeWidth={1.5} className="h-5 w-5" />
         </Button>
       </PopoverTrigger>

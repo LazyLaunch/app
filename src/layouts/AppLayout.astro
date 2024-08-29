@@ -2,9 +2,9 @@
 import BaseLayout from '@/layouts/Base.astro'
 import { UserMenuComponent } from '@/components/UserMenuComponent'
 
-import type { SelectUser } from '@/db/schema'
+import type { UserProps } from '@/components/AvatarComponent'
 
-const user = Astro.locals.user as SelectUser
+const user = Astro.locals.user as UserProps
 const csrfToken = Astro.locals.csrfToken!
 ---
 
