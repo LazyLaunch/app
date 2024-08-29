@@ -1,3 +1,4 @@
+import { Settings, LogOut } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,19 +28,25 @@ export function UserMenuComponent({ user, csrfToken }: Props) {
           <AvatarComponent user={user} className="h-full w-full" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel>
           <p className="font-medium text-neutral-900">{user.name}</p>
           <p className="font-light text-muted-foreground">{user.email}</p>
         </DropdownMenuLabel>
+        <DropdownMenuItem className="font-light leading-7 text-muted-foreground hover:text-muted">
+          <a href="/account" className="flex w-full justify-between">
+            Settings
+            <Settings className="h-4 w-4 self-center" />
+          </a>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Settings</DropdownMenuItem>
-        <DropdownMenuItem>Support</DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <form method="POST" action="/api/user/logout">
+        <DropdownMenuItem className="font-light leading-7 text-muted-foreground hover:text-muted">
+          <form method="POST" action="/api/user/logout" className="w-full">
             <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
-            <input type="submit" value="Logout" />
+            <button type="submit" className="flex w-full justify-between">
+              Logout
+              <LogOut className="h-4 w-4 self-center" />
+            </button>
           </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
