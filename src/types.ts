@@ -35,11 +35,15 @@ export enum UserErrorFlowEnum {
 export enum ResponseStatusEnum {
   Success = 'success',
   Error = 'error',
+  NotFound = 'not_found',
+  Unauthorized = 'unauthorized'
 }
 
 export enum ResponseCodeEnum {
   Success = 200,
   Error = 400,
+  NotFound = 404,
+  Unauthorized = 401
 }
 
 export enum FormActionEnum {

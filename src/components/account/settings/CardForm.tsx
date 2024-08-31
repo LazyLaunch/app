@@ -1,21 +1,16 @@
+import { actions, isInputError } from 'astro:actions'
 import * as React from 'react'
 
+import { cn } from '@/lib/utils'
+import { CSRF_TOKEN } from '@/types'
 import { Loader2 } from 'lucide-react'
+import type { ControllerRenderProps, FieldError, RegisterOptions } from 'react-hook-form'
 import { useForm } from 'react-hook-form'
-import type { FieldError, ControllerRenderProps } from 'react-hook-form'
-import { ResponseStatusEnum, CSRF_TOKEN } from '@/types'
-import type { FormAction } from '@/types'
 
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Form,
@@ -26,7 +21,13 @@ import {
   FormLabel,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 enum FieldTypeEnum {
   Text = 'text',
@@ -34,7 +35,11 @@ enum FieldTypeEnum {
 }
 type FieldType = `${FieldTypeEnum}`
 
-type CustomFieldError = Omit<FieldError, 'type'> & {
+export interface FormValues {
+  [key: string]: string | number | undefined
+}
+
+export type CustomFieldError = Omit<FieldError, 'type'> & {
   type?: string
 }
 
@@ -47,9 +52,10 @@ interface BadgeProps {
   type: string
 }
 
-interface SelectItem {
+export interface SelectItem {
   val: string
   text: string
+  disabled: boolean
   badges?: BadgeProps[]
 }
 
@@ -70,7 +76,7 @@ interface TextFieldProps {
 
 interface Props {
   inputName: string
-  inputVal: string | null | undefined
+  inputVal: string | number | undefined
   csrfToken: string
   btnName?: string
   title: string
@@ -80,13 +86,12 @@ interface Props {
   footerTitle: string
   fieldType?: FieldType
   selectItems?: SelectItem[]
-  apiUrl: string
-  method: FormAction
   successMsg: string
-  errorMsg: string
+  validationRules?: RegisterOptions
+  handleCallback?: (values: FormValues) => void
 }
 
-function FormErrorMessage({ children }: any) {
+export function FormErrorMessage({ children }: any) {
   if (!children) return
 
   return <p className="text-sm font-normal text-destructive">{children}</p>
@@ -109,8 +114,13 @@ function selectField({
           </SelectTrigger>
         </FormControl>
         <SelectContent>
-          {selectItems.map(({ val, text, badges = [] }, index) => (
-            <SelectItem key={val + index} value={val}>
+          {selectItems.map(({ val, text, disabled, badges = [] }, index) => (
+            <SelectItem
+              disabled={disabled}
+              key={val + index}
+              value={val}
+              className={cn(disabled && 'disabled')}
+            >
               {text}
               {badges.map((badge, index) => (
                 <Badge className="ml-2" key={badge.text + index}>
@@ -150,13 +160,12 @@ export function CardForm({
   inputType,
   fieldType = FieldTypeEnum.Text,
   selectItems = [],
-  apiUrl,
-  method,
   successMsg,
-  errorMsg,
+  validationRules = {},
+  handleCallback,
 }: Props) {
   const [isLoading, setLoading] = React.useState(false)
-  const form = useForm({
+  const form = useForm<FormValues>({
     defaultValues: {
       [inputName]: inputVal,
     },
@@ -167,26 +176,29 @@ export function CardForm({
   >
   const isDirty: boolean = form.formState.isDirty
 
-  async function onSubmit(values: object) {
+  async function onSubmit(values: FormValues) {
     if (!isDirty) return
     setLoading(true)
 
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
-      formData.append(key, value)
+      formData.append(key, value?.toString() || '')
     }
-    const response = await fetch(apiUrl as string, {
-      method,
-      body: formData,
-    })
-    const data = await response.json()
+    const { error } = await actions.user.update(formData)
     setLoading(false)
-    if (data.status === ResponseStatusEnum.Success) {
-      form.reset(values)
-      return toast.info(title, { duration: 5000, description: successMsg })
+    if (isInputError(error)) {
+      const { fields } = error
+
+      for (const key of Object.keys(fields)) {
+        const message = fields[key as keyof typeof fields]?.[0]
+        form.setError(key, { message })
+      }
+      return
     }
 
-    toast.error(title, { duration: 5000, description: errorMsg })
+    form.reset(values)
+    handleCallback && handleCallback(values)
+    return toast.info(title, { duration: 5000, description: successMsg })
   }
 
   return (
@@ -206,9 +218,7 @@ export function CardForm({
             <FormField
               control={form.control}
               name={inputName}
-              rules={{
-                required: 'Name cant be empty',
-              }}
+              rules={validationRules}
               render={({ field }) => {
                 if (FieldTypeEnum.Select === fieldType)
                   return selectField({ field, label, selectItems, errors })

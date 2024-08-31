@@ -16,7 +16,7 @@ export const lucia = new Lucia(adapter, {
       secure: import.meta.env.PROD,
     },
   },
-  getUserAttributes: ({ name, email, picture }) => ({ name, email, picture }),
+  getUserAttributes: ({ name, username, email, picture }) => ({ name, username, email, picture }),
 })
 
 export const googleAuth = new Google(

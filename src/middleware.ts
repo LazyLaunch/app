@@ -1,8 +1,9 @@
 import { lucia } from '@/lib/auth'
-import { verifyRequestOrigin } from 'oslo/request'
-import { defineMiddleware } from 'astro:middleware'
 import { createCSRFToken } from '@/lib/csrf-token'
+import { defineMiddleware } from 'astro:middleware'
+import { verifyRequestOrigin } from 'oslo/request'
 
+import type { SelectUser } from '@/db/schema'
 import type { APIContext } from 'astro'
 
 import { CSRF_TOKEN } from '@/types'
@@ -100,7 +101,7 @@ async function getCsrfTokenFromRequest(
     contentType.includes('application/x-www-form-urlencoded') ||
     contentType.includes('multipart/form-data')
   ) {
-    const formData = await request.formData()
+    const formData = await request.clone().formData()
     locals.formDataParsed = formData
     return formData.get(CSRF_TOKEN) as string
   }
@@ -125,7 +126,7 @@ async function handleSession({ cookies, locals }: APIContext): Promise<void> {
       cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
     }
     locals.session = session
-    locals.user = user
+    locals.user = user as SelectUser
   } else {
     const sessionCookie = lucia.createBlankSessionCookie()
     cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)

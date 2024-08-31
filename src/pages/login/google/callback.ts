@@ -2,15 +2,15 @@ import slug from 'slug'
 
 import { googleAuth, lucia } from '@/lib/auth'
 import { OAuth2RequestError } from 'arctic'
-import { generateRandomString, alphabet } from 'oslo/crypto'
+import { alphabet, generateRandomString } from 'oslo/crypto'
 import { parseJWT } from 'oslo/jwt'
 
 import { getAccountByProvider, linkAccount } from '@/db/models/account'
+import { createEmail, existsPrimaryEmail } from '@/db/models/email'
 import { createUser } from '@/db/models/user'
-import { createEmail } from '@/db/models/email'
-import type { SelectSession, SelectAccount } from '@/db/schema'
+import type { SelectAccount, SelectSession } from '@/db/schema'
+import { SLUG_RANDOM_STRING_SIZE, UserErrorFlowEnum, UserFlowEnum } from '@/types'
 import type { APIContext, AstroCookies } from 'astro'
-import { UserErrorFlowEnum, UserFlowEnum, SLUG_RANDOM_STRING_SIZE } from '@/types'
 
 const DEFAULT_TYPE = 'oauth'
 const DEFAULT_PROVIDER = 'google'
@@ -89,7 +89,13 @@ export async function GET(context: APIContext): Promise<Response> {
         picture,
         username,
       })
-      await createEmail({ name: email, userId: user.id, verified: email_verified })
+      const isExistsPrimaryEmail = await existsPrimaryEmail(email, user.id)
+      await createEmail({
+        name: email,
+        userId: user.id,
+        verified: email_verified,
+        primary: !isExistsPrimaryEmail,
+      })
       // const expiresAt = Math.floor(new Date(`${tokens.accessTokenExpiresAt}`).getTime() / 1000)
 
       const linkedAccount = await linkAccount({

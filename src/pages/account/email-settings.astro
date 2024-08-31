@@ -1,11 +1,21 @@
 ---
+import { EmailSettingsContainer } from '@/containers/emails/EmailSettingsContainer'
+import type { EmailProps } from '@/containers/emails/EmailSettingsContainer'
 import AccountSettingsLayout from '@/layouts/account/AccountSettingsLayout.astro'
+
+import { getEmailsByUser } from '@/db/models/email'
 
 const user = Astro.locals.user!
 const csrfToken: string = Astro.locals.csrfToken!
 
+const emails: EmailProps[] = (await getEmailsByUser({
+  userId: user.id,
+  fields: ['name', 'verified', 'primary'],
+})) as EmailProps[]
 const title = 'Email Settings'
 const description = 'Manage your email settings and set e-mail preferences.'
 ---
 
-<AccountSettingsLayout {...{ title, description }}> This is content </AccountSettingsLayout>
+<AccountSettingsLayout {...{ title, description }}>
+  <EmailSettingsContainer client:only="react" initialEmails={emails} csrfToken={csrfToken} />
+</AccountSettingsLayout>

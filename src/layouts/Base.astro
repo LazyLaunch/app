@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions'
+
 import { Toaster } from '@/components/ui/sonner'
 
 import '@/styles/globals.css'
@@ -11,11 +13,12 @@ import '@/styles/globals.css'
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <title>Astro</title>
+    <ViewTransitions />
   </head>
   <body class="min-h-screen bg-background font-sans antialiased">
     <main id="main">
       <slot />
     </main>
-    <Toaster client:idle richColors />
+    <Toaster transition:persist client:idle richColors />
   </body>
 </html>

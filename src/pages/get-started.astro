@@ -1,4 +1,5 @@
 ---
+import { actions, isInputError } from 'astro:actions'
 import BaseLayout from '@/layouts/Base.astro'
 
 import { CSRF_TOKEN } from '@/types'
@@ -14,59 +15,26 @@ import {
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { createProject } from '@/db/models/project'
-import { createTeam } from '@/db/models/team'
-import { anyTeamByUser } from '@/db/models/team'
-
-interface FormProps {
-  companyName: string
-  projectName: string
-  address: string
-}
+import { existsTeam } from '@/db/models/team'
 
 const user = Astro.locals.user!
-if (await anyTeamByUser(user.id)) return Astro.redirect('/')
+if (await existsTeam(user.id)) return Astro.redirect('/')
 
-let csrfToken = Astro.locals.csrfToken
-const errors: FormProps = { companyName: '', projectName: '', address: '' }
+const csrfToken = Astro.locals.csrfToken
 
-if (Astro.request.method === 'POST') {
-  const data = Astro.locals.formDataParsed || new Map()
-  let isValid: boolean = true
-  csrfToken = data.get(CSRF_TOKEN)
+const result = Astro.getActionResult(actions.team.init)
+const errors: Record<string, string> = {}
+if (result && isInputError(result.error)) {
+  const { fields } = result.error
 
-  const companyName = data.get('companyName')
-  const projectName = data.get('projectName')
-  const address = data.get('address')
-
-  if (typeof companyName !== 'string' || companyName.length < 1) {
-    isValid = false
-    errors.companyName += 'Please enter an company name.'
-  }
-  if (typeof projectName !== 'string' || projectName.length < 1) {
-    isValid = false
-    errors.projectName += 'Please enter a project name.'
-  }
-  if (typeof address !== 'string' || address.length < 1) {
-    isValid = false
-    errors.address += 'Please enter an address.'
-  }
-
-  if (isValid) {
-    const team = await createTeam({ name: companyName, userId: user.id })
-    await createProject({
-      name: projectName,
-      userId: user.id,
-      teamId: team.id,
-    })
-
-    return Astro.redirect('/')
+  for (const key of Object.keys(fields)) {
+    errors[key] = fields[key][0]
   }
 }
 ---
 
 <BaseLayout>
-  <form method="POST">
+  <form method="POST" action={'/' + actions.team.init}>
     <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
     <Card className="mx-auto mt-8 max-w-xl">
       <CardHeader>

@@ -1,20 +1,23 @@
-import { sql, relations } from 'drizzle-orm'
-import { sqliteTable, text, integer, primaryKey, index, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import type { ProviderType } from '@/types'
+import { relations, sql } from 'drizzle-orm'
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const usersTable = sqliteTable(
   'users',
   {
-    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
+    id: text('id')
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     username: text('username').notNull(),
     email: text('email').notNull(),
     picture: text('picture'),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -37,15 +40,16 @@ export const emailsTable = sqliteTable(
   'emails',
   {
     name: text('name').notNull().primaryKey(),
-    userId: integer('user_id')
+    userId: text('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     verified: integer('verified', { mode: 'boolean' }).notNull().default(false),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    primary: integer('primary', { mode: 'boolean' }).notNull().default(false),
+    updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -63,7 +67,7 @@ export const accountsTable = sqliteTable(
   {
     provider: text('provider').notNull(),
     providerAccountId: text('provider_account_id').notNull(),
-    userId: integer('user_id')
+    userId: text('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     type: text('type').$type<ProviderType>().notNull(),
@@ -73,11 +77,11 @@ export const accountsTable = sqliteTable(
     tokenType: text('token_type'),
     scope: text('scope'),
     idToken: text('id_token'),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -103,12 +107,12 @@ export const sessionsTable = sqliteTable(
       .primaryKey()
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
-    userId: integer('user_id')
+    userId: text('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     expiresAt: integer('expires_at').notNull(),
     fresh: integer('fresh', { mode: 'boolean' }),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -129,17 +133,21 @@ export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
 export const teamsTable = sqliteTable(
   'teams',
   {
-    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
+    id: text('id')
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
-    userId: integer('user_id')
+    address: text('address').notNull(),
+    userId: text('user_id')
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
@@ -162,18 +170,21 @@ export const teamsRelations = relations(teamsTable, ({ one, many }) => ({
 export const projectsTable = sqliteTable(
   'projects',
   {
-    id: integer('id', { mode: 'number' }).notNull().primaryKey({ autoIncrement: true }),
+    id: text('id')
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     slug: text('slug').notNull(),
-    teamId: integer('team_id')
+    teamId: text('team_id')
       .notNull()
       .references(() => teamsTable.id, { onDelete: 'cascade' }),
-    userId: integer('user_id').notNull(),
-    updatedAt: integer('updated_at', { mode: 'timestamp' })
+    userId: text('user_id').notNull(),
+    updatedAt: text('updated_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: integer('created_at', { mode: 'timestamp' })
+    createdAt: text('created_at')
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },

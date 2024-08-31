@@ -1,5 +1,11 @@
 /// <reference path="../.astro/types.d.ts" />
 /// <reference types="lucia" />
+
+declare module 'astro:schema' {
+  import { z } from 'zod'
+  export { z }
+}
+
 declare namespace Lucia {
   type Auth = import('./lib/auth.ts').Auth
   type DatabaseUserAttributes = {}
