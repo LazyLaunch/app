@@ -1,4 +1,4 @@
-import { Settings, LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,7 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+import { actions } from 'astro:actions'
+import { LogOut, Settings } from 'lucide-react'
 
 import { AvatarComponent } from '@/components/AvatarComponent'
 
@@ -41,7 +42,7 @@ export function UserMenuComponent({ user, csrfToken }: Props) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="font-light leading-7 text-muted-foreground hover:text-muted">
-          <form method="POST" action="/api/user/logout" className="w-full">
+          <form method="POST" action={'/login' + actions.user.logout} className="w-full">
             <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
             <button type="submit" className="flex w-full justify-between">
               Logout

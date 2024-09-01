@@ -1,9 +1,10 @@
-import { defineAction } from 'astro:actions'
+import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
 import { setPrimaryEmail } from '@/db/models/email'
 import { existsUsername, updateUser } from '@/db/models/user'
 import type { InsertUser } from '@/db/schema'
+import { lucia } from '@/lib/auth'
 
 interface UserProps extends Omit<InsertUser, 'name' | 'email' | 'username'> {
   name: string
@@ -63,6 +64,22 @@ export const user = {
         if (input.email) return setPrimaryEmail(input.email, user.id)
         await updateUser(user.id, data as UserProps)
       }
+    },
+  }),
+  logout: defineAction({
+    accept: 'form',
+    handler: async (_, context) => {
+      if (!context.locals.session) {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'User must be logged in.',
+        })
+      }
+
+      await lucia.invalidateSession(context.locals.session.id)
+
+      const sessionCookie = lucia.createBlankSessionCookie()
+      context.cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
     },
   }),
 }
