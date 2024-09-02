@@ -1,10 +1,15 @@
 import { actions, isInputError } from 'astro:actions'
 import * as React from 'react'
 
-import { cn } from '@/lib/utils'
+import { cn, getNestedValue } from '@/lib/utils'
 import { CSRF_TOKEN } from '@/types'
 import { Loader2 } from 'lucide-react'
-import type { ControllerRenderProps, FieldError, RegisterOptions } from 'react-hook-form'
+import type {
+  ControllerRenderProps,
+  FieldError,
+  RegisterOptions,
+  UseFormReturn,
+} from 'react-hook-form'
 import { useForm } from 'react-hook-form'
 
 import { toast } from 'sonner'
@@ -28,10 +33,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { navigate } from 'astro:transitions/client'
+
+type ActionFunction = (formData: FormData) => Promise<{ error: string | null }>
 
 enum FieldTypeEnum {
   Text = 'text',
   Select = 'select',
+  BtnDanger = 'btnDanger',
 }
 type FieldType = `${FieldTypeEnum}`
 
@@ -67,6 +76,8 @@ interface SelectFieldProps {
   errors?: Record<string, CustomFieldError>
 }
 
+interface BtnDangerProps extends TextFieldProps {}
+
 interface TextFieldProps {
   field: Field
   label: string
@@ -83,12 +94,16 @@ interface Props {
   label: string
   className?: string
   inputType?: string
-  footerTitle: string
+  footerTitle?: string
   fieldType?: FieldType
   selectItems?: SelectItem[]
   successMsg: string
   validationRules?: RegisterOptions
   handleCallback?: (values: FormValues) => void
+  skipDirty?: boolean
+  actionsPath: string
+  handleUrlRedirect?: string
+  queryParams?: Record<string, string>
 }
 
 export function FormErrorMessage({ children }: any) {
@@ -148,6 +163,33 @@ function textField({ field, label, inputType, errors = {} }: TextFieldProps) {
   )
 }
 
+function btnDanger({ field, label, inputType, errors = {} }: BtnDangerProps) {
+  return (
+    <FormItem className="space-y-3">
+      <FormLabel className="font-normal">{label}</FormLabel>
+      <FormControl>
+        <Input {...field} type={inputType} hidden />
+      </FormControl>
+      <FormErrorMessage>{errors?.[field.name]?.message}</FormErrorMessage>
+    </FormItem>
+  )
+}
+
+function renderQueryParams(queryParams: Record<string, string>, form: UseFormReturn) {
+  const keys = Object.keys(queryParams)
+  return keys.map((key, index) => {
+    return (
+      <input
+        {...form.register(key, { required: true })}
+        key={`${key}-${index}`}
+        type="hidden"
+        name={key}
+        value={queryParams[key]}
+      />
+    )
+  })
+}
+
 export function CardForm({
   inputName,
   inputVal,
@@ -163,10 +205,16 @@ export function CardForm({
   successMsg,
   validationRules = {},
   handleCallback,
+  skipDirty = false,
+  actionsPath,
+  handleUrlRedirect,
+  queryParams = {},
 }: Props) {
   const [isLoading, setLoading] = React.useState(false)
   const form = useForm<FormValues>({
     defaultValues: {
+      ...queryParams,
+      csrfToken: csrfToken,
       [inputName]: inputVal,
     },
   })
@@ -174,7 +222,7 @@ export function CardForm({
     string,
     CustomFieldError
   >
-  const isDirty: boolean = form.formState.isDirty
+  const isDirty: boolean = skipDirty || form.formState.isDirty
 
   async function onSubmit(values: FormValues) {
     if (!isDirty) return
@@ -184,7 +232,9 @@ export function CardForm({
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
     }
-    const { error } = await actions.user.update(formData)
+    const getActions = getNestedValue<ActionFunction>(actions, actionsPath)
+    const { error } = await getActions(formData)
+
     setLoading(false)
     if (isInputError(error)) {
       const { fields } = error
@@ -198,7 +248,8 @@ export function CardForm({
 
     form.reset(values)
     handleCallback && handleCallback(values)
-    return toast.info(title, { duration: 5000, description: successMsg })
+    toast.info(title, { duration: 5000, description: successMsg })
+    if (handleUrlRedirect) navigate(handleUrlRedirect)
   }
 
   return (
@@ -210,7 +261,12 @@ export function CardForm({
           name={CSRF_TOKEN}
           value={csrfToken}
         />
-        <Card>
+        {renderQueryParams(queryParams, form)}
+        <Card
+          className={cn('overflow-hidden', {
+            'border-rose-100': FieldTypeEnum.BtnDanger === fieldType,
+          })}
+        >
           <CardHeader className="p-6 pb-3">
             <CardTitle className="text-xl">{title}</CardTitle>
           </CardHeader>
@@ -223,13 +279,26 @@ export function CardForm({
                 if (FieldTypeEnum.Select === fieldType)
                   return selectField({ field, label, selectItems, errors })
 
+                if (FieldTypeEnum.BtnDanger === fieldType)
+                  return btnDanger({ field, label, errors, inputType })
+
                 return textField({ field, label, inputType, errors })
               }}
             />
           </CardContent>
-          <CardFooter className="justify-between border-t bg-muted py-3">
-            <FormDescription dangerouslySetInnerHTML={{ __html: footerTitle }} />
-            <Button disabled={isLoading || !isDirty} type="submit" size="sm">
+          <CardFooter
+            className={cn('justify-between border-t bg-muted py-3', {
+              'bg-rose-100': FieldTypeEnum.BtnDanger === fieldType,
+              'flex-row-reverse': !footerTitle,
+            })}
+          >
+            {footerTitle && <FormDescription dangerouslySetInnerHTML={{ __html: footerTitle }} />}
+            <Button
+              disabled={isLoading || !isDirty}
+              type="submit"
+              size="sm"
+              variant={FieldTypeEnum.BtnDanger === fieldType ? 'destructive' : 'default'}
+            >
               {isLoading && (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,5 +1,5 @@
-import type { FormValues, SelectItem } from '@/components/account/settings/CardForm'
-import { CardForm } from '@/components/account/settings/CardForm'
+import type { FormValues, SelectItem } from '@/components/CardForm'
+import { CardForm } from '@/components/CardForm'
 import { useState } from 'react'
 
 export interface Email {
@@ -53,6 +53,7 @@ export function UserSettingsContainer({ initSelectItems, csrfToken, user, emails
         footerTitle="Please use 32 characters at maximum."
         successMsg="Your display name has been updated."
         validationRules={{ required: 'Name is required.' }}
+        actionsPath="user.update"
       />
 
       <CardForm
@@ -65,6 +66,7 @@ export function UserSettingsContainer({ initSelectItems, csrfToken, user, emails
         footerTitle="Please use 48 characters at maximum."
         successMsg="Your username has been updated."
         validationRules={{ required: 'Username is required.' }}
+        actionsPath="user.update"
       />
 
       <CardForm
@@ -81,6 +83,7 @@ export function UserSettingsContainer({ initSelectItems, csrfToken, user, emails
         successMsg="Your email address has been updated."
         validationRules={{ required: 'Email address is required.' }}
         handleCallback={handleCallback}
+        actionsPath="user.update"
       />
     </>
   )

@@ -1,7 +1,7 @@
 ---
 import AppLayout from '@/layouts/AppLayout.astro'
 
-import { Users, Settings } from 'lucide-react'
+import { Settings, Folder } from 'lucide-react'
 
 import {
   Breadcrumb,
@@ -17,7 +17,14 @@ import { getTeamsByUser } from '@/db/models/team'
 
 import type { UserProps } from '@/components/AvatarComponent'
 import type { ContentRowProps } from '@/components/BreadcrumbMenuComponent'
+import type { TeamProps } from '@/pages/[teamSlug]/settings.astro'
 
+interface Props {
+  team: TeamProps
+}
+
+const slug = Astro.params.teamSlug
+const { team } = Astro.props
 const user = Astro.locals.user! as UserProps
 
 const teams = (await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] })) || []
@@ -32,16 +39,16 @@ const currentPath: string = new URL(Astro.request.url).pathname as string
 
 <AppLayout>
   <Fragment slot="navLinks">
-    <TooltipComponent client:idle currentPath={currentPath} text="Teams" url="/account">
-      <Users className="h-5 w-5" />
+    <TooltipComponent client:idle currentPath={currentPath} text="Projects" url={`/${slug}`}>
+      <Folder className="h-5 w-5" />
     </TooltipComponent>
     <TooltipComponent
       client:idle
       currentPath={currentPath}
       segments={2}
-      nestedUrl="/account"
-      text="Account Settings"
-      url="/account/settings"
+      nestedUrl={`/${slug}`}
+      text="Team Settings"
+      url={`/${slug}/settings`}
     >
       <Settings className="h-5 w-5" />
     </TooltipComponent>
@@ -51,7 +58,7 @@ const currentPath: string = new URL(Astro.request.url).pathname as string
       <BreadcrumbList>
         <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
           <AvatarComponent className="h-6 w-6 text-xs" user={user} client:load />
-          My Account
+          {team.name}
           <BreadcrumbMenuComponent
             client:idle
             title="Teams"

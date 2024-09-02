@@ -6,10 +6,16 @@ import type { InsertTeam, SelectTeam } from '@/db/schema'
 import { projectsTable, teamsTable } from '@/db/schema'
 import { SLUG_RANDOM_STRING_SIZE } from '@/types'
 import type { Column, InferSelectModel } from 'drizzle-orm'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 
 type TeamsTableColumns = keyof InferSelectModel<typeof teamsTable>
 type SelectedFieldsType = Partial<Record<TeamsTableColumns, Column<any, any>>>
+
+interface TeamByUserProps {
+  slug: string
+  userId: string
+  fields?: TeamsTableColumns[]
+}
 
 interface TeamsByUserProps {
   userId: string
@@ -27,18 +33,41 @@ interface InitTeamAndProjectProps {
   userId: string
 }
 
-export async function getTeamsByUser({
-  userId,
-  fields,
-}: TeamsByUserProps): Promise<Partial<SelectTeam>[]> {
-  const selectedFields: SelectedFieldsType = fields
+interface UpdateTeamProps {
+  slug: string
+  userId: string
+  data: InsertTeam
+}
+
+function selectedFields(fields: TeamsTableColumns[]): SelectedFieldsType {
+  return fields
     ? fields.reduce((acc, field) => {
         acc[field] = teamsTable[field]
         return acc
       }, {} as SelectedFieldsType)
     : teamsTable
+}
 
-  return await db.select(selectedFields).from(teamsTable).where(eq(teamsTable.userId, userId))
+export async function getTeamBySlugAndUser({
+  slug,
+  userId,
+  fields,
+}: TeamByUserProps): Promise<Partial<SelectTeam | undefined>> {
+  return await db
+    .select(selectedFields(fields!))
+    .from(teamsTable)
+    .where(and(eq(teamsTable.userId, userId), eq(teamsTable.slug, slug)))
+    .get()
+}
+
+export async function getTeamsByUser({
+  userId,
+  fields,
+}: TeamsByUserProps): Promise<Partial<SelectTeam>[]> {
+  return await db
+    .select(selectedFields(fields!))
+    .from(teamsTable)
+    .where(eq(teamsTable.userId, userId))
 }
 
 export async function createTeam(data: InsertProps): Promise<SelectTeam> {
@@ -52,8 +81,17 @@ export async function createTeam(data: InsertProps): Promise<SelectTeam> {
     .get()
 }
 
-export async function updateTeam(slug: string, data: InsertTeam): Promise<SelectTeam> {
-  return await db.update(teamsTable).set(data).where(eq(teamsTable.slug, slug)).returning().get()
+export async function updateTeam({ slug, userId, data }: UpdateTeamProps): Promise<SelectTeam> {
+  return await db
+    .update(teamsTable)
+    .set(data)
+    .where(and(eq(teamsTable.slug, slug), eq(teamsTable.userId, userId)))
+    .returning()
+    .get()
+}
+
+export async function deleteTeam(slug: string, userId: string): Promise<void> {
+  await db.delete(teamsTable).where(and(eq(teamsTable.slug, slug), eq(teamsTable.userId, userId)))
 }
 
 export async function existsTeam(userId: string): Promise<boolean> {

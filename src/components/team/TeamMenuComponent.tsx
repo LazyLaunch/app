@@ -26,7 +26,9 @@ export function TeamMenuComponent({ team }: Props) {
         <DropdownMenuItem asChild className="cursor-pointer">
           <a href={`/${team.slug}`}>View</a>
         </DropdownMenuItem>
-        <DropdownMenuItem>Settings</DropdownMenuItem>
+        <DropdownMenuItem>
+          <a href={`/${team.slug}/settings`}>Settings</a>
+        </DropdownMenuItem>
         <DropdownMenuItem>Copy Invite URL</DropdownMenuItem>
         <DropdownMenuItem
           asChild

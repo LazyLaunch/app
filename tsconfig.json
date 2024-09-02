@@ -13,7 +13,8 @@
       "@/svg/*": ["./src/assets/svg/*"],
       "@/db/*": ["./src/db/*"],
       "@/types": ["./src/types.ts"],
-      "@/lib/*": ["./src/lib/*"]
+      "@/lib/*": ["./src/lib/*"],
+      "@/middleware/*": ["./src/middleware/*"]
     }
   }
 }

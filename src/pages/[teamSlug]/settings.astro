@@ -1,0 +1,72 @@
+---
+import TeamSettingsLayout from '@/layouts/team/TeamSettingsLayout.astro'
+import { CardForm } from '@/components/CardForm'
+
+export interface TeamProps {
+  name: string
+  address: string
+}
+
+const slug = Astro.params.teamSlug!
+const csrfToken = Astro.locals.csrfToken!
+const team = Astro.locals.team!
+
+const title = 'Team Settings'
+const description = 'Manage your team settings and set role permissions.'
+---
+
+<TeamSettingsLayout team={team} title={title} description={description}>
+  <CardForm
+    client:load
+    inputName="name"
+    inputVal={team.name}
+    csrfToken={csrfToken}
+    title="Team Name"
+    label="This is your team's visible name within the platform. For example, the name of your company or department."
+    footerTitle="Please use 32 characters at maximum."
+    successMsg="Your team name has been updated."
+    validationRules={{ required: 'Name is required.' }}
+    actionsPath="team.update"
+    queryParams={{
+      slug,
+    }}
+  />
+
+  <CardForm
+    client:load
+    className="mt-6"
+    inputName="address"
+    inputVal={team.address}
+    csrfToken={csrfToken}
+    title="Address"
+    label="This is your company's address."
+    footerTitle="Please use 32 characters at maximum."
+    successMsg="Your company address has been updated."
+    validationRules={{ required: 'Address is required.' }}
+    actionsPath="team.update"
+    queryParams={{
+      slug,
+    }}
+  />
+
+  <CardForm
+    client:load
+    className="mt-6"
+    inputName="slug"
+    inputVal={slug}
+    fieldType="btnDanger"
+    handleUrlRedirect="/account"
+    csrfToken={csrfToken}
+    skipDirty={true}
+    inputType="hidden"
+    title="Delete Team"
+    label="Permanently remove your team and all of its contents from the platform. This action is not reversible — please continue with caution."
+    successMsg="Your team has been deleted."
+    btnName="Delete Team"
+    validationRules={{ required: 'Slug is required.' }}
+    actionsPath="team.delete"
+    queryParams={{
+      slug,
+    }}
+  />
+</TeamSettingsLayout>

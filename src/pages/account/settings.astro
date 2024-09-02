@@ -2,7 +2,7 @@
 import AccountSettingsLayout from '@/layouts/account/AccountSettingsLayout.astro'
 import { UserSettingsContainer } from '@/containers/accounts/UserSettingsContainer'
 import type { Email } from '@/containers/accounts/UserSettingsContainer'
-import type { SelectItem } from '@/components/account/settings/CardForm'
+import type { SelectItem } from '@/components/CardForm'
 
 import { getEmailsByUser } from '@/db/models/email'
 
@@ -35,7 +35,7 @@ const selectItems: SelectItem[] = emails.map((email): SelectItem => {
 
 <AccountSettingsLayout {...{ title, description }}>
   <UserSettingsContainer
-    client:only="react"
+    client:load
     initSelectItems={selectItems}
     csrfToken={csrfToken}
     user={user}

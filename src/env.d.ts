@@ -18,6 +18,7 @@ declare namespace App {
     user: import('lucia').User | null
     csrfToken: string | null | undefined
     formDataParsed?: FormData
+    team: import('./db/schema').SelectTeam | null
   }
 }
 

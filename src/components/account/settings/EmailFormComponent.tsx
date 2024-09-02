@@ -22,8 +22,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import type { CustomFieldError } from '@/components/account/settings/CardForm'
-import { FormErrorMessage } from '@/components/account/settings/CardForm'
+import type { CustomFieldError } from '@/components/CardForm'
+import { FormErrorMessage } from '@/components/CardForm'
 
 interface Props {
   csrfToken: string
