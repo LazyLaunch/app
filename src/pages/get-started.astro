@@ -23,12 +23,13 @@ if (await existsTeam(user.id)) return Astro.redirect('/')
 const csrfToken = Astro.locals.csrfToken
 
 const result = Astro.getActionResult(actions.team.init)
-const errors: Record<string, string> = {}
+const errors: Record<string, string | undefined> = {}
 if (result && isInputError(result.error)) {
   const { fields } = result.error
+  const keys = Object.keys(fields)
 
-  for (const key of Object.keys(fields)) {
-    errors[key] = fields[key][0]
+  for (const key of keys) {
+    errors[key] = fields[key as keyof typeof fields]?.[0]
   }
 }
 ---

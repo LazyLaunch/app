@@ -1,5 +1,5 @@
 import type { ProviderType } from '@/types'
-import { relations, sql } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const usersTable = sqliteTable(
@@ -29,13 +29,6 @@ export const usersTable = sqliteTable(
   }
 )
 
-export const usersRelations = relations(usersTable, ({ many }) => ({
-  accounts: many(accountsTable),
-  sessions: many(sessionsTable),
-  teams: many(teamsTable),
-  emails: many(emailsTable),
-}))
-
 export const emailsTable = sqliteTable(
   'emails',
   {
@@ -57,10 +50,6 @@ export const emailsTable = sqliteTable(
     emailUserIdx: index('emails_user_idx').on(table.userId),
   })
 )
-
-export const emailsRelations = relations(emailsTable, ({ one }) => ({
-  user: one(usersTable),
-}))
 
 export const accountsTable = sqliteTable(
   'accounts',
@@ -93,13 +82,6 @@ export const accountsTable = sqliteTable(
   })
 )
 
-export const accountsRelations = relations(accountsTable, ({ one }) => ({
-  user: one(usersTable, {
-    fields: [accountsTable.userId],
-    references: [usersTable.id],
-  }),
-}))
-
 export const sessionsTable = sqliteTable(
   'user_sessions',
   {
@@ -122,13 +104,6 @@ export const sessionsTable = sqliteTable(
     }
   }
 )
-
-export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
-  user: one(usersTable, {
-    fields: [sessionsTable.userId],
-    references: [usersTable.id],
-  }),
-}))
 
 export const teamsTable = sqliteTable(
   'teams',
@@ -159,14 +134,6 @@ export const teamsTable = sqliteTable(
   }
 )
 
-export const teamsRelations = relations(teamsTable, ({ one, many }) => ({
-  projects: many(projectsTable),
-  user: one(usersTable, {
-    fields: [teamsTable.userId],
-    references: [usersTable.id],
-  }),
-}))
-
 export const projectsTable = sqliteTable(
   'projects',
   {
@@ -195,18 +162,6 @@ export const projectsTable = sqliteTable(
     }
   }
 )
-
-export const projectsRelations = relations(projectsTable, ({ one, many }) => ({
-  projects: many(projectsTable),
-  user: one(usersTable, {
-    fields: [projectsTable.userId],
-    references: [usersTable.id],
-  }),
-  team: one(teamsTable, {
-    fields: [projectsTable.teamId],
-    references: [teamsTable.id],
-  }),
-}))
 
 export type InsertUser = typeof usersTable.$inferInsert
 export type SelectUser = typeof usersTable.$inferSelect
