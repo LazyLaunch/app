@@ -19,6 +19,7 @@ declare namespace App {
     csrfToken: string | null | undefined
     formDataParsed?: FormData
     team: import('./db/schema').SelectTeam | null
+    project: import('./db/schema').SelectProject | null
   }
 }
 

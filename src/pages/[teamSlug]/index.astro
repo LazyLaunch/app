@@ -1,7 +1,20 @@
 ---
+import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
+
 import TeamLayout from '@/layouts/team/TeamLayout.astro'
 
+import { ProjectsContainer } from '@/containers/teams/ProjectsContainer'
+import { getProjectsByTeam } from '@/db/models/project'
+
 const team = Astro.locals.team!
+const csrfToken: string = Astro.locals.csrfToken!
+
+const projects = (await getProjectsByTeam({
+  teamId: team.id,
+  fields: ['name', 'slug'],
+})) as ProjectFormResponseData[]
 ---
 
-<TeamLayout team={team}> THis is team page </TeamLayout>
+<TeamLayout team={team}>
+  <ProjectsContainer client:load team={team} initProjects={projects} csrfToken={csrfToken} />
+</TeamLayout>

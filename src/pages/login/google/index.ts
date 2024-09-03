@@ -1,10 +1,10 @@
-import { generateState, generateCodeVerifier } from 'arctic'
 import { googleAuth } from '@/lib/auth'
+import { generateCodeVerifier, generateState } from 'arctic'
 
+import type { GoogleOAuthScope, OauthKeyName } from '@/types'
 import type { APIContext, AstroCookies } from 'astro'
-import type { OauthKeyName, GoogleOAuthScope } from '@/types'
 
-import { OauthKeyNameEnum, GOOGLE_SCOPES, UserFlowEnum } from '@/types'
+import { GOOGLE_SCOPES, OauthKeyNameEnum, UserFlowEnum } from '@/types'
 
 export async function GET({ cookies, redirect, locals }: APIContext): Promise<Response> {
   if (locals.user) return redirect('/')
@@ -27,7 +27,7 @@ function setCookie(cookies: AstroCookies, key: OauthKeyName, val: string): void 
     path: '/',
     secure: import.meta.env.PROD,
     httpOnly: true,
-    maxAge: 60 * 10,
+    // maxAge: 60 * 10,
     sameSite: 'lax',
   })
 }

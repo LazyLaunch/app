@@ -54,7 +54,6 @@ export function AddTeamBtnComponent({ csrfToken, className, addTeam }: Props) {
       teamName: '',
     },
   })
-  const errors = form.formState.errors
 
   async function onSubmit(values: FormValues) {
     setLoading(true)
