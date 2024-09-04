@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { existsTeam } from '@/db/models/team'
 
 const user = Astro.locals.user!
-if (await existsTeam(user.id)) return Astro.redirect('/')
+if (await existsTeam(user.id)) return Astro.redirect('/account')
 
 const csrfToken = Astro.locals.csrfToken
 
@@ -35,7 +35,7 @@ if (result && isInputError(result.error)) {
 ---
 
 <BaseLayout>
-  <form method="POST" action={'/' + actions.team.init}>
+  <form method="POST" action={'/account' + actions.team.init}>
     <input type="hidden" name={CSRF_TOKEN} value={csrfToken} />
     <Card className="mx-auto mt-8 max-w-xl">
       <CardHeader>

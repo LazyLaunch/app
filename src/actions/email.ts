@@ -7,6 +7,7 @@ export const email = {
   create: defineAction({
     accept: 'form',
     input: z.object({
+      csrfToken: z.string(),
       name: z
         .string({
           required_error: 'Email address is required.',
@@ -20,6 +21,8 @@ export const email = {
     }),
     handler: async ({ name }, context) => {
       const user = context.locals.user!
+      name = name.trim()
+
       await createEmail({ name, userId: user.id })
 
       return { email: name }
@@ -28,6 +31,7 @@ export const email = {
   delete: defineAction({
     accept: 'form',
     input: z.object({
+      csrfToken: z.string(),
       email: z
         .string({
           required_error: 'Email is required',
@@ -39,14 +43,13 @@ export const email = {
       const user = context.locals.user!
       const isPrimary = email === user.email
 
-      if (email && !isPrimary) {
-        await deleteEmail(email, user.id)
-      }
+      if (email && !isPrimary) await deleteEmail(email, user.id)
     },
   }),
   setAsPrimary: defineAction({
     accept: 'form',
     input: z.object({
+      csrfToken: z.string(),
       isVerified: z.boolean({ message: 'Verified is required.' }),
       email: z
         .string({
@@ -57,6 +60,7 @@ export const email = {
     }),
     handler: async ({ email, isVerified }, context) => {
       const user = context.locals.user!
+      email = email.trim()
       const isPrimary = email === user.email
       if (isVerified && !isPrimary) await setPrimaryEmail(email, user.id)
     },

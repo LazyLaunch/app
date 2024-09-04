@@ -1,8 +1,9 @@
 import { actions, isInputError } from 'astro:actions'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, TOAST_ERROR_TIME } from '@/types'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -69,6 +70,11 @@ export function NewProjectForm({ csrfToken, setOpenProject, addProject, teamId }
         form.setError(key as keyof ProjectFormValues, { message })
       }
       return
+    } else if (error?.code || error?.message) {
+      return toast.error(error.code, {
+        duration: TOAST_ERROR_TIME,
+        description: error.message,
+      })
     }
 
     addProject(data as ProjectFormResponseData)

@@ -1,4 +1,6 @@
 ---
+import { checkPermission } from '@/middleware/checkPermission'
+import { UserPermissionsEnum } from '@/lib/rbac'
 import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
 
 import TeamLayout from '@/layouts/team/TeamLayout.astro'
@@ -9,10 +11,10 @@ import { getProjectsByTeam } from '@/db/models/project'
 const team = Astro.locals.team!
 const csrfToken: string = Astro.locals.csrfToken!
 
-const projects = (await getProjectsByTeam({
-  teamId: team.id,
-  fields: ['name', 'slug'],
-})) as ProjectFormResponseData[]
+const canAccess = await checkPermission(UserPermissionsEnum.LIST, Astro)
+if (!canAccess) return Astro.redirect('/404')
+
+const projects = (await getProjectsByTeam({ teamId: team.id })) as ProjectFormResponseData[]
 ---
 
 <TeamLayout team={team}>

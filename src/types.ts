@@ -1,6 +1,14 @@
+import type { SHAHash } from 'oslo/crypto'
+import type { JWTAlgorithm } from 'oslo/jwt'
+export const JWT_ALGORITHM: JWTAlgorithm = 'HS256' as const
+export const SHA_HASH: SHAHash = 'SHA-256' as const
+
 export const GOOGLE_SCOPES = ['openid', 'profile', 'email'] as const
 export const CSRF_TOKEN = 'csrfToken' as const
 export const SLUG_RANDOM_STRING_SIZE = 8 as const
+
+export const TOAST_ERROR_TIME = 5000 as const
+export const TOAST_SUCCESS_TIME = 5000 as const
 
 export type GoogleOAuthScope = (typeof GOOGLE_SCOPES)[number]
 
@@ -32,22 +40,20 @@ export enum UserErrorFlowEnum {
   INVALID_FLOW = 'invalid_flow',
 }
 
+export enum ResponseStatusMessageEnum {
+  UNAUTHORIZED = 'User must be logged in.',
+}
+
 export enum ResponseStatusEnum {
-  Success = 'success',
-  Error = 'error',
-  NotFound = 'not_found',
-  Unauthorized = 'unauthorized',
+  SUCCESS = 'SUCCESS',
+  ERROR = 'ERROR',
+  NOT_FOUND = 'NOT_FOUND',
+  UNAUTHORIZED = 'UNAUTHORIZED',
 }
 
 export enum ResponseCodeEnum {
-  Success = 200,
-  Error = 400,
-  NotFound = 404,
-  Unauthorized = 401,
+  SUCCESS = 200,
+  ERROR = 400,
+  NOT_FOUND = 404,
+  UNAUTHORIZED = 401,
 }
-
-export enum FormActionEnum {
-  Post = 'POST',
-  Put = 'PUT',
-}
-export type FormAction = `${FormActionEnum}`

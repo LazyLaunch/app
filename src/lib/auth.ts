@@ -1,9 +1,9 @@
-import { Lucia } from 'lucia'
 import { LibSQLAdapter } from '@lucia-auth/adapter-sqlite'
 import { Google } from 'arctic'
+import { Lucia } from 'lucia'
 
 import { client } from '@/db'
-import type { SelectUser, SelectSession } from '@/db/schema'
+import type { SelectSession, SelectUser } from '@/db/schema'
 
 const adapter = new LibSQLAdapter(client, {
   user: 'users',
@@ -28,7 +28,7 @@ export const googleAuth = new Google(
 declare module 'lucia' {
   interface Register {
     Lucia: typeof lucia
-    DatabaseUserAttributes: Omit<SelectUser, 'id'>
+    DatabaseUserAttributes: Omit<SelectUser, 'id' | 'createdAt' | 'updatedAt'>
     DatabaseSessionAttributes: SelectSession
   }
 }

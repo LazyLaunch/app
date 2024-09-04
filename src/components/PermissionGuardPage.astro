@@ -1,0 +1,10 @@
+---
+import { hasPermission, UserPermissionsEnum } from '@/lib/rbac'
+
+const team = Astro.locals.team
+const permission: UserPermissionsEnum = Astro.props.permission
+
+const canAccess = team && hasPermission(team.role, permission)
+---
+
+{canAccess && <slot />}

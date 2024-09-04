@@ -5,11 +5,15 @@ import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/c
 import { Input } from '@/components/ui/input'
 
 import type { FormResponseData } from '@/components/team/AddTeamBtnComponents'
+import type { Team } from '@/db/models/team'
+
 import { AddTeamBtnComponent } from '@/components/team/AddTeamBtnComponents'
 import { TeamMenuComponent } from '@/components/team/TeamMenuComponent'
+import { UserRolesEnum } from '@/lib/rbac'
+import { capitalizeFirstLetter } from '@/lib/utils'
 
 interface Props {
-  initTeams: FormResponseData[]
+  initTeams: Partial<Team>[]
   csrfToken: string
 }
 
@@ -17,7 +21,7 @@ export function TeamsContainer({ initTeams, csrfToken }: Props) {
   const [teams, setTeams] = useState(initTeams)
 
   function addTeam({ name, slug, userId }: FormResponseData) {
-    setTeams((prevTeams) => [...prevTeams, { name, slug, userId }])
+    setTeams((prevTeams) => [...prevTeams, { name, slug, userId, role: UserRolesEnum.OWNER }])
   }
 
   return (
@@ -45,7 +49,7 @@ export function TeamsContainer({ initTeams, csrfToken }: Props) {
                 </a>
               </CardTitle>
               <CardDescription className="text-sm font-normal text-muted-foreground">
-                Owner
+                {capitalizeFirstLetter(team.role)}
               </CardDescription>
             </div>
             <TeamMenuComponent team={team} />

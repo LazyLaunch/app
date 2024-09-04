@@ -2,7 +2,7 @@ import { actions, isInputError } from 'astro:actions'
 import * as React from 'react'
 
 import { cn, getNestedValue } from '@/lib/utils'
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, TOAST_SUCCESS_TIME } from '@/types'
 import { Loader2 } from 'lucide-react'
 import type {
   ControllerRenderProps,
@@ -248,7 +248,7 @@ export function CardForm({
 
     form.reset(values)
     handleCallback && handleCallback(values)
-    toast.info(title, { duration: 5000, description: successMsg })
+    toast.info(title, { duration: TOAST_SUCCESS_TIME, description: successMsg })
     if (handleUrlRedirect) navigate(handleUrlRedirect)
   }
 

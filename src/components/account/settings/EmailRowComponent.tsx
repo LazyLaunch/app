@@ -120,7 +120,7 @@ export function EmailRowComponent({ csrfToken, deleteEmail, email, setPrimaryEma
                         required: true,
                       })}
                       type="hidden"
-                      name="email"
+                      name="isVerified"
                       value={isVerified.toString()}
                     />
                     <button type="submit" className="flex w-full justify-between">

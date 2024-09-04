@@ -1,7 +1,10 @@
-import { defineAction } from 'astro:actions'
+import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
 import { createProject, deleteProject, existsSlug } from '@/db/models/project'
+import { UserPermissionsEnum } from '@/lib/rbac'
+import { checkPermission } from '@/middleware/checkPermission'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 export const project = {
   create: defineAction({
@@ -23,13 +26,21 @@ export const project = {
       teamId: z.string(),
       csrfToken: z.string(),
     }),
-    handler: async (input, context) => {
-      const user = context.locals.user!
+    handler: async ({ name, slug, teamId }, context) => {
+      const canAccess = await checkPermission(UserPermissionsEnum.CREATE, context, { teamId })
+      if (!canAccess) {
+        throw new ActionError({
+          code: ResponseStatusEnum.UNAUTHORIZED,
+          message: ResponseStatusMessageEnum.UNAUTHORIZED,
+        })
+      }
+
+      name = name.trim()
+      slug = slug.trim()
       const project = await createProject({
-        name: input.slug,
-        slug: input.slug,
-        teamId: input.teamId,
-        userId: user.id,
+        name,
+        slug,
+        teamId,
       })
 
       return { name: project.name, slug: project.slug, teamId: project.teamId }
@@ -42,9 +53,15 @@ export const project = {
       teamId: z.string(),
       csrfToken: z.string(),
     }),
-    handler: async (input, context) => {
-      const user = context.locals.user
-      await deleteProject(input.slug, input.teamId)
+    handler: async ({ slug, teamId }, context) => {
+      const canAccess = await checkPermission(UserPermissionsEnum.DELETE, context, { teamId })
+      if (!canAccess) {
+        throw new ActionError({
+          code: ResponseStatusEnum.UNAUTHORIZED,
+          message: ResponseStatusMessageEnum.UNAUTHORIZED,
+        })
+      }
+      await deleteProject(slug, teamId)
     },
   }),
 }

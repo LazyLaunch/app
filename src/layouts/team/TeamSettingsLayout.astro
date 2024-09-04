@@ -28,7 +28,7 @@ const isTeamSettings = currentPath.startsWith(`/${slug}/settings`)
       <aside class="-mx-4 lg:w-1/5">
         <nav class="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
           <a
-            href="/account/settings"
+            href={`/${slug}/settings`}
             class:list={[
               'inline-flex h-9 items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
               {

@@ -1,6 +1,5 @@
 import { lucia } from '@/lib/auth'
 
-import type { SelectUser } from '@/db/schema'
 import type { APIContext } from 'astro'
 
 const SKIP_AUTH_URLS: string[] = [
@@ -39,7 +38,7 @@ async function handleSession({ cookies, locals }: APIContext): Promise<Response 
       cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)
     }
     locals.session = session
-    locals.user = user as SelectUser
+    locals.user = user
   } else {
     const sessionCookie = lucia.createBlankSessionCookie()
     cookies.set(sessionCookie.name, sessionCookie.value, sessionCookie.attributes)

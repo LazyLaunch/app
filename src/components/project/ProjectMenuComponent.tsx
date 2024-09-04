@@ -3,10 +3,11 @@ import { EllipsisVertical } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/types'
 
-import type { SelectProject, SelectTeam } from '@/db/schema'
+import type { SelectProject } from '@/db/schema'
 
+import { PermissionGuardComponent } from '@/components/PermissionGuardComponent'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,10 +15,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { UserPermissionsEnum } from '@/lib/rbac'
+import type { TeamSession } from '@/middleware/checkTeamSession'
 
 interface Props {
   project: Partial<SelectProject>
-  team: SelectTeam
+  team: TeamSession
   csrfToken: string
   deleteProject: (slug: string) => void
 }
@@ -37,7 +40,7 @@ export function ProjectMenuComponent({ project, team, csrfToken, deleteProject }
     },
   })
 
-  async function onSubmit(values: FormValues) {
+  async function onDeleteSubmit(values: FormValues) {
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value)
@@ -53,14 +56,19 @@ export function ProjectMenuComponent({ project, team, csrfToken, deleteProject }
       }
 
       return toast.error('Project', {
-        duration: 5000,
+        duration: TOAST_ERROR_TIME,
         description: "Your project hasn't been created.",
+      })
+    } else if (error?.code || error?.message) {
+      return toast.error(error.code, {
+        duration: TOAST_ERROR_TIME,
+        description: error.message,
       })
     }
 
     deleteProject(values.slug)
     toast.info('Project', {
-      duration: 5000,
+      duration: TOAST_SUCCESS_TIME,
       description: 'Your project has been deleted.',
     })
   }
@@ -73,38 +81,42 @@ export function ProjectMenuComponent({ project, team, csrfToken, deleteProject }
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild className="cursor-pointer">
-          <a href={`/${team.slug}/${project.slug}`}>View</a>
-        </DropdownMenuItem>
+        <PermissionGuardComponent role={team.role} permission={UserPermissionsEnum.READ}>
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <a href={`/${team.slug}/${project.slug}`}>View</a>
+          </DropdownMenuItem>
+        </PermissionGuardComponent>
         <DropdownMenuItem>
           <a href={`/${team.slug}/${project.slug}/settings`}>Settings</a>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          asChild
-          className="cursor-pointer text-destructive focus:text-destructive"
-        >
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <input
-              {...form.register(CSRF_TOKEN, { required: true })}
-              type="hidden"
-              name={CSRF_TOKEN}
-              value={csrfToken}
-            />
-            <input
-              {...form.register('slug', { required: true })}
-              type="hidden"
-              name="slug"
-              value={project.slug}
-            />
-            <input
-              {...form.register('teamId', { required: true })}
-              type="hidden"
-              name="teamId"
-              value={team.id}
-            />
-            <button type="submit">Delete Project</button>
-          </form>
-        </DropdownMenuItem>
+        <PermissionGuardComponent role={team.role} permission={UserPermissionsEnum.DELETE}>
+          <DropdownMenuItem
+            asChild
+            className="cursor-pointer text-destructive focus:text-destructive"
+          >
+            <form onSubmit={form.handleSubmit(onDeleteSubmit)}>
+              <input
+                {...form.register(CSRF_TOKEN, { required: true })}
+                type="hidden"
+                name={CSRF_TOKEN}
+                value={csrfToken}
+              />
+              <input
+                {...form.register('slug', { required: true })}
+                type="hidden"
+                name="slug"
+                value={project.slug}
+              />
+              <input
+                {...form.register('teamId', { required: true })}
+                type="hidden"
+                name="teamId"
+                value={team.id}
+              />
+              <button type="submit">Delete Project</button>
+            </form>
+          </DropdownMenuItem>
+        </PermissionGuardComponent>
       </DropdownMenuContent>
     </DropdownMenu>
   )

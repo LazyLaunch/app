@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "0a73e958-4d7c-4655-a085-0491e014558d",
+  "id": "a6389b00-bd6d-46b7-8119-2265ce13db96",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -9,7 +9,7 @@
       "columns": {
         "provider": {
           "name": "provider",
-          "type": "text",
+          "type": "text(32)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -23,14 +23,14 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "type": {
           "name": "type",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -79,7 +79,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -87,7 +87,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -134,14 +134,14 @@
       "columns": {
         "name": {
           "name": "name",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -164,7 +164,7 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -172,7 +172,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -211,42 +211,35 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "name": {
           "name": "name",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "slug": {
           "name": "slug",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "team_id": {
           "name": "team_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -254,7 +247,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -300,14 +293,14 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "user_id": {
           "name": "user_id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -328,7 +321,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -367,42 +360,42 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "name": {
           "name": "name",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "slug": {
           "name": "slug",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "address": {
           "name": "address",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -410,7 +403,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -425,21 +418,21 @@
           ],
           "isUnique": true
         },
-        "teams_user_idx": {
-          "name": "teams_user_idx",
+        "teams_owner_idx": {
+          "name": "teams_owner_idx",
           "columns": [
-            "user_id"
+            "owner_id"
           ],
           "isUnique": false
         }
       },
       "foreignKeys": {
-        "teams_user_id_users_id_fk": {
-          "name": "teams_user_id_users_id_fk",
+        "teams_owner_id_users_id_fk": {
+          "name": "teams_owner_id_users_id_fk",
           "tableFrom": "teams",
           "tableTo": "users",
           "columnsFrom": [
-            "user_id"
+            "owner_id"
           ],
           "columnsTo": [
             "id"
@@ -451,47 +444,112 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "user_teams": {
+      "name": "user_teams",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team_id": {
+          "name": "team_id",
+          "type": "text(256)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_teams_user_id_users_id_fk": {
+          "name": "user_teams_user_id_users_id_fk",
+          "tableFrom": "user_teams",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_teams_team_id_teams_id_fk": {
+          "name": "user_teams_team_id_teams_id_fk",
+          "tableFrom": "user_teams",
+          "tableTo": "teams",
+          "columnsFrom": [
+            "team_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_teams_user_id_team_id_pk": {
+          "columns": [
+            "user_id",
+            "team_id"
+          ],
+          "name": "user_teams_user_id_team_id_pk"
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "users": {
       "name": "users",
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "name": {
           "name": "name",
-          "type": "text",
+          "type": "text(32)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "username": {
           "name": "username",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "email": {
           "name": "email",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "picture": {
           "name": "picture",
-          "type": "text",
+          "type": "text(256)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
@@ -499,7 +557,7 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,

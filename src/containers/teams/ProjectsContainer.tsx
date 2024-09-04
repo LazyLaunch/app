@@ -2,17 +2,17 @@ import { Search } from 'lucide-react'
 import { useState } from 'react'
 
 import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
-import type { SelectTeam } from '@/db/schema'
 
 import { AddBtnProjectComponent } from '@/components/project/AddBtnProjectComponent'
 import { ProjectMenuComponent } from '@/components/project/ProjectMenuComponent'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import type { TeamSession } from '@/middleware/checkTeamSession'
 
 interface Props {
   initProjects: ProjectFormResponseData[]
   csrfToken: string
-  team: SelectTeam
+  team: TeamSession
 }
 
 export function ProjectsContainer({ initProjects, csrfToken, team }: Props) {
@@ -39,7 +39,12 @@ export function ProjectsContainer({ initProjects, csrfToken, team }: Props) {
             <Input type="search" placeholder="Search for a team..." className="w-full pl-8" />
           </div>
         </form>
-        <AddBtnProjectComponent csrfToken={csrfToken} teamId={team.id} addProject={addProject} />
+        <AddBtnProjectComponent
+          role={team.role}
+          csrfToken={csrfToken}
+          teamId={team.id}
+          addProject={addProject}
+        />
       </div>
       {projects.map((project) => (
         <Card key={project.slug}>

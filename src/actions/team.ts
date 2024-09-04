@@ -8,9 +8,8 @@ import {
   initTeamWithProject,
   updateTeam,
 } from '@/db/models/team'
-import type { InsertTeam } from '@/db/schema'
 
-interface TeamProps extends Omit<InsertTeam, 'name' | 'address'> {
+interface TeamProps {
   name: string
   address: string
 }
@@ -27,11 +26,15 @@ export const team = {
         required_error: 'Please enter an address.',
         invalid_type_error: 'Address must be a string.',
       }),
+      csrfToken: z.string(),
     }),
     handler: async ({ teamName, address }, context) => {
       const user = context.locals.user!
-      const team = await createTeam({ name: teamName, userId: user.id, address })
-      return { name: team.name, slug: team.slug, userId: user.id }
+      teamName = teamName.trim()
+      address = address.trim()
+
+      const team = await createTeam({ name: teamName, ownerId: user.id, address })
+      return { name: team.name, slug: team.slug, ownerId: team.ownerId }
     },
   }),
   delete: defineAction({
@@ -41,10 +44,15 @@ export const team = {
         required_error: 'Please enter a team slug.',
         invalid_type_error: 'Team slug must be a string.',
       }),
+      csrfToken: z.string(),
     }),
     handler: async ({ slug }, context) => {
       const user = context.locals.user!
-      await deleteTeam(slug, user.id)
+      const team = await getTeamBySlugAndUser({
+        slug: slug!,
+        userId: user.id,
+      })
+      if (team) await deleteTeam(team)
     },
   }),
   update: defineAction({
@@ -66,6 +74,7 @@ export const team = {
         required_error: 'Slug is required.',
         invalid_type_error: 'Slug must be a string.',
       }),
+      csrfToken: z.string(),
     }),
     handler: async (input, context) => {
       const { slug } = input
@@ -73,10 +82,9 @@ export const team = {
       const team = await getTeamBySlugAndUser({
         slug: slug!,
         userId: user.id,
-        fields: ['name', 'address'],
       })
 
-      const data: Partial<TeamProps> = {
+      const data: TeamProps = {
         name: team!.name,
         address: team!.address,
       }
@@ -86,12 +94,12 @@ export const team = {
         const val = input[key as keyof typeof input]
         if (typeof val === 'undefined') continue
 
-        data[key as keyof TeamProps] = val as string
+        data[key as keyof TeamProps] = val.trim() as string
         isDirty = true
       }
 
-      if (isDirty) {
-        await updateTeam({ slug, userId: user.id, data: data as TeamProps })
+      if (isDirty && team) {
+        await updateTeam({ data, team })
       }
     },
   }),
@@ -110,9 +118,13 @@ export const team = {
         required_error: 'Address is required.',
         invalid_type_error: 'Address must be a string.',
       }),
+      csrfToken: z.string(),
     }),
     handler: async ({ companyName, projectName, address }, context) => {
       const user = context.locals.user!
+      companyName = companyName.trim()
+      projectName = projectName.trim()
+      address = address.trim()
 
       await initTeamWithProject({
         teamName: companyName,

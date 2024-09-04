@@ -16,7 +16,13 @@ export async function updateUser(userId: string, data: InsertUser): Promise<void
 }
 
 export async function existsUsername(username: string): Promise<boolean> {
-  const query = sql`select exists(select 1 from ${usersTable} where (${usersTable.username} = ${username}))`
-  const result = (await db.get(query)) || {}
-  return Object.values(result)[0] > 0
+  const user = await db
+    .select({
+      exists: sql`exists(select 1)`,
+    })
+    .from(usersTable)
+    .where(eq(usersTable.username, username))
+    .get()
+
+  return Number(user?.exists) > 0
 }

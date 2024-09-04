@@ -1,16 +1,21 @@
 import type { APIContext } from 'astro'
 import { HMAC } from 'oslo/crypto'
-import { createJWT, parseJWT } from 'oslo/jwt'
+import { createJWT, validateJWT } from 'oslo/jwt'
 
-import { getProjectBySlugAndTeam } from '@/db/models/project'
+import { getProjectBySlugAndUser } from '@/db/models/project'
+import { JWT_ALGORITHM, SHA_HASH } from '@/types'
 
-import type { SelectProject } from '@/db/schema'
-
-const secret = await new HMAC('SHA-256').generateKey()
+const secret = await new HMAC(SHA_HASH).generateKey()
 const COOKIES_NAME = 'projectSession'
 
-async function generateAndSetCookie(context: APIContext, project: SelectProject) {
-  const jwt = await createJWT('HS256', secret, project)
+export interface ProjectSession {
+  name: string
+  slug: string
+  teamId: string
+}
+
+async function generateAndSetCookie(context: APIContext, payload: ProjectSession) {
+  const jwt = await createJWT(JWT_ALGORITHM, secret, payload)
   context.cookies.set(COOKIES_NAME, jwt, {
     path: '/',
     secure: import.meta.env.PROD,
@@ -29,30 +34,53 @@ function clearCookie(context: APIContext) {
   })
 }
 
+async function getProjectFromDB(
+  projectSlug: string,
+  userId: string
+): Promise<ProjectSession | null> {
+  const project = await getProjectBySlugAndUser({
+    slug: projectSlug,
+    userId,
+  })
+
+  if (!project) return null
+
+  const { name, slug, teamId } = project
+  return { name, slug, teamId } as ProjectSession
+}
+
+async function getValidProjectFromJWT(
+  jwt: string,
+  projectSlug: string,
+  teamId: string
+): Promise<ProjectSession | null> {
+  try {
+    const { payload } = await validateJWT(JWT_ALGORITHM, secret, jwt)
+    const projectPayload = payload as ProjectSession
+    const isValidPayload: boolean =
+      projectPayload?.slug === projectSlug && projectPayload.teamId === teamId
+    return isValidPayload ? projectPayload : null
+  } catch {
+    return null
+  }
+}
+
 export async function checkProjectSession(context: APIContext, next: Function) {
   const { projectSlug } = context.params
   const team = context.locals.team
+  const user = context.locals.user
 
-  if (!projectSlug || !team) {
+  if (!projectSlug || !team || !user) {
     context.locals.project = null
     clearCookie(context)
     return next()
   }
 
-  const cookieVal = context.cookies.get(COOKIES_NAME)?.value || ''
-  const { payload } = parseJWT(cookieVal) || {}
-  const projectPayload = payload as SelectProject
-  const isValidPayload: boolean =
-    projectPayload?.slug === projectSlug && projectPayload.teamId === team.id
-  let project: SelectProject | null = (isValidPayload && projectPayload) || null
+  const jwt = context.cookies.get(COOKIES_NAME)?.value
+  let project = jwt ? await getValidProjectFromJWT(jwt, projectSlug, team.id) : null
 
   if (!project) {
-    project = (await getProjectBySlugAndTeam({
-      slug: projectSlug,
-      teamId: team.id,
-      fields: ['id', 'name', 'slug'],
-    })) as SelectProject
-
+    project = await getProjectFromDB(projectSlug, user.id)
     if (!project) {
       return context.redirect('/404')
     }

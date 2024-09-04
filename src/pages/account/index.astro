@@ -1,5 +1,5 @@
 ---
-import type { FormResponseData } from '@/components/team/AddTeamBtnComponents'
+import type { Team } from '@/db/models/team'
 
 import AccountLayout from '@/layouts/account/AccountLayout.astro'
 
@@ -8,10 +8,7 @@ import { getTeamsByUser } from '@/db/models/team'
 
 const csrfToken: string = Astro.locals.csrfToken!
 const user = Astro.locals.user!
-const teams = (await getTeamsByUser({
-  userId: user.id,
-  fields: ['name', 'slug'],
-})) as FormResponseData[]
+const teams: Team[] = await getTeamsByUser({ userId: user.id })
 ---
 
 <AccountLayout>

@@ -5,6 +5,7 @@ import { setPrimaryEmail } from '@/db/models/email'
 import { existsUsername, updateUser } from '@/db/models/user'
 import type { InsertUser } from '@/db/schema'
 import { lucia } from '@/lib/auth'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 interface UserProps extends Omit<InsertUser, 'name' | 'email' | 'username'> {
   name: string
@@ -16,6 +17,7 @@ export const user = {
   update: defineAction({
     accept: 'form',
     input: z.object({
+      csrfToken: z.string(),
       name: z
         .string({
           required_error: 'Please enter a display name.',
@@ -56,7 +58,7 @@ export const user = {
         const val = input[key as keyof typeof input]
         if (typeof val === 'undefined') continue
 
-        data[key as keyof UserProps] = val as string
+        data[key as keyof UserProps] = val.trim() as string
         isDirty = true
       }
 
@@ -68,11 +70,14 @@ export const user = {
   }),
   logout: defineAction({
     accept: 'form',
+    input: z.object({
+      csrfToken: z.string(),
+    }),
     handler: async (_, context) => {
       if (!context.locals.session) {
         throw new ActionError({
-          code: 'UNAUTHORIZED',
-          message: 'User must be logged in.',
+          code: ResponseStatusEnum.UNAUTHORIZED,
+          message: ResponseStatusMessageEnum.UNAUTHORIZED,
         })
       }
 

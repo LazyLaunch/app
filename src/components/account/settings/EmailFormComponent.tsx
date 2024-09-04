@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 
 import type { Resolver } from 'react-hook-form'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/types'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -91,7 +91,7 @@ export function EmailFormComponent({ csrfToken, addEmail }: Props) {
       }
 
       return toast.error('Email', {
-        duration: 5000,
+        duration: TOAST_ERROR_TIME,
         description: "Your email address hasn't been created.",
       })
     }
@@ -99,7 +99,7 @@ export function EmailFormComponent({ csrfToken, addEmail }: Props) {
     form.reset()
     addEmail(values.name)
     return toast.info('Email', {
-      duration: 5000,
+      duration: TOAST_SUCCESS_TIME,
       description: 'Your email address has been created.',
     })
   }
