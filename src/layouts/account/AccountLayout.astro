@@ -20,7 +20,7 @@ import type { ContentRowProps } from '@/components/BreadcrumbMenuComponent'
 
 const user = Astro.locals.user! as UserProps
 
-const teams = (await getTeamsByUser({ userId: user.id, fields: ['name', 'slug'] })) || []
+const teams = (await getTeamsByUser({ userId: user.id })) || []
 const teamRows: ContentRowProps[] = teams.map((team) => {
   return {
     text: `${team.name}`,

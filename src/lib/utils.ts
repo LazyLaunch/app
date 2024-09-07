@@ -15,3 +15,29 @@ export function capitalizeFirstLetter(text: string | undefined | null): string |
   }
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
+
+export function handleNumberInput(value: string, options?: { min?: number; max?: number }): string {
+  const numValue = parseInt(value, 10)
+  const minNumber = 0
+  const maxNumber = 100
+
+  if (isNaN(numValue)) return '0'
+  if (numValue < (options?.min || minNumber)) return String(options?.min || minNumber)
+  if (numValue > (options?.max || maxNumber)) return String(options?.max || maxNumber)
+
+  return numValue.toString()
+}
+
+export function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  const allowedKeys = [
+    'Backspace',
+    'Delete',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowUp',
+    'ArrowDown',
+    'Tab',
+  ]
+
+  if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) e.preventDefault()
+}
