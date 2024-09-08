@@ -1,19 +1,13 @@
 import { withProps } from '@udecode/cn'
-import { HEADING_KEYS } from '@udecode/plate-heading'
+import { BoldPlugin, ItalicPlugin } from '@udecode/plate-basic-marks/react'
+import { PlateLeaf } from '@udecode/plate-common/react'
 
 import { type NodeComponent } from '@udecode/plate-common/react'
 
-const HeadingElement = (props) => {
-  console.log(props)
-  return <h1>Hello</h1>
-}
-
-export function createPlateUI({
-  draggable,
-  placeholder,
-}: { draggable?: boolean; placeholder?: boolean } = {}) {
+export function createPlateUI() {
   let components: Record<string, NodeComponent> = {
-    [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: 'h1' }),
+    [BoldPlugin.key]: withProps(PlateLeaf, { as: 'strong' }),
+    [ItalicPlugin.key]: withProps(PlateLeaf, { as: 'em' }),
   }
 
   return components

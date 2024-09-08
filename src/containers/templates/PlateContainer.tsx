@@ -1,27 +1,27 @@
-import { Plate, usePlateEditor } from '@udecode/plate-common/react'
+import { ParagraphPlugin, Plate, usePlateEditor } from '@udecode/plate-common/react'
 import { Paintbrush } from 'lucide-react'
 import { useState } from 'react'
 
+import {
+  BoldPlugin,
+  CodePlugin,
+  ItalicPlugin,
+  StrikethroughPlugin,
+  SubscriptPlugin,
+  SuperscriptPlugin,
+  UnderlinePlugin,
+} from '@udecode/plate-basic-marks/react'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
 
-// import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
 import { Editor } from '@/components/plate-ui/editor'
 
+import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
+import { FloatingToolbar } from '@/components/plate-ui/floating-toolbar'
+import { FloatingToolbarButtons } from '@/components/plate-ui/floating-toolbar-buttons'
 import { EmailStyleFormComponent } from '@/components/templates/EmailStyleFormComponent'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-const value = [
-  {
-    type: 'h1',
-    children: [
-      {
-        text: 'This is editable plain text with react and history plugins, just like a <textarea>!',
-      },
-    ],
-  },
-]
 
 export interface FormValues {
   bgColor: string
@@ -47,19 +47,28 @@ export function PlateContainer() {
     bgHPadding: 0,
     bodyHPadding: 0,
   })
-  // const localValue =
-  //   typeof window !== 'undefined' && localStorage.getItem('editorContent');
 
   const editor = usePlateEditor({
-    id: 'mail-editor',
-    // value: localValue ? JSON.parse(localValue) : value,
-    value,
-    plugins: [HeadingPlugin],
-    shouldNormalizeEditor: true,
-    autoSelect: true,
-    // override: {
-    //   components: createPlateUI(),
-    // },
+    plugins: [
+      HeadingPlugin,
+      BoldPlugin,
+      CodePlugin,
+      ItalicPlugin,
+      StrikethroughPlugin,
+      SubscriptPlugin,
+      SuperscriptPlugin,
+      UnderlinePlugin,
+    ],
+    value: [
+      {
+        id: '1',
+        type: ParagraphPlugin.key,
+        children: [{ text: 'Hello world' }],
+      },
+    ],
+    override: {
+      components: createPlateUI(),
+    },
   })
 
   return (
@@ -93,12 +102,7 @@ export function PlateContainer() {
           </PopoverContent>
         </Popover>
       </div>
-      <Plate
-        onChange={({ value }) => {
-          localStorage.setItem('editorContent', JSON.stringify(value))
-        }}
-        editor={editor}
-      >
+      <Plate editor={editor}>
         <div
           style={{
             backgroundColor: templateProps.bgColor,
@@ -124,6 +128,9 @@ export function PlateContainer() {
             />
           </div>
         </div>
+        <FloatingToolbar>
+          <FloatingToolbarButtons />
+        </FloatingToolbar>
       </Plate>
     </>
   )
