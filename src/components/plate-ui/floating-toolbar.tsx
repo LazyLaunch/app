@@ -9,22 +9,25 @@ import {
 import { flip, offset, useFloatingToolbar, useFloatingToolbarState } from '@udecode/plate-floating'
 
 import type { FloatingToolbarState } from '@udecode/plate-floating'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => void) {
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+  const handleClickOutside = useCallback(
+    (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
         handler()
       }
-    }
+    },
+    [ref, handler]
+  )
 
-    document.addEventListener('click', handleClickOutside)
+  useEffect(() => {
+    document.addEventListener('click', handleClickOutside, true)
 
     return () => {
-      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside, true)
     }
-  }, [ref, handler])
+  }, [handleClickOutside])
 }
 
 export const FloatingToolbar = withRef<

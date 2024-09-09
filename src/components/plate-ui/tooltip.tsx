@@ -1,4 +1,10 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import * as React from 'react'
 
 export function withTooltip<T extends React.ElementType>(Component: T) {
@@ -23,7 +29,9 @@ export function withTooltip<T extends React.ElementType>(Component: T) {
         <TooltipProvider delayDuration={150}>
           <Tooltip {...tooltipProps}>
             <TooltipTrigger asChild>{component}</TooltipTrigger>
-            <TooltipContent {...tooltipContentProps}>{tooltip}</TooltipContent>
+            <TooltipPortal>
+              <TooltipContent {...tooltipContentProps}>{tooltip}</TooltipContent>
+            </TooltipPortal>
           </Tooltip>
         </TooltipProvider>
       )

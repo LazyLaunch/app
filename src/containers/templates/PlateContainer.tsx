@@ -2,6 +2,12 @@ import { ParagraphPlugin, Plate, usePlateEditor } from '@udecode/plate-common/re
 import { Paintbrush } from 'lucide-react'
 import { useState } from 'react'
 
+import { DndPlugin } from '@udecode/plate-dnd'
+import { NodeIdPlugin } from '@udecode/plate-node-id'
+import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+
 import {
   BoldPlugin,
   CodePlugin,
@@ -58,6 +64,9 @@ export function PlateContainer() {
       SubscriptPlugin,
       SuperscriptPlugin,
       UnderlinePlugin,
+      NodeIdPlugin,
+      DndPlugin.configure({ options: { enableScroller: true } }),
+      BlockSelectionPlugin,
     ],
     value: [
       {
@@ -102,36 +111,38 @@ export function PlateContainer() {
           </PopoverContent>
         </Popover>
       </div>
-      <Plate editor={editor}>
-        <div
-          style={{
-            backgroundColor: templateProps.bgColor,
-          }}
-          className="h-screen w-full transition-all duration-300 ease-in-out"
-        >
+      <DndProvider backend={HTML5Backend}>
+        <Plate editor={editor}>
           <div
-            className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
             style={{
-              padding: `${templateProps.bgVPadding}px ${templateProps.bgHPadding}px`,
+              backgroundColor: templateProps.bgColor,
             }}
+            className="h-screen w-full transition-all duration-300 ease-in-out"
           >
-            <Editor
+            <div
+              className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
               style={{
-                backgroundColor: templateProps.bodyColor,
-                padding: `${templateProps.bodyVPadding}px ${templateProps.bodyHPadding}px`,
-                borderRadius: `${templateProps.borderRadius}px`,
-                borderColor: templateProps.borderColor,
-                borderWidth: `${templateProps.borderWidth}px`,
+                padding: `${templateProps.bgVPadding}px ${templateProps.bgHPadding}px`,
               }}
-              className="outline-0 transition-all duration-300 ease-in-out"
-              placeholder="Type..."
-            />
+            >
+              <Editor
+                style={{
+                  backgroundColor: templateProps.bodyColor,
+                  padding: `${templateProps.bodyVPadding}px ${templateProps.bodyHPadding}px`,
+                  borderRadius: `${templateProps.borderRadius}px`,
+                  borderColor: templateProps.borderColor,
+                  borderWidth: `${templateProps.borderWidth}px`,
+                }}
+                className="outline-0 transition-all duration-300 ease-in-out"
+                placeholder="Type..."
+              />
+            </div>
           </div>
-        </div>
-        <FloatingToolbar>
-          <FloatingToolbarButtons />
-        </FloatingToolbar>
-      </Plate>
+          <FloatingToolbar>
+            <FloatingToolbarButtons />
+          </FloatingToolbar>
+        </Plate>
+      </DndProvider>
     </>
   )
 }
