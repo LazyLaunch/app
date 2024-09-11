@@ -1,10 +1,11 @@
-import { ParagraphPlugin, Plate, usePlateEditor } from '@udecode/plate-common/react'
+import { Plate, usePlateEditor } from '@udecode/plate-common/react'
 import { Paintbrush } from 'lucide-react'
 import { useState } from 'react'
 
 import { DndPlugin } from '@udecode/plate-dnd'
 import { NodeIdPlugin } from '@udecode/plate-node-id'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
+import { SlashPlugin } from '@udecode/plate-slash-command'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
@@ -28,6 +29,8 @@ import { EmailStyleFormComponent } from '@/components/templates/EmailStyleFormCo
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
+import { TRIGGER } from '@/components/plate-ui/slash-input-element'
 
 export interface FormValues {
   bgColor: string
@@ -67,13 +70,7 @@ export function PlateContainer() {
       NodeIdPlugin,
       DndPlugin.configure({ options: { enableScroller: true } }),
       BlockSelectionPlugin,
-    ],
-    value: [
-      {
-        id: '1',
-        type: ParagraphPlugin.key,
-        children: [{ text: 'Hello world' }],
-      },
+      SlashPlugin.configure({ options: { trigger: TRIGGER } }),
     ],
     override: {
       components: createPlateUI(),
@@ -133,8 +130,7 @@ export function PlateContainer() {
                   borderColor: templateProps.borderColor,
                   borderWidth: `${templateProps.borderWidth}px`,
                 }}
-                className="outline-0 transition-all duration-300 ease-in-out"
-                placeholder="Type..."
+                placeholder="Press '/' for commands"
               />
             </div>
           </div>

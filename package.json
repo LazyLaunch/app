@@ -12,6 +12,7 @@
     "db": "drizzle-kit"
   },
   "dependencies": {
+    "@ariakit/react": "^0.4.11",
     "@astrojs/check": "^0.9.3",
     "@astrojs/node": "^8.3.3",
     "@astrojs/react": "^3.6.2",
@@ -39,6 +40,7 @@
     "@udecode/plate-alignment": "^37.0.0",
     "@udecode/plate-basic-marks": "^37.0.0",
     "@udecode/plate-block-quote": "^37.0.2",
+    "@udecode/plate-combobox": "^37.0.0",
     "@udecode/plate-common": "^37.0.7",
     "@udecode/plate-dnd": "^37.0.0",
     "@udecode/plate-floating": "^37.0.3",
@@ -47,6 +49,7 @@
     "@udecode/plate-media": "^37.0.0",
     "@udecode/plate-node-id": "^37.0.0",
     "@udecode/plate-selection": "^37.0.6",
+    "@udecode/plate-slash-command": "^37.0.0",
     "arctic": "^1.9.2",
     "astro": "^4.15.1",
     "class-variance-authority": "^0.7.0",
@@ -62,6 +65,7 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",
+    "slate": "^0.103.0",
     "slug": "^9.1.0",
     "sonner": "^1.5.0",
     "tailwind-merge": "^2.5.2",
