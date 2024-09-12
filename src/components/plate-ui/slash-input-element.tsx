@@ -7,12 +7,11 @@ import {
   ComboboxProvider,
   Portal,
   useComboboxStore,
-  useStoreState,
 } from '@ariakit/react'
 import { cn, withRef } from '@udecode/cn'
 import { findNodePath, PlateElement } from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
-import React, { useDeferredValue, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import { Heading1, Heading2, Heading3 } from 'lucide-react'
 
@@ -63,6 +62,16 @@ const rules: SlashCommandRule[] = [
 export const TRIGGER: string = '/' as const
 const DEFAULT_TRIGGERS: string[] = [TRIGGER] as const
 
+enum ComboboxInputCauseEnum {
+  ARROW_LEFT = 'arrowLeft',
+  ARROW_RIGHT = 'arrowRight',
+  BACKSPACE = 'backspace',
+  BLUR = 'blur',
+  DESELECT = 'deselect',
+  ESCAPE = 'escape',
+  MANUAL = 'manual',
+}
+
 function getTriggerOffset(value: string, triggers = DEFAULT_TRIGGERS): number {
   for (let i = value.length - 1; i >= 0; i--) {
     const char = value[i]
@@ -110,11 +119,9 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
   const cursorState = useHTMLInputCursorState(inputRef)
 
   const [value, setValue] = useState('')
+  const [matches, setMatches] = useState(getMatches(''))
 
   const combobox = useComboboxStore()
-  const searchValue = useStoreState(combobox, 'value')
-  const deferredSearchValue = useDeferredValue(searchValue)
-  const matches = getMatches(deferredSearchValue)
   const groupedItems = Object.entries(groupByField(matches, 'type'))
   const hasMatches = !!matches?.length
 
@@ -147,15 +154,23 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
     cursorState,
     cancelInputOnBlur: false,
     onCancelInput: (cause) => {
-      if (!['manual', 'backspace'].includes(cause)) {
+      if (
+        ![ComboboxInputCauseEnum.MANUAL, ComboboxInputCauseEnum.BACKSPACE].includes(
+          cause as ComboboxInputCauseEnum
+        )
+      ) {
         insertText(editor, TRIGGER + value, {
           at: insertPoint?.current ?? undefined,
         })
       }
-      if (cause === 'arrowLeft' || cause === 'arrowRight') {
+      if (
+        [ComboboxInputCauseEnum.ARROW_LEFT, ComboboxInputCauseEnum.ARROW_RIGHT].includes(
+          cause as ComboboxInputCauseEnum
+        )
+      ) {
         moveSelection(editor, {
-          distance: 1,
-          reverse: cause === 'arrowLeft',
+          distance: cause === ComboboxInputCauseEnum.ARROW_LEFT && value.length > 0 ? 2 : 1,
+          reverse: cause === ComboboxInputCauseEnum.ARROW_LEFT,
         })
       }
     },
@@ -166,10 +181,14 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
 
   const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target
-    const targetValue = `/${target.value}`
+    const targetValue = `${TRIGGER}${target.value}`
+
     const triggerValue = getTrigger(targetValue)
     const searchValue = getSearchValue(targetValue)
-    const anyMatches = !!getMatches(searchValue).length
+
+    const findMatches = getMatches(searchValue)
+    setMatches(findMatches)
+    const anyMatches = !!findMatches.length
 
     if (triggerValue) {
       combobox.show()
@@ -202,10 +221,7 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
               showOnClick={false}
               showOnChange={false}
               showOnKeyPress={false}
-              className={cn(
-                'absolute left-0 top-0 size-full bg-transparent outline-none',
-                className
-              )}
+              className="absolute left-0 top-0 size-full bg-transparent outline-none"
               onChange={onChange}
               ref={inputRef}
               value={value}
@@ -218,10 +234,7 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
               hidden={!hasMatches}
               unmountOnHide
               fitViewport
-              className={cn(
-                'mt-2.5 flex h-full w-full flex-col overflow-hidden rounded-lg border bg-popover shadow-md md:min-w-[450px]',
-                className
-              )}
+              className="mt-2.5 flex h-full w-full flex-col overflow-hidden rounded-lg border bg-popover shadow-md md:min-w-[450px]"
             >
               {groupedItems.map(([type, items], i) => (
                 <ComboboxGroup
@@ -232,22 +245,14 @@ export const SlashInputElement = withRef<typeof PlateElement>(({ className, ...p
                   )}
                 >
                   {type && (
-                    <ComboboxGroupLabel
-                      className={cn(
-                        'px-2 py-1.5 text-xs font-medium text-muted-foreground',
-                        className
-                      )}
-                    >
+                    <ComboboxGroupLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
                       {type}
                     </ComboboxGroupLabel>
                   )}
                   {items.map(({ icon: Icon, onSelect, text }, itemIndex) => (
                     <ComboboxItem
                       key={text + itemIndex}
-                      className={cn(
-                        'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[active-item=true]:bg-accent data-[active-item=true]:text-accent-foreground',
-                        className
-                      )}
+                      className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[active-item=true]:bg-accent data-[active-item=true]:text-accent-foreground"
                       onClick={() => {
                         removeInput(true)
                         onSelect?.(editor)
