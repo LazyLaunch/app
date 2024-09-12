@@ -55,15 +55,6 @@ export const withDraggables = (components: any) => {
     {
       draggableProps: {
         classNames: {
-          blockToolbarWrapper: 'h-[1.3em]',
-          gutterLeft: 'px-0 pb-0 text-[1.1em]',
-        },
-      },
-      keys: [HEADING_KEYS.h4, HEADING_KEYS.h5],
-    },
-    {
-      draggableProps: {
-        classNames: {
           gutterLeft: 'px-0 pb-0',
         },
       },
@@ -75,7 +66,7 @@ export const withDraggables = (components: any) => {
           gutterLeft: 'px-0 pb-0',
         },
       },
-      keys: [HEADING_KEYS.h6, BulletedListPlugin.key, NumberedListPlugin.key],
+      keys: [BulletedListPlugin.key, NumberedListPlugin.key],
     },
     {
       draggableProps: {

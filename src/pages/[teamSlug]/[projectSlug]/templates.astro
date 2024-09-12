@@ -1,8 +1,10 @@
 ---
 import { PlateContainer } from '@/containers/templates/PlateContainer'
 import ProjectLayout from '@/layouts/project/ProjectLayout.astro'
+
+const platePlaceholderContentId = Math.random().toString(36).slice(2, 7)
 ---
 
 <ProjectLayout>
-  <PlateContainer client:load />
+  <PlateContainer platePlaceholderContentId={platePlaceholderContentId} client:load />
 </ProjectLayout>

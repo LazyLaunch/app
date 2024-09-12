@@ -7,6 +7,7 @@ import { type PlateElementProps, useEditorRef } from '@udecode/plate-common/reac
 import { type DragItemNode, useDraggable, useDraggableState } from '@udecode/plate-dnd'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
 
+import { Button } from '@/components/ui/button'
 import {
   Tooltip,
   TooltipContent,
@@ -14,7 +15,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Button } from '../ui/button'
 
 export interface DraggableProps
   extends PlateElementProps,
@@ -73,7 +73,7 @@ const DragHandle = ({ element }: { element: TElement }) => {
         <TooltipTrigger asChild>
           <Button variant="ghost" size="iconXs">
             <GripVertical
-              className="size-4 text-muted-foreground"
+              className="size-4 cursor-grab text-muted-foreground"
               onClick={(event) => {
                 event.stopPropagation()
                 event.preventDefault()

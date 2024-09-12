@@ -1,4 +1,4 @@
-import { Plate, usePlateEditor } from '@udecode/plate-common/react'
+import { Plate, PlateContent, usePlateEditor } from '@udecode/plate-common/react'
 import { Paintbrush } from 'lucide-react'
 import { useState } from 'react'
 
@@ -19,8 +19,6 @@ import {
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
-
-import { Editor } from '@/components/plate-ui/editor'
 
 import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
 import { FloatingToolbar } from '@/components/plate-ui/floating-toolbar'
@@ -44,7 +42,11 @@ export interface FormValues {
   bodyHPadding: number
 }
 
-export function PlateContainer() {
+export function PlateContainer({
+  platePlaceholderContentId,
+}: {
+  platePlaceholderContentId: string
+}) {
   const [templateProps, setTemplateProps] = useState<FormValues>({
     bgColor: 'transparent',
     bodyColor: 'transparent',
@@ -75,6 +77,13 @@ export function PlateContainer() {
     override: {
       components: createPlateUI(),
     },
+    value: [
+      {
+        id: platePlaceholderContentId,
+        type: 'p',
+        children: [{ text: '' }],
+      },
+    ],
   })
 
   return (
@@ -122,16 +131,22 @@ export function PlateContainer() {
                 padding: `${templateProps.bgVPadding}px ${templateProps.bgHPadding}px`,
               }}
             >
-              <Editor
-                style={{
-                  backgroundColor: templateProps.bodyColor,
-                  padding: `${templateProps.bodyVPadding}px ${templateProps.bodyHPadding}px`,
-                  borderRadius: `${templateProps.borderRadius}px`,
-                  borderColor: templateProps.borderColor,
-                  borderWidth: `${templateProps.borderWidth}px`,
-                }}
-                placeholder="Press '/' for commands"
-              />
+              <div className="relative w-full">
+                <PlateContent
+                  autoFocus
+                  className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
+                  data-plate-selectable
+                  disableDefaultStyles
+                  style={{
+                    backgroundColor: templateProps.bodyColor,
+                    padding: `${templateProps.bodyVPadding}px ${templateProps.bodyHPadding}px`,
+                    borderRadius: `${templateProps.borderRadius}px`,
+                    borderColor: templateProps.borderColor,
+                    borderWidth: `${templateProps.borderWidth}px`,
+                  }}
+                  placeholder="Press '/' for commands"
+                />
+              </div>
             </div>
           </div>
           <FloatingToolbar>
