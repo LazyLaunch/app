@@ -133,7 +133,6 @@ export function PlateContainer({
             >
               <div className="relative w-full">
                 <PlateContent
-                  autoFocus
                   className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
                   data-plate-selectable
                   disableDefaultStyles

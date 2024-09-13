@@ -125,6 +125,7 @@ export const Draggable = withRef<'div', DraggableProps>(
       node.classList.toggle('ring-offset-2', isFloatingOptionsOpen)
       node.classList.toggle('ring-1', isFloatingOptionsOpen)
     }
+
     return (
       <div
         className={cn('relative', isDragging && 'opacity-50', 'group', className)}

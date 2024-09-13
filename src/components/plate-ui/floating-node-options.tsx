@@ -62,7 +62,7 @@ export function FloatingNodeOptions({
             </TooltipTrigger>
           </PopoverTrigger>
           <TooltipPortal>
-            <TooltipContent className="mt-1.5" side="bottom">
+            <TooltipContent sideOffset={10} side="bottom">
               <b>Click</b> for more options
             </TooltipContent>
           </TooltipPortal>
