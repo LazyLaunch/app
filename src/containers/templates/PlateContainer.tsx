@@ -144,8 +144,13 @@ export function PlateContainer({
                     borderColor: templateProps.borderColor,
                     borderWidth: `${templateProps.borderWidth}px`,
                   }}
-                  placeholder="Press '/' for commands"
+                  // placeholder="Press '/' for commands"
                 />
+              </div>
+            </div>
+            <div className="group mt-10 size-full text-center">
+              <div className="mx-auto w-full max-w-[600px] border-t border-input pt-4 text-xs font-medium tracking-wider text-muted-foreground opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100">
+                <p className="opacity-50">End of email</p>
               </div>
             </div>
           </div>

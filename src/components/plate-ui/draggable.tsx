@@ -1,11 +1,13 @@
-import type { ClassNames, TEditor, TElement } from '@udecode/plate-common'
-import { GripVertical } from 'lucide-react'
-import type { DropTargetMonitor } from 'react-dnd'
-
 import { cn, withRef } from '@udecode/cn'
+import { GripVertical } from 'lucide-react'
+
+import type { ClassNames, TEditor, TElement } from '@udecode/plate-common'
 import { type PlateElementProps, useEditorRef } from '@udecode/plate-common/react'
 import { type DragItemNode, useDraggable, useDraggableState } from '@udecode/plate-dnd'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
+import type { DropTargetMonitor } from 'react-dnd'
+
+import { FloatingNodeOptions } from '@/components/plate-ui/floating-node-options'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useState } from 'react'
 
 export interface DraggableProps
   extends PlateElementProps,
@@ -64,12 +67,18 @@ export interface DraggableProps
   ) => boolean
 }
 
-const DragHandle = ({ element }: { element: TElement }) => {
+const DragHandle = ({
+  element,
+  isFloatingOptionsOpen,
+}: {
+  element: TElement
+  isFloatingOptionsOpen: boolean
+}) => {
   const editor = useEditorRef()
 
   return (
     <TooltipProvider delayDuration={150}>
-      <Tooltip>
+      <Tooltip open={isFloatingOptionsOpen ? false : undefined}>
         <TooltipTrigger asChild>
           <Button variant="ghost" size="iconXs">
             <GripVertical
@@ -91,7 +100,9 @@ const DragHandle = ({ element }: { element: TElement }) => {
           </Button>
         </TooltipTrigger>
         <TooltipPortal>
-          <TooltipContent side="bottom">Drag to move</TooltipContent>
+          <TooltipContent side="bottom">
+            <b>Drag</b> to move
+          </TooltipContent>
         </TooltipPortal>
       </Tooltip>
     </TooltipProvider>
@@ -101,34 +112,54 @@ const DragHandle = ({ element }: { element: TElement }) => {
 export const Draggable = withRef<'div', DraggableProps>(
   ({ className, classNames = {}, onDropHandler, ...props }, ref) => {
     const { children, element } = props
+    const [isFloatingOptionsOpen, setFloatingOptionsOpen] = useState<boolean>(false)
 
     const state = useDraggableState({ element, onDropHandler })
-    const { dropLine, isDragging, isHovered } = state
+    const { dropLine, isDragging, isHovered, setIsHovered } = state
     const { droplineProps, groupProps, gutterLeftProps, handleRef, previewRef } =
       useDraggable(state)
 
+    const node = state.nodeRef.current
+    if (node) {
+      node.classList.add('rounded', 'ring-ring', 'transition', 'duration-150', 'ease-in-out')
+      node.classList.toggle('ring-offset-2', isFloatingOptionsOpen)
+      node.classList.toggle('ring-1', isFloatingOptionsOpen)
+    }
     return (
       <div
         className={cn('relative', isDragging && 'opacity-50', 'group', className)}
         ref={ref}
         {...groupProps}
+        onPointerEnter={() => !isHovered && groupProps.onPointerEnter()}
+        onPointerLeave={() => !isFloatingOptionsOpen && groupProps.onPointerLeave()}
       >
         <div
           className={cn(
-            'pointer-events-none absolute left-0 z-50 flex h-full -translate-x-full cursor-text opacity-0 group-hover:opacity-100',
-            classNames.gutterLeft
+            classNames.gutterLeft,
+            'pointer-events-none absolute left-0 z-50 flex h-full -translate-x-full cursor-text group-hover:opacity-100',
+            !isHovered && 'opacity-0'
           )}
           {...gutterLeftProps}
         >
-          <div className={cn('mb-[7px] flex', classNames.blockToolbarWrapper)}>
+          <div className={cn('mb-[7px] flex space-x-2.5', classNames.blockToolbarWrapper)}>
+            <div className="pointer-events-auto flex items-center">
+              <div className="size-4">
+                {isHovered && (
+                  <FloatingNodeOptions
+                    setIsHovered={setIsHovered}
+                    setFloatingOptionsOpen={setFloatingOptionsOpen}
+                    isFloatingOptionsOpen={isFloatingOptionsOpen}
+                  />
+                )}
+              </div>
+            </div>
             <div
-              className={cn(
-                'pointer-events-auto flex items-center pr-2.5',
-                classNames.blockToolbar
-              )}
+              className={cn('pointer-events-auto flex items-center pr-3', classNames.blockToolbar)}
             >
               <div className="size-4" data-key={element.id as string} ref={handleRef}>
-                {isHovered && <DragHandle element={element} />}
+                {isHovered && (
+                  <DragHandle element={element} isFloatingOptionsOpen={isFloatingOptionsOpen} />
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,10 @@
 import { cn } from '@udecode/cn'
-import { createNodeHOC, createNodesHOC, usePlaceholderState } from '@udecode/plate-common/react'
+import {
+  createNodeHOC,
+  createNodesHOC,
+  ParagraphPlugin,
+  usePlaceholderState,
+} from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
 import React from 'react'
 
@@ -31,14 +36,14 @@ export const withPlaceholdersPrimitive = createNodesHOC(Placeholder)
 
 export const withPlaceholders = (components: any) =>
   withPlaceholdersPrimitive(components, [
-    // {
-    //   hideOnBlur: false,
-    //   key: ParagraphPlugin.key,
-    //   placeholder: "Type a paragraph (Press '/' for commands)",
-    //   query: {
-    //     maxLevel: 1,
-    //   },
-    // },
+    {
+      hideOnBlur: false,
+      key: ParagraphPlugin.key,
+      placeholder: "Type a paragraph (Press '/' for commands)",
+      query: {
+        maxLevel: 1,
+      },
+    },
     {
       hideOnBlur: false,
       key: HEADING_KEYS.h1,
