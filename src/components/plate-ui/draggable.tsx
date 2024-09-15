@@ -147,6 +147,8 @@ export const Draggable = withRef<'div', DraggableProps>(
               <div className="size-4">
                 {isHovered && (
                   <FloatingNodeOptions
+                    element={element}
+                    editor={props.editor}
                     setIsHovered={setIsHovered}
                     setFloatingOptionsOpen={setFloatingOptionsOpen}
                     isFloatingOptionsOpen={isFloatingOptionsOpen}

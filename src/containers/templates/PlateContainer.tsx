@@ -1,7 +1,8 @@
-import { Plate, PlateContent, usePlateEditor } from '@udecode/plate-common/react'
+import { focusEditor, Plate, PlateContent, usePlateEditor } from '@udecode/plate-common/react'
 import { Paintbrush } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import { AlignPlugin } from '@udecode/plate-alignment'
 import { DndPlugin } from '@udecode/plate-dnd'
 import { NodeIdPlugin } from '@udecode/plate-node-id'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
@@ -18,6 +19,8 @@ import {
   SuperscriptPlugin,
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
+
+import { ParagraphPlugin } from '@udecode/plate-common/react'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
 
 import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
@@ -29,6 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
+import { HEADING_KEYS } from '@udecode/plate-heading'
 
 export interface FormValues {
   bgColor: string
@@ -68,6 +72,11 @@ export function PlateContainer({
       StrikethroughPlugin,
       SubscriptPlugin,
       SuperscriptPlugin,
+      AlignPlugin.configure({
+        inject: {
+          targetPlugins: [ParagraphPlugin.key, HEADING_KEYS.h1, HEADING_KEYS.h2, HEADING_KEYS.h3],
+        },
+      }),
       UnderlinePlugin,
       NodeIdPlugin,
       DndPlugin.configure({ options: { enableScroller: true } }),
@@ -85,6 +94,10 @@ export function PlateContainer({
       },
     ],
   })
+
+  useEffect(() => {
+    focusEditor(editor)
+  }, [editor])
 
   return (
     <>
@@ -143,14 +156,14 @@ export function PlateContainer({
                     borderColor: templateProps.borderColor,
                     borderWidth: `${templateProps.borderWidth}px`,
                   }}
-                  // placeholder="Press '/' for commands"
+                  placeholder="Press '/' for commands"
                 />
               </div>
             </div>
             <div className="group mt-10 size-full text-center">
-              <div className="mx-auto w-full max-w-[600px] border-t border-input pt-4 text-xs font-medium tracking-wider text-muted-foreground opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100">
-                <p className="opacity-50">End of email</p>
-              </div>
+              <p className="mx-auto w-full max-w-[600px] border-t border-input pt-4 text-xs font-medium tracking-wider text-gray-400/80 opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100">
+                End of email
+              </p>
             </div>
           </div>
           <FloatingToolbar>

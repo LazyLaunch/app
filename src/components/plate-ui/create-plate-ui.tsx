@@ -8,7 +8,6 @@ import { type NodeComponent } from '@udecode/plate-common/react'
 
 import { HeadingElement } from '@/components/plate-ui/heading-element'
 import { ParagraphElement } from '@/components/plate-ui/paragraph-element'
-import { withPlaceholders } from '@/components/plate-ui/placeholder'
 import { SlashInputElement } from '@/components/plate-ui/slash-input-element'
 import { withDraggables } from '@/components/plate-ui/with-draggables'
 
@@ -23,7 +22,7 @@ export function createPlateUI() {
     [HEADING_KEYS.h3]: withProps(HeadingElement, { variant: 'h3' }),
   }
 
-  components = withPlaceholders(components)
+  // components = withPlaceholders(components)
   components = withDraggables(components)
 
   return components
