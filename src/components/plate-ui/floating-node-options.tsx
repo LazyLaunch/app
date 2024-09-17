@@ -1,6 +1,7 @@
 import { cn } from '@udecode/cn'
 import { AlignCenter, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-react'
 
+import { ColorInput } from '@/components/plate-ui/color-input'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -14,6 +15,7 @@ import {
 import { setAlign, type Alignment } from '@udecode/plate-alignment'
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
 import { useEffect, useRef } from 'react'
+import type { Editor } from 'slate'
 
 function findRowById(editor: SlateEditor, id: string) {
   return editor.children.findIndex((node) => node.id === id)
@@ -51,11 +53,13 @@ function AlignBtn({
   value,
   editor,
   element,
+  defaultValue = 'left',
 }: {
   editor: SlateEditor
   element: TElement
   children: any
   value: Alignment
+  defaultValue?: Alignment
 }) {
   return (
     <TooltipProvider delayDuration={150}>
@@ -63,19 +67,30 @@ function AlignBtn({
         <TooltipTrigger asChild>
           <a
             onClick={() => setAlign(editor, { value })}
-            className={cn(
-              'size-4 cursor-pointer hover:opacity-100',
-              element.align !== value && 'opacity-40'
-            )}
+            className={cn('size-4 cursor-pointer hover:opacity-100', {
+              'opacity-40': element.align !== value,
+              'opacity-100': defaultValue === value && element.align === undefined,
+            })}
           >
             {children}
           </a>
         </TooltipTrigger>
         <TooltipPortal>
-          <TooltipContent side="bottom">Align {value}</TooltipContent>
+          <TooltipContent sideOffset={10} side="bottom">
+            Align {value}
+          </TooltipContent>
         </TooltipPortal>
       </Tooltip>
     </TooltipProvider>
+  )
+}
+
+function CardSection({ children, label }: { children: any; label: string }) {
+  return (
+    <div className="flex w-full flex-col gap-3 p-3">
+      <p className="text-xs font-semibold text-foreground">{label}</p>
+      <div className="flex w-full justify-between">{children}</div>
+    </div>
   )
 }
 
@@ -100,10 +115,21 @@ export function FloatingNodeOptions({
     setFloatingOptionsOpen(false)
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      requestAnimationFrame(() => {
+        const activeElement = document?.activeElement
+        if (activeElement instanceof HTMLElement) {
+          activeElement.blur()
+        }
+      })
+    }
+  }
+
   useClickOutside(floatingSectionRef, onClickOutside)
 
   return (
-    <Popover open={isFloatingOptionsOpen}>
+    <Popover open={isFloatingOptionsOpen} onOpenChange={handleOpenChange}>
       <TooltipProvider delayDuration={150}>
         <Tooltip open={isFloatingOptionsOpen ? false : undefined}>
           <PopoverTrigger
@@ -127,21 +153,30 @@ export function FloatingNodeOptions({
       </TooltipProvider>
       <PopoverContent asChild side="left" ref={floatingSectionRef}>
         <Card className="w-44 p-0">
-          <CardContent className="flex p-0">
-            <div className="flex w-full flex-col gap-3 p-3">
-              <p className="text-xs font-semibold text-foreground">Alignment</p>
-              <div className="flex w-full justify-between">
-                <AlignBtn value="left" editor={editor} element={element}>
-                  <AlignLeft className="size-4" />
-                </AlignBtn>
-                <AlignBtn value="center" editor={editor} element={element}>
-                  <AlignCenter className="size-4" />
-                </AlignBtn>
-                <AlignBtn value="right" editor={editor} element={element}>
-                  <AlignRight className="size-4" />
-                </AlignBtn>
-              </div>
-            </div>
+          <CardContent className="flex flex-col divide-y p-0">
+            <CardSection label="Alignment">
+              <AlignBtn value="left" editor={editor} element={element}>
+                <AlignLeft className="size-4" />
+              </AlignBtn>
+              <AlignBtn value="center" editor={editor} element={element}>
+                <AlignCenter className="size-4" />
+              </AlignBtn>
+              <AlignBtn value="right" editor={editor} element={element}>
+                <AlignRight className="size-4" />
+              </AlignBtn>
+            </CardSection>
+            <CardSection label="Background">
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <ColorInput element={element} editor={editor as Editor} />
+                  </TooltipTrigger>
+                  <TooltipPortal>
+                    <TooltipContent side="bottom">Background color</TooltipContent>
+                  </TooltipPortal>
+                </Tooltip>
+              </TooltipProvider>
+            </CardSection>
           </CardContent>
         </Card>
       </PopoverContent>

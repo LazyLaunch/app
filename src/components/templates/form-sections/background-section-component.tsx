@@ -16,6 +16,8 @@ interface Props {
 }
 
 export function BackgroundSectionComponent({ form, className, onReset }: Props) {
+  const defaultValues = form.formState.defaultValues || {}
+
   return (
     <div className={cn('space-y-4', className)}>
       <FormLabel className="flex items-center space-x-2">
@@ -27,9 +29,9 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
             form.resetField('bgColor')
             onReset((prevState) => ({
               ...prevState,
-              bgHPadding: form.formState.defaultValues?.bgHPadding as number,
-              bgVPadding: form.formState.defaultValues?.bgVPadding as number,
-              bgColor: form.formState.defaultValues?.bgColor as string,
+              bgHPadding: defaultValues.bgHPadding as number,
+              bgVPadding: defaultValues.bgVPadding as number,
+              bgColor: defaultValues.bgColor as string,
             }))
           }}
           className={cn(buttonVariants({ variant: 'ghost', size: 'xs' }), 'cursor-pointer p-2')}
@@ -99,7 +101,7 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
             <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white px-2 hover:border-input">
               <FormControl>
                 <>
-                  {field.value === form.formState.defaultValues.bgColor && (
+                  {field.value === defaultValues.bgColor && (
                     <Plus className="absolute left-2.5 top-2 size-4 text-muted-foreground" />
                   )}
                   <Input
@@ -108,7 +110,7 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
                     id="bgColorInput"
                     value={field.value === 'transparent' ? '#000000' : field.value}
                     className={cn('h-6 w-5 cursor-pointer self-center rounded-none border-0 p-0', {
-                      invisible: field.value === form.formState.defaultValues.bgColor,
+                      invisible: field.value === defaultValues.bgColor,
                     })}
                   />
                 </>
@@ -116,10 +118,10 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
               <FormLabel
                 htmlFor="bgColorInput"
                 className={cn('m-0 w-16 cursor-pointer self-center pl-1.5 text-sm', {
-                  'text-muted-foreground': field.value === form.formState.defaultValues.bgColor,
+                  'text-muted-foreground': field.value === defaultValues.bgColor,
                 })}
               >
-                {field.value === form.formState.defaultValues.bgColor ? 'Color' : field.value}
+                {field.value === defaultValues.bgColor ? 'Color' : field.value}
               </FormLabel>
             </FormItem>
           )}

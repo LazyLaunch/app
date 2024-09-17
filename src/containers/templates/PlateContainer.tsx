@@ -32,6 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
+import { FontBackgroundColorPlugin } from '@udecode/plate-font/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
 
 export interface FormValues {
@@ -65,6 +66,7 @@ export function PlateContainer({
 
   const editor = usePlateEditor({
     plugins: [
+      FontBackgroundColorPlugin,
       HeadingPlugin,
       BoldPlugin,
       CodePlugin,
