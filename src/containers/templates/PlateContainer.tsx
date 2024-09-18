@@ -1,4 +1,10 @@
-import { focusEditor, Plate, PlateContent, usePlateEditor } from '@udecode/plate-common/react'
+import {
+  focusEditor,
+  Plate,
+  PlateContent,
+  usePlateEditor,
+  type TPlateEditor,
+} from '@udecode/plate-common/react'
 import { Paintbrush } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -32,8 +38,44 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
+import { isBlock, type TElement } from '@udecode/plate'
 import { FontBackgroundColorPlugin } from '@udecode/plate-font/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
+import { Editor, insertNodes, Node, Element as SlateElement } from 'slate'
+
+const ENTER_KEY: string = 'Enter' as const
+
+function createEmptyParagraph(editor: TPlateEditor, id: string): TElement {
+  const [match] = Editor.nodes(editor as Editor, {
+    match: (node) => SlateElement.isElement(node) && isBlock(editor, node),
+  })
+  const type =
+    match && SlateElement.isElement(match[0]) ? (match[0] as TElement).type : ParagraphPlugin.key
+
+  return {
+    id,
+    type,
+    children: [{ text: '' }],
+  }
+}
+
+function handleEnterKey(editor: TPlateEditor, event: React.KeyboardEvent): void {
+  if (event.key === ENTER_KEY) {
+    const plateNodeId = Math.random().toString(36).slice(2, 7)
+    event.preventDefault()
+
+    const { selection } = editor
+    if (!selection) return
+
+    insertNodes(editor as Editor, createEmptyParagraph(editor, plateNodeId), {
+      at: selection.focus,
+      match: (node: Node) => {
+        return SlateElement.isElement(node) && isBlock(editor, node)
+      },
+      select: true,
+    })
+  }
+}
 
 export interface FormValues {
   bgColor: string
@@ -47,11 +89,7 @@ export interface FormValues {
   bodyHPadding: number
 }
 
-export function PlateContainer({
-  platePlaceholderContentId,
-}: {
-  platePlaceholderContentId: string
-}) {
+export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
   const [templateProps, setTemplateProps] = useState<FormValues>({
     bgColor: 'transparent',
     bodyColor: 'transparent',
@@ -90,7 +128,7 @@ export function PlateContainer({
     },
     value: [
       {
-        id: platePlaceholderContentId,
+        id: plateNodeId,
         type: 'p',
         children: [{ text: '' }],
       },
@@ -149,6 +187,7 @@ export function PlateContainer({
               <div className="relative w-full">
                 <PlateContent
                   className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
+                  onKeyDown={(event) => handleEnterKey(editor, event)}
                   data-plate-selectable
                   disableDefaultStyles
                   style={{

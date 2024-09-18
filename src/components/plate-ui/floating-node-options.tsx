@@ -1,7 +1,9 @@
 import { cn } from '@udecode/cn'
 import { AlignCenter, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-react'
 
-import { ColorInput } from '@/components/plate-ui/color-input'
+import { AlignBtn } from '@/components/plate-ui/floating-node-options/align-btn'
+import { ColorInput } from '@/components/plate-ui/floating-node-options/color-input'
+import { RowPadding } from '@/components/plate-ui/floating-node-options/row-padding'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -12,7 +14,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { setAlign, type Alignment } from '@udecode/plate-alignment'
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
 import { useEffect, useRef } from 'react'
 import type { Editor } from 'slate'
@@ -46,43 +47,6 @@ function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => vo
       document.removeEventListener('mousedown', handleClickOutside, true)
     }
   }, [ref, handler])
-}
-
-function AlignBtn({
-  children,
-  value,
-  editor,
-  element,
-  defaultValue = 'left',
-}: {
-  editor: SlateEditor
-  element: TElement
-  children: any
-  value: Alignment
-  defaultValue?: Alignment
-}) {
-  return (
-    <TooltipProvider delayDuration={150}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <a
-            onClick={() => setAlign(editor, { value })}
-            className={cn('size-4 cursor-pointer hover:opacity-100', {
-              'opacity-40': element.align !== value,
-              'opacity-100': defaultValue === value && element.align === undefined,
-            })}
-          >
-            {children}
-          </a>
-        </TooltipTrigger>
-        <TooltipPortal>
-          <TooltipContent sideOffset={10} side="bottom">
-            Align {value}
-          </TooltipContent>
-        </TooltipPortal>
-      </Tooltip>
-    </TooltipProvider>
-  )
 }
 
 function CardSection({ children, label }: { children: any; label: string }) {
@@ -172,10 +136,13 @@ export function FloatingNodeOptions({
                     <ColorInput element={element} editor={editor as Editor} />
                   </TooltipTrigger>
                   <TooltipPortal>
-                    <TooltipContent side="bottom">Background color</TooltipContent>
+                    <TooltipContent side="top">Background color</TooltipContent>
                   </TooltipPortal>
                 </Tooltip>
               </TooltipProvider>
+            </CardSection>
+            <CardSection label="Padding">
+              <RowPadding editor={editor as Editor} element={element} />
             </CardSection>
           </CardContent>
         </Card>
