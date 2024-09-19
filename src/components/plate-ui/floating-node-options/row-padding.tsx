@@ -18,32 +18,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { TooltipContentProps } from '@radix-ui/react-tooltip'
-import type { TElement } from '@udecode/plate-common'
-import { Element, setNodes, type Editor } from 'slate'
-
-interface CustomElement extends Element {
-  id: string
-  type: string
-}
-
-interface ElementProps extends Omit<CustomElement, 'id' | 'type'> {
-  paddingLeft: number | null
-  paddingTop: number | null
-  paddingRight: number | null
-  paddingBottom: number | null
-  paddingHorizontal: number | null
-  paddingVertical: number | null
-  isToggledInputs: boolean | null
-}
-
-function setElementPadding(editor: Editor, val: ElementProps, element: TElement): void {
-  if (!editor) return
-
-  setNodes<CustomElement>(editor, val, {
-    match: (n) =>
-      (n as CustomElement).id === element.id && (n as CustomElement).type === element.type,
-  })
-}
+import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
+import { type Editor } from 'slate'
 
 interface FormValues {
   paddingLeft: number
@@ -53,6 +29,52 @@ interface FormValues {
   paddingHorizontal: number
   paddingVertical: number
   isToggledInputs: boolean
+}
+
+function convertValuesToInt(obj: FormValues): Record<string, number> {
+  const result: Record<string, number> = {}
+  const { isToggledInputs, ...rest } = obj
+
+  for (const [key, value] of Object.entries(rest)) {
+    result[key] = parseInt(value.toString(), 10)
+  }
+
+  return result
+}
+
+interface CustomElement extends TElement {
+  type: string
+  attributes?: {
+    style?: React.CSSProperties
+  }
+}
+
+function setElementPadding(editor: Editor, val: FormValues, element: CustomElement): void {
+  if (!editor) return
+  const currentStyles = element.attributes?.style || {}
+  const currentProps = element.nodeProps || {}
+
+  setElements(
+    editor as TEditor,
+    {
+      nodeProps: {
+        ...currentProps,
+        ...val,
+      },
+      attributes: {
+        style: {
+          ...currentStyles,
+          paddingLeft: val.paddingLeft + 'px',
+          paddingRight: val.paddingRight + 'px',
+          paddingTop: val.paddingTop + 'px',
+          paddingBottom: val.paddingBottom + 'px',
+        },
+      },
+    },
+    {
+      match: (n) => n.id === element.id && n.type === element.type,
+    }
+  )
 }
 
 function FormInput({
@@ -121,21 +143,24 @@ function FormInput({
 }
 
 export function RowPadding({ element, editor }: { editor: Editor; element: TElement }) {
+  const elProps = (element.nodeProps || {}) as FormValues
+
   const form = useForm<FormValues>({
     defaultValues: {
-      paddingLeft: (element.paddingLeft || 0) as number,
-      paddingRight: (element.paddingRight || 0) as number,
-      paddingTop: (element.paddingTop || 0) as number,
-      paddingBottom: (element.paddingBottom || 0) as number,
-      paddingHorizontal: (element.paddingHorizontal || 0) as number,
-      paddingVertical: (element.paddingVertical || 0) as number,
-      isToggledInputs: (element.isToggledInputs || false) as boolean,
+      paddingLeft: elProps.paddingLeft || 0,
+      paddingRight: elProps.paddingRight || 0,
+      paddingTop: elProps.paddingTop || 0,
+      paddingBottom: elProps.paddingBottom || 0,
+      paddingHorizontal: elProps.paddingHorizontal || 0,
+      paddingVertical: elProps.paddingVertical || 0,
+      isToggledInputs: elProps.isToggledInputs || false,
     },
   })
   const { control, handleSubmit, watch } = form
 
   function doSubmit(values: FormValues) {
-    setElementPadding(editor, values as ElementProps, element)
+    const convertedValues = convertValuesToInt(values)
+    setElementPadding(editor, { ...values, ...convertedValues }, element)
   }
 
   return (
@@ -150,6 +175,7 @@ export function RowPadding({ element, editor }: { editor: Editor; element: TElem
                 name="paddingHorizontal"
                 tooltip="Horizontal padding"
                 onChange={(val) => {
+                  form.setValue('paddingHorizontal', parseInt(val))
                   form.setValue('paddingLeft', parseInt(val))
                   form.setValue('paddingRight', parseInt(val))
                 }}
@@ -162,6 +188,7 @@ export function RowPadding({ element, editor }: { editor: Editor; element: TElem
                 name="paddingVertical"
                 tooltip="Vertical padding"
                 onChange={(val) => {
+                  form.setValue('paddingVertical', parseInt(val))
                   form.setValue('paddingTop', parseInt(val))
                   form.setValue('paddingBottom', parseInt(val))
                 }}

@@ -15,7 +15,7 @@ export function createPlateUI() {
   let components: Record<string, NodeComponent> = {
     [BoldPlugin.key]: withProps(PlateLeaf, { as: 'strong' }),
     [ItalicPlugin.key]: withProps(PlateLeaf, { as: 'em' }),
-    [ParagraphPlugin.key]: ParagraphElement,
+    [ParagraphPlugin.key]: withProps(ParagraphElement, { as: 'p' }),
     [SlashInputPlugin.key]: SlashInputElement,
     [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: 'h1' }),
     [HEADING_KEYS.h2]: withProps(HeadingElement, { variant: 'h2' }),

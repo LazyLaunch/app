@@ -2,40 +2,61 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/
 import { Input } from '@/components/ui/input'
 import { expandHexColor } from '@/lib/expand-hex-color'
 import { cn } from '@udecode/cn'
-import type { TElement } from '@udecode/plate-common'
+import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
 import { Plus } from 'lucide-react'
 import { useForm, type UseFormReturn } from 'react-hook-form'
-import { Editor, Element, setNodes } from 'slate'
+import { Editor } from 'slate'
 
-interface CustomElement extends Element {
-  id: string
-  backgroundColor?: string | null
+interface CustomElement extends TElement {
+  type: string
+  attributes?: {
+    style?: React.CSSProperties
+  }
 }
 
-function toggleHighlight(editor: Editor, color: string | null, nodeId: string): void {
+function toggleHighlight(
+  editor: Editor,
+  backgroundColor: string | null,
+  element: CustomElement
+): void {
   if (!editor) return
+  const currentStyles = element.attributes?.style || {}
+  const currentProps = element.nodeProps || {}
 
-  setNodes<CustomElement>(
-    editor,
-    { backgroundColor: color },
-    { match: (n) => (n as CustomElement).id === nodeId }
+  setElements(
+    editor as TEditor,
+    {
+      nodeProps: {
+        ...currentProps,
+        backgroundColor,
+      },
+      attributes: {
+        style: {
+          ...currentStyles,
+          backgroundColor,
+        },
+      },
+    },
+    {
+      match: (n) => n.id === element.id && n.type === element.type,
+    }
   )
 }
 
-interface FormState {
-  bgColor: string
-  inputBgColor: string
+interface FormValues {
+  backgroundColor: string
+  inputbackgroundColor: string
 }
 
 function handleInputMask(
   event: React.ChangeEvent<HTMLInputElement>,
-  form: UseFormReturn<FormState>
+  form: UseFormReturn<FormValues>
 ): void {
   let value = event.target.value
 
   if (value.length === 0) {
-    form.setValue('inputBgColor', '')
-    form.setValue('bgColor', '')
+    form.setValue('inputbackgroundColor', '')
+    form.setValue('backgroundColor', '')
     return
   }
 
@@ -49,24 +70,25 @@ function handleInputMask(
   }
   const fullColorName = expandHexColor(value)
 
-  if (fullColorName.length === 7) form.setValue('bgColor', fullColorName)
-  form.setValue('inputBgColor', value)
+  if (fullColorName.length === 7) form.setValue('backgroundColor', fullColorName)
+  form.setValue('inputbackgroundColor', value)
 }
 
 export function ColorInput({ editor, element }: { editor: Editor; element: TElement }) {
-  const form = useForm<FormState>({
+  const elProps = (element.nodeProps || {}) as FormValues
+
+  const form = useForm<FormValues>({
     defaultValues: {
-      bgColor: (element.backgroundColor || '') as string,
-      inputBgColor: (element.backgroundColor || '') as string,
+      backgroundColor: (elProps.backgroundColor || '') as string,
+      inputbackgroundColor: (elProps.backgroundColor || '') as string,
     },
   })
   const { control } = form
 
-  function handleSubmit({ bgColor }: { bgColor: string }) {
-    const nodeId = element.id as string
-    const color = bgColor.length === 0 ? null : bgColor
-    if (bgColor.length === 7 || bgColor.length === 0) {
-      toggleHighlight(editor, color, nodeId)
+  function handleSubmit({ backgroundColor }: { backgroundColor: string }) {
+    const color = backgroundColor.length === 0 ? null : backgroundColor
+    if (backgroundColor.length === 7 || backgroundColor.length === 0) {
+      toggleHighlight(editor, color, element)
     }
   }
 
@@ -75,14 +97,14 @@ export function ColorInput({ editor, element }: { editor: Editor; element: TElem
       <form onChange={form.handleSubmit(handleSubmit)} className="flex space-x-0.5">
         <FormField
           control={control}
-          name="bgColor"
+          name="backgroundColor"
           render={({ field }) => (
             <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white">
               <FormControl>
                 <>
                   {!field.value && (
                     <FormLabel
-                      htmlFor="rowBgColor"
+                      htmlFor="rowbackgroundColor"
                       className="absolute top-1 size-4 cursor-pointer"
                     >
                       <Plus className="size-4 text-muted-foreground" />
@@ -94,7 +116,7 @@ export function ColorInput({ editor, element }: { editor: Editor; element: TElem
                     onChange={(e) => {
                       handleInputMask(e, form)
                     }}
-                    id="rowBgColor"
+                    id="rowbackgroundColor"
                     className={cn(
                       '-ml-0.5 h-6 w-5 cursor-pointer self-center rounded-none border-0 p-0',
                       {
@@ -109,7 +131,7 @@ export function ColorInput({ editor, element }: { editor: Editor; element: TElem
         />
         <FormField
           control={control}
-          name="inputBgColor"
+          name="inputbackgroundColor"
           render={({ field }) => (
             <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white">
               <FormControl>
