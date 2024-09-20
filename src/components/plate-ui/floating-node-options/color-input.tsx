@@ -5,7 +5,6 @@ import { cn } from '@udecode/cn'
 import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
 import { Plus } from 'lucide-react'
 import { useForm, type UseFormReturn } from 'react-hook-form'
-import { Editor } from 'slate'
 
 interface CustomElement extends TElement {
   type: string
@@ -15,7 +14,7 @@ interface CustomElement extends TElement {
 }
 
 function toggleHighlight(
-  editor: Editor,
+  editor: TEditor,
   backgroundColor: string | null,
   element: CustomElement
 ): void {
@@ -24,7 +23,7 @@ function toggleHighlight(
   const currentProps = element.nodeProps || {}
 
   setElements(
-    editor as TEditor,
+    editor,
     {
       nodeProps: {
         ...currentProps,
@@ -74,7 +73,7 @@ function handleInputMask(
   form.setValue('inputbackgroundColor', value)
 }
 
-export function ColorInput({ editor, element }: { editor: Editor; element: TElement }) {
+export function ColorInput({ editor, element }: { editor: TEditor; element: TElement }) {
   const elProps = (element.nodeProps || {}) as FormValues
 
   const form = useForm<FormValues>({

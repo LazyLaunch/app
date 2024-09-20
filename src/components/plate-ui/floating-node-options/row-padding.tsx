@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/tooltip'
 import type { TooltipContentProps } from '@radix-ui/react-tooltip'
 import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
-import { type Editor } from 'slate'
 
 interface FormValues {
   paddingLeft: number
@@ -49,13 +48,13 @@ interface CustomElement extends TElement {
   }
 }
 
-function setElementPadding(editor: Editor, val: FormValues, element: CustomElement): void {
+function setElementPadding(editor: TEditor, val: FormValues, element: CustomElement): void {
   if (!editor) return
   const currentStyles = element.attributes?.style || {}
   const currentProps = element.nodeProps || {}
 
   setElements(
-    editor as TEditor,
+    editor,
     {
       nodeProps: {
         ...currentProps,
@@ -142,7 +141,7 @@ function FormInput({
   )
 }
 
-export function RowPadding({ element, editor }: { editor: Editor; element: TElement }) {
+export function RowPadding({ element, editor }: { editor: TEditor; element: TElement }) {
   const elProps = (element.nodeProps || {}) as FormValues
 
   const form = useForm<FormValues>({

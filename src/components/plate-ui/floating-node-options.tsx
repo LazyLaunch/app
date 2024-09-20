@@ -3,6 +3,8 @@ import { AlignCenter, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-re
 
 import { AlignBtn } from '@/components/plate-ui/floating-node-options/align-btn'
 import { ColorInput } from '@/components/plate-ui/floating-node-options/color-input'
+import { RowActions } from '@/components/plate-ui/floating-node-options/row-actions'
+import { RowBorderRadius } from '@/components/plate-ui/floating-node-options/row-border-radius'
 import { RowPadding } from '@/components/plate-ui/floating-node-options/row-padding'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,7 +18,6 @@ import {
 } from '@/components/ui/tooltip'
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
 import { useEffect, useRef } from 'react'
-import type { Editor } from 'slate'
 
 function findRowById(editor: SlateEditor, id: string) {
   return editor.children.findIndex((node) => node.id === id)
@@ -49,10 +50,20 @@ function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => vo
   }, [ref, handler])
 }
 
-function CardSection({ children, label }: { children: any; label: string }) {
+function CardSection({
+  children,
+  label,
+  className,
+  labelClassName,
+}: {
+  children: any
+  label: string
+  className?: string
+  labelClassName?: string
+}) {
   return (
-    <div className="flex w-full flex-col gap-3 p-3">
-      <p className="text-xs font-semibold text-foreground">{label}</p>
+    <div className={cn('flex w-full flex-col gap-3 p-3', className)}>
+      <p className={cn('text-xs font-semibold text-foreground', labelClassName)}>{label}</p>
       <div className="flex w-full justify-between">{children}</div>
     </div>
   )
@@ -97,7 +108,11 @@ export function FloatingNodeOptions({
       <TooltipProvider delayDuration={150}>
         <Tooltip open={isFloatingOptionsOpen ? false : undefined}>
           <PopoverTrigger
-            className={cn(buttonVariants({ variant: 'ghost', size: 'iconXs' }), 'ml-0.5')}
+            className={cn(
+              buttonVariants({ variant: 'ghost', size: 'iconXs' }),
+              'ml-0.5',
+              isFloatingOptionsOpen && 'bg-accent'
+            )}
             onClick={() => {
               const nodeIndex = findRowById(editor, element.id as string)
               setCursorToRow(editor, nodeIndex)
@@ -105,7 +120,12 @@ export function FloatingNodeOptions({
             }}
           >
             <TooltipTrigger asChild>
-              <SlidersHorizontal className="size-3 cursor-pointer text-muted-foreground" />
+              <SlidersHorizontal
+                className={cn(
+                  'size-3 cursor-pointer',
+                  !isFloatingOptionsOpen && 'text-muted-foreground'
+                )}
+              />
             </TooltipTrigger>
           </PopoverTrigger>
           <TooltipPortal>
@@ -115,7 +135,7 @@ export function FloatingNodeOptions({
           </TooltipPortal>
         </Tooltip>
       </TooltipProvider>
-      <PopoverContent asChild side="left" ref={floatingSectionRef}>
+      <PopoverContent asChild side="left" align="start" ref={floatingSectionRef}>
         <Card className="w-44 p-0">
           <CardContent className="flex flex-col divide-y p-0">
             <CardSection label="Alignment">
@@ -133,7 +153,7 @@ export function FloatingNodeOptions({
               <TooltipProvider delayDuration={150}>
                 <Tooltip>
                   <TooltipTrigger>
-                    <ColorInput element={element} editor={editor as Editor} />
+                    <ColorInput element={element} editor={editor} />
                   </TooltipTrigger>
                   <TooltipPortal>
                     <TooltipContent side="top">Background color</TooltipContent>
@@ -142,7 +162,22 @@ export function FloatingNodeOptions({
               </TooltipProvider>
             </CardSection>
             <CardSection label="Padding">
-              <RowPadding editor={editor as Editor} element={element} />
+              <RowPadding editor={editor} element={element} />
+            </CardSection>
+            <CardSection label="Border">
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <RowBorderRadius editor={editor} element={element} />
+                  </TooltipTrigger>
+                  <TooltipPortal>
+                    <TooltipContent side="top">Border radius</TooltipContent>
+                  </TooltipPortal>
+                </Tooltip>
+              </TooltipProvider>
+            </CardSection>
+            <CardSection label="Actions" className="px-0" labelClassName="px-3">
+              <RowActions editor={editor} element={element} />
             </CardSection>
           </CardContent>
         </Card>
