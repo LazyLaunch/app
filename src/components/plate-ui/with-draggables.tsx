@@ -28,26 +28,18 @@ export const withDraggables = (components: any) => {
     {
       draggableProps: {
         classNames: {
-          blockToolbarWrapper: 'h-[1.3em]',
-          gutterLeft: 'px-0 pb-1 text-[1.875em]',
+          blockToolbarWrapper: 'pt-1',
         },
       },
       key: HEADING_KEYS.h1,
     },
     {
-      draggableProps: {
-        classNames: {
-          blockToolbarWrapper: 'h-[1.3em]',
-          gutterLeft: 'px-0 pb-1 text-[1.5em]',
-        },
-      },
       key: HEADING_KEYS.h2,
     },
     {
       draggableProps: {
         classNames: {
-          blockToolbarWrapper: 'h-[1.3em]',
-          gutterLeft: 'pt-[2px] px-0 pb-1 text-[1.25em]',
+          blockToolbarWrapper: 'pt-1',
         },
       },
       key: HEADING_KEYS.h3,
@@ -55,7 +47,8 @@ export const withDraggables = (components: any) => {
     {
       draggableProps: {
         classNames: {
-          gutterLeft: 'px-0 pb-0',
+          blockToolbarWrapper: 'pt-0.5',
+          gutterLeft: '',
         },
       },
       keys: [ParagraphPlugin.key],

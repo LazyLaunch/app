@@ -1,6 +1,6 @@
 import * as ToolbarPrimitive from '@radix-ui/react-toolbar'
 import { cn, withCn, withRef } from '@udecode/cn'
-import { ArrowDown } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import * as React from 'react'
 
 import { buttonVariants } from '@/components/ui/button'
@@ -33,12 +33,13 @@ export const ToolbarButton = withTooltip(
       return (
         <ToolbarToggleItem
           className={cn(
-            'aria-[pressed=true]:bg-secondary',
+            'data-[state=open]:bg-accent',
+            'aria-[pressed=true]:bg-accent',
             buttonVariants({
               size,
               variant,
             }),
-            isDropdown && 'my-1 justify-between pr-1',
+            isDropdown && 'space-x-1',
             className
           )}
           ref={ref}
@@ -48,10 +49,8 @@ export const ToolbarButton = withTooltip(
         >
           {isDropdown ? (
             <>
-              <div className="flex flex-1">{children}</div>
-              <div>
-                <ArrowDown className="ml-0.5 size-4" data-icon />
-              </div>
+              {children}
+              <ChevronDown className="size-3" />
             </>
           ) : (
             children
@@ -67,7 +66,6 @@ export const ToolbarButton = withTooltip(
             size,
             variant,
           }),
-          isDropdown && 'pr-1',
           className
         )}
         ref={ref}

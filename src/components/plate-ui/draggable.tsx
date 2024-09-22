@@ -142,24 +142,25 @@ export const Draggable = withRef<'div', DraggableProps>(
           )}
           {...gutterLeftProps}
         >
-          <div className={cn('mb-[7px] flex space-x-2.5', classNames.blockToolbarWrapper)}>
+          <div className={cn('flex h-full items-center', classNames.blockToolbarWrapper)}>
             <div className="pointer-events-auto flex items-center">
-              <div className="size-4">
-                {isHovered && (
-                  <FloatingNodeOptions
-                    element={element}
-                    editor={props.editor}
-                    setIsHovered={setIsHovered}
-                    setFloatingOptionsOpen={setFloatingOptionsOpen}
-                    isFloatingOptionsOpen={isFloatingOptionsOpen}
-                  />
-                )}
-              </div>
+              {isHovered && (
+                <FloatingNodeOptions
+                  element={element}
+                  editor={props.editor}
+                  setIsHovered={setIsHovered}
+                  setFloatingOptionsOpen={setFloatingOptionsOpen}
+                  isFloatingOptionsOpen={isFloatingOptionsOpen}
+                />
+              )}
             </div>
             <div
-              className={cn('pointer-events-auto flex items-center pr-3', classNames.blockToolbar)}
+              className={cn(
+                'pointer-events-auto flex items-center pl-0.5 pr-3',
+                classNames.blockToolbar
+              )}
             >
-              <div className="size-4" data-key={element.id as string} ref={handleRef}>
+              <div className="flex" data-key={element.id as string} ref={handleRef}>
                 {isHovered && (
                   <DragHandle element={element} isFloatingOptionsOpen={isFloatingOptionsOpen} />
                 )}

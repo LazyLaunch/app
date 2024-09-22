@@ -135,7 +135,7 @@ export function FloatingNodeOptions({
           </TooltipPortal>
         </Tooltip>
       </TooltipProvider>
-      <PopoverContent asChild side="left" align="start" ref={floatingSectionRef}>
+      <PopoverContent alignOffset={-70} asChild side="left" align="start" ref={floatingSectionRef}>
         <Card className="w-44 p-0">
           <CardContent className="flex flex-col divide-y p-0">
             <CardSection label="Alignment">

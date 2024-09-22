@@ -176,7 +176,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
             style={{
               backgroundColor: templateProps.bgColor,
             }}
-            className="h-screen w-full transition-all duration-300 ease-in-out"
+            className="min-h-screen w-full transition-all duration-300 ease-in-out"
           >
             <div
               className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
@@ -208,7 +208,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
             </div>
           </div>
           <FloatingToolbar>
-            <FloatingToolbarButtons />
+            <FloatingToolbarButtons editor={editor} />
           </FloatingToolbar>
         </Plate>
       </DndProvider>
