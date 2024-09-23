@@ -1,10 +1,18 @@
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { expandHexColor } from '@/lib/expand-hex-color'
-import { cn } from '@udecode/cn'
 import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
-import { Plus } from 'lucide-react'
-import { useForm, type UseFormReturn } from 'react-hook-form'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+
+function useCloseColoris(handler: (event: Event) => void) {
+  useEffect(() => {
+    document.addEventListener('close', handler, true)
+
+    return () => {
+      document.removeEventListener('close', handler, true)
+    }
+  }, [])
+}
 
 interface CustomElement extends TElement {
   type: string
@@ -44,51 +52,52 @@ function toggleHighlight(
 
 interface FormValues {
   backgroundColor: string
-  inputbackgroundColor: string
 }
 
-function handleInputMask(
-  event: React.ChangeEvent<HTMLInputElement>,
-  form: UseFormReturn<FormValues>
-): void {
-  let value = event.target.value
-
-  if (value.length === 0) {
-    form.setValue('inputbackgroundColor', '')
-    form.setValue('backgroundColor', '')
-    return
-  }
-
-  value = value.replace(/[^#a-fA-F0-9]/g, '')
-  if (!value.startsWith('#')) {
-    value = '#' + value
-  }
-
-  if (value.length > 7) {
-    value = value.slice(0, 7)
-  }
-  const fullColorName = expandHexColor(value)
-
-  if (fullColorName.length === 7) form.setValue('backgroundColor', fullColorName)
-  form.setValue('inputbackgroundColor', value)
-}
-
-export function ColorInput({ editor, element }: { editor: TEditor; element: TElement }) {
+export function ColorInput({
+  editor,
+  element,
+  onSetOpenTooltip,
+}: {
+  editor: TEditor
+  element: TElement
+  onSetOpenTooltip: (open: boolean | undefined) => void
+}) {
   const elProps = (element.nodeProps || {}) as FormValues
 
   const form = useForm<FormValues>({
     defaultValues: {
       backgroundColor: (elProps.backgroundColor || '') as string,
-      inputbackgroundColor: (elProps.backgroundColor || '') as string,
     },
   })
   const { control } = form
 
+  useEffect(() => {
+    const loadColoris = async () => {
+      const { coloris, init } = await import('@melloware/coloris')
+
+      init()
+      coloris({
+        parent: '#coloris-container',
+        el: '#coloris-input',
+        alpha: true,
+        rtl: true,
+        margin: 10,
+        onChange: (backgroundColor) => {
+          form.setValue('backgroundColor', backgroundColor)
+          handleSubmit({ backgroundColor })
+        },
+      })
+    }
+
+    loadColoris()
+  }, [])
+
+  useCloseColoris(() => onSetOpenTooltip(undefined))
+
   function handleSubmit({ backgroundColor }: { backgroundColor: string }) {
     const color = backgroundColor.length === 0 ? null : backgroundColor
-    if (backgroundColor.length === 7 || backgroundColor.length === 0) {
-      toggleHighlight(editor, color, element)
-    }
+    toggleHighlight(editor, color, element)
   }
 
   return (
@@ -98,49 +107,18 @@ export function ColorInput({ editor, element }: { editor: TEditor; element: TEle
           control={control}
           name="backgroundColor"
           render={({ field }) => (
-            <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white">
+            <FormItem>
               <FormControl>
                 <>
-                  {!field.value && (
-                    <FormLabel
-                      htmlFor="rowbackgroundColor"
-                      className="absolute top-1 size-4 cursor-pointer"
-                    >
-                      <Plus className="size-4 text-muted-foreground" />
-                    </FormLabel>
-                  )}
                   <Input
                     {...field}
-                    type="color"
-                    onChange={(e) => {
-                      handleInputMask(e, form)
-                    }}
-                    id="rowbackgroundColor"
-                    className={cn(
-                      '-ml-0.5 h-6 w-5 cursor-pointer self-center rounded-none border-0 p-0',
-                      {
-                        invisible: !field.value,
-                      }
-                    )}
+                    className="h-4 w-full rounded-none border-0 p-0 pl-6 text-sm focus-visible:outline-none focus-visible:ring-0"
+                    id="coloris-input"
+                    placeholder="Color"
+                    onClick={() => onSetOpenTooltip(false)}
                   />
+                  <div id="coloris-container" className="relative"></div>
                 </>
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="inputbackgroundColor"
-          render={({ field }) => (
-            <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white">
-              <FormControl>
-                <input
-                  {...field}
-                  onChange={(e) => handleInputMask(e, form)}
-                  placeholder="Color"
-                  className="h-4 w-16 self-center rounded-none border-0 bg-background p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
-                  autoComplete="off"
-                />
               </FormControl>
             </FormItem>
           )}

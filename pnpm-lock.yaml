@@ -29,6 +29,9 @@ dependencies:
   '@lucia-auth/adapter-sqlite':
     specifier: ^3.0.2
     version: 3.0.2(@libsql/client@0.10.0)(lucia@3.2.0)
+  '@melloware/coloris':
+    specifier: ^0.24.0
+    version: 0.24.0
   '@radix-ui/react-avatar':
     specifier: ^1.1.0
     version: 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.5)(react-dom@18.3.1)(react@18.3.1)
@@ -1796,6 +1799,10 @@ packages:
     dependencies:
       '@libsql/client': 0.10.0
       lucia: 3.2.0
+    dev: false
+
+  /@melloware/coloris@0.24.0:
+    resolution: {integrity: sha512-9RGKHqZJsUSsxb/0xaBCK5OKywobiK/xRtV8f4KQDmviqmVfkMLR3kK4DRuTTLSFdSOqkV0OQ/Niitu+rlXXYw==}
     dev: false
 
   /@neon-rs/load@0.0.4:

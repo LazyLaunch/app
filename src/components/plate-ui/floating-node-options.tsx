@@ -17,7 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function findRowById(editor: SlateEditor, id: string) {
   return editor.children.findIndex((node) => node.id === id)
@@ -84,6 +84,7 @@ export function FloatingNodeOptions({
   element,
   editor,
 }: Props) {
+  const [isOpenTooltip, setOpenTooltip] = useState<boolean | undefined>(undefined)
   const floatingSectionRef = useRef<HTMLDivElement>(null)
   const onClickOutside = () => {
     setIsHovered(false)
@@ -151,9 +152,13 @@ export function FloatingNodeOptions({
             </CardSection>
             <CardSection label="Background">
               <TooltipProvider delayDuration={150}>
-                <Tooltip>
+                <Tooltip open={isOpenTooltip}>
                   <TooltipTrigger>
-                    <ColorInput element={element} editor={editor} />
+                    <ColorInput
+                      onSetOpenTooltip={setOpenTooltip}
+                      element={element}
+                      editor={editor}
+                    />
                   </TooltipTrigger>
                   <TooltipPortal>
                     <TooltipContent side="top">Background color</TooltipContent>
