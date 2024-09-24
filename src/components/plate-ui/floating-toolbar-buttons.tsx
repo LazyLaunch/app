@@ -1,6 +1,5 @@
-import { MarkToolbarButton } from '@/components/plate-ui/mark-toolbar-button'
-import { ToolbarGroup } from '@/components/plate-ui/toolbar'
-import { TurnIntoDropdownMenu } from '@/components/plate-ui/turn-into-dropdown-menu'
+import { useState } from 'react'
+
 import {
   BoldPlugin,
   CodePlugin,
@@ -9,11 +8,26 @@ import {
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 import type { TEditor } from '@udecode/plate-common'
+import { FontColorPlugin } from '@udecode/plate-font/react'
 import { Bold, Code, Italic, Strikethrough, Underline } from 'lucide-react'
 
+import { ColorPicker } from '@/components/plate-ui/color-picker'
+import { MarkToolbarButton } from '@/components/plate-ui/mark-toolbar-button'
+import { ToolbarGroup } from '@/components/plate-ui/toolbar'
+import { TurnIntoDropdownMenu } from '@/components/plate-ui/turn-into-dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+
 export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
+  const [isOpenTooltip, setOpenTooltip] = useState<boolean | undefined>(undefined)
+
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full">
       <div className="flex flex-wrap space-x-2.5">
         <ToolbarGroup type="single" value="single" ariaLabel="Turn into">
           <TurnIntoDropdownMenu editor={editor} />
@@ -27,7 +41,6 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
             CodePlugin.key,
           ]}
           ariaLabel="Text formatting"
-          noSeparator
         >
           <MarkToolbarButton nodeType={BoldPlugin.key} value={BoldPlugin.key} tooltip="Bold (⌘+B)">
             <Bold className="size-4" />
@@ -56,6 +69,22 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
           <MarkToolbarButton nodeType={CodePlugin.key} value={CodePlugin.key} tooltip="Code (⌘+E)">
             <Code className="size-4" />
           </MarkToolbarButton>
+        </ToolbarGroup>
+        <ToolbarGroup value={[FontColorPlugin.key]} ariaLabel="Text coloring" noSeparator>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip open={isOpenTooltip}>
+              <TooltipTrigger>
+                <ColorPicker
+                  editor={editor}
+                  onSetOpenTooltip={setOpenTooltip}
+                  nodeType={FontColorPlugin.key}
+                />
+              </TooltipTrigger>
+              <TooltipPortal>
+                <TooltipContent side="top">Text color</TooltipContent>
+              </TooltipPortal>
+            </Tooltip>
+          </TooltipProvider>
         </ToolbarGroup>
       </div>
     </div>

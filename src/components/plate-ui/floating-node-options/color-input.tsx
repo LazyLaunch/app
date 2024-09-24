@@ -78,7 +78,7 @@ export function ColorInput({
 
       init()
       coloris({
-        parent: '#coloris-container',
+        parent: '#coloris-input-container',
         el: '#coloris-input',
         alpha: true,
         rtl: true,
@@ -117,7 +117,7 @@ export function ColorInput({
                     placeholder="Color"
                     onClick={() => onSetOpenTooltip(false)}
                   />
-                  <div id="coloris-container" className="relative"></div>
+                  <div id="coloris-input-container" className="relative"></div>
                 </>
               </FormControl>
             </FormItem>

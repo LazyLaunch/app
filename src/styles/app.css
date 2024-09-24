@@ -1,10 +1,11 @@
-.clr-field.clr-rtl button {
+.clr-field.clr-rtl button,
+.clr-field button {
   border-radius: 4px;
   height: 16px;
   width: 16px;
 }
 
-.clr-field.clr-rtl input {
+.clr-field.clr-rtl input#coloris-input {
   text-align: left;
   direction: ltr;
 }

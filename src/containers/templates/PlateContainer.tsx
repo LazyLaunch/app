@@ -39,7 +39,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
 import { isBlock, type TElement } from '@udecode/plate'
-import { FontBackgroundColorPlugin } from '@udecode/plate-font/react'
+import { FontBackgroundColorPlugin, FontColorPlugin } from '@udecode/plate-font/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
 import { Editor, insertNodes, Node, Element as SlateElement } from 'slate'
 
@@ -117,6 +117,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
           targetPlugins: [ParagraphPlugin.key, HEADING_KEYS.h1, HEADING_KEYS.h2, HEADING_KEYS.h3],
         },
       }),
+      FontColorPlugin,
       UnderlinePlugin,
       NodeIdPlugin,
       DndPlugin.configure({ options: { enableScroller: true } }),
