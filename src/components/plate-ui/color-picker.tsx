@@ -31,6 +31,7 @@ export function ColorPicker({
   const inputRef = useRef<HTMLInputElement>(null)
   const colorPickerRef = useRef<HTMLDivElement>(null)
 
+  const selectionDefined = useEditorSelector((editor) => !!editor.selection, [])
   const currentColor = useEditorSelector(
     (editor) => getMark(editor, nodeType) as string,
     [nodeType]
@@ -38,7 +39,7 @@ export function ColorPicker({
 
   const form = useForm<FormValues>({
     defaultValues: {
-      color: currentColor || '',
+      color: (selectionDefined && currentColor) || '',
     },
   })
   const { control } = form
@@ -94,7 +95,7 @@ export function ColorPicker({
           control={control}
           name="color"
           render={({ field }) => (
-            <FormItem className="space-y-0">
+            <FormItem className="size-6 space-y-0">
               <FormControl>
                 <>
                   <input
