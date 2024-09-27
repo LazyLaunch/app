@@ -8,7 +8,7 @@ import {
 } from '@udecode/plate-basic-marks/react'
 import { ParagraphPlugin, PlateLeaf } from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
-import { SlashInputPlugin } from '@udecode/plate-slash-command'
+import { BaseSlashInputPlugin } from '@udecode/plate-slash-command'
 
 import { type NodeComponent } from '@udecode/plate-common/react'
 
@@ -26,7 +26,7 @@ export function createPlateUI() {
     [UnderlinePlugin.key]: withProps(PlateLeaf, { as: 'u' }),
     [CodePlugin.key]: CodeLeaf,
     [ParagraphPlugin.key]: withProps(ParagraphElement, { as: 'p' }),
-    [SlashInputPlugin.key]: SlashInputElement,
+    [BaseSlashInputPlugin.key]: SlashInputElement,
     [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: 'h1' }),
     [HEADING_KEYS.h2]: withProps(HeadingElement, { variant: 'h2' }),
     [HEADING_KEYS.h3]: withProps(HeadingElement, { variant: 'h3' }),

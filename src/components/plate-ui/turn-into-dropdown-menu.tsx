@@ -1,12 +1,11 @@
 import { cn } from '@udecode/cn'
+import { collapseSelection, getNodeEntries, isBlock, type TEditor } from '@udecode/plate-common'
 import {
-  collapseSelection,
-  getNodeEntries,
-  isBlock,
+  focusEditor,
   ParagraphPlugin,
-  type TEditor,
-} from '@udecode/plate-common'
-import { focusEditor, useEditorSelector, type PlateEditor } from '@udecode/plate-common/react'
+  useEditorSelector,
+  type PlateEditor,
+} from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
 import { Check, Heading1, Heading2, Heading3, Text } from 'lucide-react'
 import { useState } from 'react'

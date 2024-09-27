@@ -1,5 +1,4 @@
 import { AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Maximize } from 'lucide-react'
-import { useForm, type Control } from 'react-hook-form'
 
 import { PaddingBottomSvg } from '@/components/svg/padding-bottom'
 import { PaddingLeftSvg } from '@/components/svg/padding-left'
@@ -8,8 +7,9 @@ import { PaddingTopSvg } from '@/components/svg/padding-top'
 
 import { cn, handleKeyDown, handleNumberInput } from '@/lib/utils'
 
+import { BasePaddingPlugin, setPadding } from '@/components/plate-ui/plugins/padding'
+
 import { buttonVariants } from '@/components/ui/button'
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
 import {
   Tooltip,
   TooltipContent,
@@ -18,262 +18,229 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { TooltipContentProps } from '@radix-ui/react-tooltip'
-import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
+import { type TEditor, type TElement } from '@udecode/plate-common'
+import type { PlateEditor } from '@udecode/plate-common/react'
+import { useState } from 'react'
 
 interface FormValues {
-  paddingLeft: number
-  paddingRight: number
-  paddingTop: number
-  paddingBottom: number
-  paddingHorizontal: number
-  paddingVertical: number
-  isToggledInputs: boolean
-}
-
-function convertValuesToInt(obj: FormValues): Record<string, number> {
-  const result: Record<string, number> = {}
-  const { isToggledInputs, ...rest } = obj
-
-  for (const [key, value] of Object.entries(rest)) {
-    result[key] = parseInt(value.toString(), 10)
-  }
-
-  return result
-}
-
-interface CustomElement extends TElement {
-  type: string
-  attributes?: {
-    style?: React.CSSProperties
-  }
-}
-
-function setElementPadding(editor: TEditor, val: FormValues, element: CustomElement): void {
-  if (!editor) return
-  const currentStyles = element.attributes?.style || {}
-  const currentProps = element.nodeProps || {}
-
-  setElements(
-    editor,
-    {
-      nodeProps: {
-        ...currentProps,
-        ...val,
-      },
-      attributes: {
-        style: {
-          ...currentStyles,
-          paddingLeft: val.paddingLeft + 'px',
-          paddingRight: val.paddingRight + 'px',
-          paddingTop: val.paddingTop + 'px',
-          paddingBottom: val.paddingBottom + 'px',
-        },
-      },
-    },
-    {
-      match: (n) => n.id === element.id && n.type === element.type,
-    }
-  )
+  left: string
+  right: string
+  top: string
+  bottom: string
+  horizontal: string
+  vertical: string
+  isAllSides: boolean
 }
 
 function FormInput({
   children,
-  control,
+  value,
   name,
   tooltip,
   tooltipSide,
   onChange = () => {},
 }: {
   children: any
-  control: Control<FormValues, any>
+  value: string
   name: string
   tooltip: string
   tooltipSide: TooltipContentProps['side']
   onChange?: (val: string) => void
 }) {
   return (
-    <FormField
-      control={control}
-      name={name as keyof FormValues}
-      rules={{
-        max: 100,
-        min: 0,
-      }}
-      render={({ field }) => (
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <FormItem className="relative flex cursor-pointer space-x-1 space-y-0 rounded-md border border-white">
-                <FormControl>
-                  <>
-                    <FormLabel htmlFor={`${field.name}Input`} className="size-4 cursor-pointer">
-                      {children}
-                    </FormLabel>
-                    <input
-                      {...field}
-                      value={`${field.value}`}
-                      id={`${field.name}Input`}
-                      className="h-4 w-6 self-center rounded-none border-0 bg-background p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
-                      autoComplete="off"
-                      onChange={(e) => {
-                        const val = handleNumberInput(e.target.value)
-                        field.onChange(val)
-                        onChange(val)
-                      }}
-                      onKeyDown={handleKeyDown}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="\d*"
-                    />
-                  </>
-                </FormControl>
-              </FormItem>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent sideOffset={5} side={tooltipSide}>
-                {tooltip}
-              </TooltipContent>
-            </TooltipPortal>
-          </Tooltip>
-        </TooltipProvider>
-      )}
-    />
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="relative flex cursor-pointer space-x-1 space-y-0 rounded-md border border-white">
+            <>
+              <label htmlFor={`${name}Input`} className="size-4 cursor-pointer">
+                {children}
+              </label>
+              <input
+                value={value}
+                id={`${name}Input`}
+                className="h-4 w-6 self-center rounded-none border-0 bg-background p-0 text-sm placeholder:text-muted-foreground focus-visible:outline-none"
+                autoComplete="off"
+                onChange={(e) => {
+                  const val = handleNumberInput(e.target.value)
+                  onChange(val)
+                }}
+                onKeyDown={handleKeyDown}
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
+              />
+            </>
+          </div>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent sideOffset={5} side={tooltipSide}>
+            {tooltip}
+          </TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
+    </TooltipProvider>
   )
 }
 
 export function RowPadding({ element, editor }: { editor: TEditor; element: TElement }) {
-  const elProps = (element.nodeProps || {}) as FormValues
+  const isAllSides = (editor as PlateEditor).getOption(BasePaddingPlugin, 'isAllSides')
+  const [top, right, bottom, left] = `${element.padding || '0 0 0 0'}`.match(/\d+/g) as string[]
+  const anyPadding = Boolean(left && right && top && bottom)
 
-  const form = useForm<FormValues>({
-    defaultValues: {
-      paddingLeft: elProps.paddingLeft || 0,
-      paddingRight: elProps.paddingRight || 0,
-      paddingTop: elProps.paddingTop || 0,
-      paddingBottom: elProps.paddingBottom || 0,
-      paddingHorizontal: elProps.paddingHorizontal || 0,
-      paddingVertical: elProps.paddingVertical || 0,
-      isToggledInputs: elProps.isToggledInputs || false,
-    },
+  const [values, setValues] = useState<FormValues>({
+    left,
+    right,
+    top,
+    bottom,
+    horizontal: left === right ? left : '0',
+    vertical: top === bottom ? top : '0',
+    isAllSides:
+      typeof isAllSides !== 'undefined' ? isAllSides : Boolean(element.padding) || anyPadding,
   })
-  const { control, handleSubmit, watch } = form
-
-  function doSubmit(values: FormValues) {
-    const convertedValues = convertValuesToInt(values)
-    setElementPadding(editor, { ...values, ...convertedValues }, element)
-  }
 
   return (
-    <Form {...form}>
-      <form className="flex w-full justify-between space-x-5" onChange={handleSubmit(doSubmit)}>
-        <div className="flex w-full flex-col gap-3">
-          {!watch('isToggledInputs') && (
+    <form className="flex w-full justify-between space-x-5">
+      <div className="flex w-full flex-col gap-3">
+        {values.isAllSides && (
+          <div className="flex justify-between">
+            <FormInput
+              tooltipSide="top"
+              value={values.horizontal}
+              name="horizontal"
+              tooltip="Horizontal Sides"
+              onChange={(horizontal) => {
+                setValues((prevState) => ({
+                  ...prevState,
+                  left: horizontal,
+                  right: horizontal,
+                  horizontal,
+                }))
+                setPadding(editor as PlateEditor, {
+                  value: `${values.top} ${horizontal} ${values.bottom} ${horizontal}`,
+                })
+              }}
+            >
+              <AlignHorizontalSpaceAround className="size-4 text-muted-foreground" />
+            </FormInput>
+            <FormInput
+              tooltipSide="top"
+              value={values.vertical}
+              name="vertical"
+              tooltip="Vertical Sides"
+              onChange={(vertical) => {
+                setValues((prevState) => ({
+                  ...prevState,
+                  top: vertical,
+                  bottom: vertical,
+                  vertical,
+                }))
+
+                setPadding(editor as PlateEditor, {
+                  value: `${vertical} ${values.right} ${vertical} ${values.left}`,
+                })
+              }}
+            >
+              <AlignVerticalSpaceAround className="size-4 text-muted-foreground" />
+            </FormInput>
+          </div>
+        )}
+        {!values.isAllSides && (
+          <>
             <div className="flex justify-between">
               <FormInput
                 tooltipSide="top"
-                control={control}
-                name="paddingHorizontal"
-                tooltip="Horizontal padding"
-                onChange={(val) => {
-                  form.setValue('paddingHorizontal', parseInt(val))
-                  form.setValue('paddingLeft', parseInt(val))
-                  form.setValue('paddingRight', parseInt(val))
+                value={values.left}
+                name="left"
+                tooltip="Left Padding"
+                onChange={(left) => {
+                  setValues((prevState) => ({ ...prevState, left, horizontal: '0' }))
+                  setPadding(editor as PlateEditor, {
+                    value: `${values.top} ${values.right} ${values.bottom} ${left}`,
+                  })
                 }}
               >
-                <AlignHorizontalSpaceAround className="size-4 text-muted-foreground" />
+                <PaddingLeftSvg className="size-4 text-muted-foreground" />
               </FormInput>
               <FormInput
                 tooltipSide="top"
-                control={control}
-                name="paddingVertical"
-                tooltip="Vertical padding"
-                onChange={(val) => {
-                  form.setValue('paddingVertical', parseInt(val))
-                  form.setValue('paddingTop', parseInt(val))
-                  form.setValue('paddingBottom', parseInt(val))
+                value={values.top}
+                name="top"
+                tooltip="Top Padding"
+                onChange={(top) => {
+                  setValues((prevState) => ({ ...prevState, top, vertical: '0' }))
+                  setPadding(editor as PlateEditor, {
+                    value: `${top} ${values.right} ${values.bottom} ${values.left}`,
+                  })
                 }}
               >
-                <AlignVerticalSpaceAround className="size-4 text-muted-foreground" />
+                <PaddingTopSvg className="size-4 text-muted-foreground" />
               </FormInput>
             </div>
-          )}
-          {watch('isToggledInputs') && (
-            <>
-              <div className="flex justify-between">
-                <FormInput
-                  tooltipSide="top"
-                  control={control}
-                  name="paddingLeft"
-                  tooltip="Left Padding"
-                  onChange={() => {
-                    form.setValue('paddingHorizontal', 0)
-                  }}
-                >
-                  <PaddingLeftSvg className="size-4 text-muted-foreground" />
-                </FormInput>
-                <FormInput
-                  tooltipSide="top"
-                  control={control}
-                  name="paddingTop"
-                  tooltip="Top Padding"
-                  onChange={() => {
-                    form.setValue('paddingVertical', 0)
-                  }}
-                >
-                  <PaddingTopSvg className="size-4 text-muted-foreground" />
-                </FormInput>
-              </div>
-              <div className="flex justify-between">
-                <FormInput
-                  tooltipSide="bottom"
-                  control={control}
-                  name="paddingRight"
-                  tooltip="Right Padding"
-                  onChange={() => {
-                    form.setValue('paddingHorizontal', 0)
-                  }}
-                >
-                  <PaddingRightSvg className="size-4 text-muted-foreground" />
-                </FormInput>
-                <FormInput
-                  tooltipSide="bottom"
-                  control={control}
-                  name="paddingBottom"
-                  tooltip="Bottom Padding"
-                  onChange={() => {
-                    form.setValue('paddingVertical', 0)
-                  }}
-                >
-                  <PaddingBottomSvg className="size-4 text-muted-foreground" />
-                </FormInput>
-              </div>
-            </>
-          )}
-        </div>
-
-        <TooltipProvider delayDuration={150}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <a
-                onClick={() => {
-                  form.setValue('isToggledInputs', !watch('isToggledInputs'))
-                  doSubmit(form.getValues())
+            <div className="flex justify-between">
+              <FormInput
+                tooltipSide="bottom"
+                value={values.right}
+                name="right"
+                tooltip="Right Padding"
+                onChange={(right) => {
+                  setValues((prevState) => ({ ...prevState, right, horizontal: '0' }))
+                  setPadding(editor as PlateEditor, {
+                    value: `${values.top} ${right} ${values.bottom} ${values.left}`,
+                  })
                 }}
-                className={cn(
-                  buttonVariants({ variant: 'ghost', size: 'iconXs' }),
-                  '-mt-0.5 cursor-pointer px-1'
-                )}
               >
-                <Maximize className="size-4 text-muted-foreground" />
-              </a>
-            </TooltipTrigger>
-            <TooltipPortal>
-              <TooltipContent sideOffset={5} side="top">
-                {watch('isToggledInputs') ? 'Switch to a multiple side' : 'Switch to a single side'}
-              </TooltipContent>
-            </TooltipPortal>
-          </Tooltip>
-        </TooltipProvider>
-      </form>
-    </Form>
+                <PaddingRightSvg className="size-4 text-muted-foreground" />
+              </FormInput>
+              <FormInput
+                tooltipSide="bottom"
+                value={values.bottom}
+                name="bottom"
+                tooltip="Bottom Padding"
+                onChange={(bottom) => {
+                  setValues((prevState) => ({ ...prevState, bottom, vertical: '0' }))
+                  setPadding(editor as PlateEditor, {
+                    value: `${values.top} ${values.right} ${bottom} ${values.left}`,
+                  })
+                }}
+              >
+                <PaddingBottomSvg className="size-4 text-muted-foreground" />
+              </FormInput>
+            </div>
+          </>
+        )}
+      </div>
+
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              onClick={() => {
+                setValues((prevState) => ({
+                  ...prevState,
+                  isAllSides: !prevState.isAllSides,
+                }))
+                ;(editor as PlateEditor).setOption(
+                  BasePaddingPlugin,
+                  'isAllSides',
+                  typeof isAllSides === 'undefined' ? false : !isAllSides
+                )
+              }}
+              className={cn(
+                buttonVariants({ variant: 'ghost', size: 'iconXs' }),
+                '-mt-0.5 cursor-pointer px-1'
+              )}
+            >
+              <Maximize className="size-4 text-muted-foreground" />
+            </a>
+          </TooltipTrigger>
+          <TooltipPortal>
+            <TooltipContent sideOffset={5} side="top">
+              {values.isAllSides ? 'Switch to a multiple side' : 'Switch to a single side'}
+            </TooltipContent>
+          </TooltipPortal>
+        </Tooltip>
+      </TooltipProvider>
+    </form>
   )
 }

@@ -1,5 +1,6 @@
 import { cn } from '@udecode/cn'
 import { AlignCenter, AlignLeft, AlignRight, SlidersHorizontal } from 'lucide-react'
+import { Node } from 'slate'
 
 import { AlignBtn } from '@/components/plate-ui/floating-node-options/align-btn'
 import { ColorInput } from '@/components/plate-ui/floating-node-options/color-input'
@@ -17,6 +18,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
+import { focusEditor } from '@udecode/plate-common/react'
 import { useEffect, useRef, useState } from 'react'
 
 function findRowById(editor: SlateEditor, id: string) {
@@ -28,10 +30,13 @@ function setCursorToRow(editor: SlateEditor, row: number) {
 
   if (!node) return
 
+  const textLength = Node.string(node).length
+
   setSelection(editor, {
-    anchor: { path: [row, 0], offset: 0 },
-    focus: { path: [row, 0], offset: 0 },
+    anchor: { path: [row, 0], offset: textLength },
+    focus: { path: [row, 0], offset: textLength },
   })
+  focusEditor(editor)
 }
 
 function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => void) {

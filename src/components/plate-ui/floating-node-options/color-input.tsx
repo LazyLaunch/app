@@ -1,8 +1,10 @@
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { setElements, type TEditor, type TElement } from '@udecode/plate-common'
+import { getBlockAbove, type SlateEditor, type TEditor, type TElement } from '@udecode/plate-common'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+
+import { setBlockBackgroundColor } from '@udecode/plate-font'
 
 function useCloseColoris(handler: (event: Event) => void) {
   useEffect(() => {
@@ -12,42 +14,6 @@ function useCloseColoris(handler: (event: Event) => void) {
       document.removeEventListener('close', handler, true)
     }
   }, [])
-}
-
-interface CustomElement extends TElement {
-  type: string
-  attributes?: {
-    style?: React.CSSProperties
-  }
-}
-
-function toggleHighlight(
-  editor: TEditor,
-  backgroundColor: string | null,
-  element: CustomElement
-): void {
-  if (!editor) return
-  const currentStyles = element.attributes?.style || {}
-  const currentProps = element.nodeProps || {}
-
-  setElements(
-    editor,
-    {
-      nodeProps: {
-        ...currentProps,
-        backgroundColor,
-      },
-      attributes: {
-        style: {
-          ...currentStyles,
-          backgroundColor,
-        },
-      },
-    },
-    {
-      match: (n) => n.id === element.id && n.type === element.type,
-    }
-  )
 }
 
 interface FormValues {
@@ -63,11 +29,9 @@ export function ColorInput({
   element: TElement
   onSetOpenTooltip: (open: boolean | undefined) => void
 }) {
-  const elProps = (element.nodeProps || {}) as FormValues
-
   const form = useForm<FormValues>({
     defaultValues: {
-      backgroundColor: (elProps.backgroundColor || '') as string,
+      backgroundColor: (element.backgroundColor || '') as string,
     },
   })
   const { control } = form
@@ -96,8 +60,10 @@ export function ColorInput({
   useCloseColoris(() => onSetOpenTooltip(undefined))
 
   function handleSubmit({ backgroundColor }: { backgroundColor: string }) {
-    const color = backgroundColor.length === 0 ? null : backgroundColor
-    toggleHighlight(editor, color, element)
+    if (!editor) return
+    const color = backgroundColor.length === 0 ? '' : backgroundColor
+    const block = getBlockAbove(editor)
+    if (block) setBlockBackgroundColor(editor as SlateEditor, block, color)
   }
 
   return (

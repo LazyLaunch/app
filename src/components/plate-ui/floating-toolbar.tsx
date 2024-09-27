@@ -1,4 +1,5 @@
-import { Toolbar } from '@/components/plate-ui/toolbar'
+import { useCallback, useEffect, useRef } from 'react'
+
 import { cn, withRef } from '@udecode/cn'
 import {
   PortalBody,
@@ -6,10 +7,10 @@ import {
   useEditorId,
   useEventEditorSelectors,
 } from '@udecode/plate-common/react'
+import type { FloatingToolbarState } from '@udecode/plate-floating'
 import { flip, offset, useFloatingToolbar, useFloatingToolbarState } from '@udecode/plate-floating'
 
-import type { FloatingToolbarState } from '@udecode/plate-floating'
-import { useCallback, useEffect, useRef } from 'react'
+import { Toolbar } from '@/components/plate-ui/toolbar'
 
 function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => void) {
   const handleClickOutside = useCallback(

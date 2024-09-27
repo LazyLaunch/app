@@ -1,18 +1,20 @@
+import { Paintbrush } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
 import {
   focusEditor,
+  ParagraphPlugin,
   Plate,
   PlateContent,
   usePlateEditor,
   type TPlateEditor,
 } from '@udecode/plate-common/react'
-import { Paintbrush } from 'lucide-react'
-import { useEffect, useState } from 'react'
 
-import { AlignPlugin } from '@udecode/plate-alignment'
+import { AlignPlugin } from '@udecode/plate-alignment/react'
 import { DndPlugin } from '@udecode/plate-dnd'
 import { NodeIdPlugin } from '@udecode/plate-node-id'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
-import { SlashPlugin } from '@udecode/plate-slash-command'
+import { BaseSlashPlugin } from '@udecode/plate-slash-command'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
@@ -26,7 +28,7 @@ import {
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 
-import { ParagraphPlugin } from '@udecode/plate-common/react'
+import { ExitBreakPlugin } from '@udecode/plate-break/react'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
 
 import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
@@ -37,14 +39,16 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { BorderRadiusPlugin } from '@/components/plate-ui/plugins/border-radius/react'
+import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
-import { isBlock, type TElement } from '@udecode/plate'
+import { isBlock, type TElement } from '@udecode/plate-common'
 import {
   FontBackgroundColorPlugin,
   FontColorPlugin,
   FontSizePlugin,
 } from '@udecode/plate-font/react'
-import { HEADING_KEYS } from '@udecode/plate-heading'
+import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 import { Editor, insertNodes, Node, Element as SlateElement } from 'slate'
 
 const ENTER_KEY: string = 'Enter' as const
@@ -108,6 +112,8 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
 
   const editor = usePlateEditor({
     plugins: [
+      BorderRadiusPlugin,
+      PaddingPlugin,
       FontBackgroundColorPlugin,
       FontSizePlugin,
       FontColorPlugin,
@@ -127,7 +133,30 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
       NodeIdPlugin,
       DndPlugin.configure({ options: { enableScroller: true } }),
       BlockSelectionPlugin,
-      SlashPlugin.configure({ options: { trigger: TRIGGER } }),
+      BaseSlashPlugin.configure({ options: { trigger: TRIGGER } }),
+      ExitBreakPlugin.configure({
+        options: {
+          rules: [
+            {
+              hotkey: 'mod+enter',
+            },
+            {
+              hotkey: 'mod+shift+enter',
+              before: true,
+            },
+            {
+              hotkey: 'enter',
+              query: {
+                start: true,
+                end: true,
+                allow: HEADING_LEVELS,
+              },
+              relative: true,
+              level: 1,
+            },
+          ],
+        },
+      }),
     ],
     override: {
       components: createPlateUI(),

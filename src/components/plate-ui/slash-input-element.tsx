@@ -1,3 +1,6 @@
+import { Heading1, Heading2, Heading3 } from 'lucide-react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+
 import {
   Combobox,
   ComboboxGroup,
@@ -9,17 +12,14 @@ import {
   useComboboxStore,
 } from '@ariakit/react'
 import { cn, withRef } from '@udecode/cn'
-import { findNodePath, PlateElement } from '@udecode/plate-common/react'
-import { HEADING_KEYS } from '@udecode/plate-heading'
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-
-import { Heading1, Heading2, Heading3 } from 'lucide-react'
-
-import { groupByField } from '@/lib/group-by-field'
-
 import { useComboboxInput, useHTMLInputCursorState } from '@udecode/plate-combobox/react'
 import { createPointRef, getPointBefore, insertText, moveSelection } from '@udecode/plate-common'
 import type { PlateEditor } from '@udecode/plate-common/react'
+import { findNodePath, PlateElement } from '@udecode/plate-common/react'
+import { HEADING_KEYS } from '@udecode/plate-heading'
+
+import { groupByField } from '@/lib/group-by-field'
+
 import type { ComponentType, SVGProps } from 'react'
 import type { PointRef } from 'slate'
 

@@ -8,7 +8,7 @@ import {
 } from '@udecode/plate-dnd'
 import { HEADING_KEYS } from '@udecode/plate-heading'
 import { BulletedListPlugin, NumberedListPlugin } from '@udecode/plate-list/react'
-import { ImagePlugin, MediaEmbedPlugin, PlaceholderPlugin } from '@udecode/plate-media'
+import { BaseImagePlugin, BaseMediaEmbedPlugin, BasePlaceholderPlugin } from '@udecode/plate-media'
 
 import { Draggable, type DraggableProps } from '@/components/plate-ui/draggable'
 
@@ -75,7 +75,7 @@ export const withDraggables = (components: any) => {
           gutterLeft: 'pt-0 px-0 pb-0',
         },
       },
-      key: ImagePlugin.key,
+      key: BaseImagePlugin.key,
     },
     {
       draggableProps: {
@@ -83,7 +83,7 @@ export const withDraggables = (components: any) => {
           gutterLeft: 'pt-0 px-0 pb-0',
         },
       },
-      key: MediaEmbedPlugin.key,
+      key: BaseMediaEmbedPlugin.key,
     },
     {
       draggableProps: {
@@ -91,7 +91,7 @@ export const withDraggables = (components: any) => {
           gutterLeft: 'p-0',
         },
       },
-      key: PlaceholderPlugin.key,
+      key: BasePlaceholderPlugin.key,
     },
   ])
 }

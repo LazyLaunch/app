@@ -1,4 +1,7 @@
+import React from 'react'
+
 import { cn } from '@udecode/cn'
+import type { PlaceholderProps } from '@udecode/plate-common/react'
 import {
   createNodeHOC,
   createNodesHOC,
@@ -6,9 +9,6 @@ import {
   usePlaceholderState,
 } from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
-import React from 'react'
-
-import type { PlaceholderProps } from '@udecode/plate-common/react'
 
 export const Placeholder = (props: PlaceholderProps) => {
   const { children, nodeProps, placeholder } = props
