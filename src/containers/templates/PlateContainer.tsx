@@ -7,7 +7,6 @@ import {
   Plate,
   PlateContent,
   usePlateEditor,
-  type TPlateEditor,
 } from '@udecode/plate-common/react'
 
 import { AlignPlugin } from '@udecode/plate-alignment/react'
@@ -28,8 +27,10 @@ import {
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 
-import { ExitBreakPlugin } from '@udecode/plate-break/react'
+import { ExitBreakPlugin, SoftBreakPlugin } from '@udecode/plate-break/react'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
+import { ResetNodePlugin } from '@udecode/plate-reset-node/react'
+import { TrailingBlockPlugin } from '@udecode/plate-trailing-block'
 
 import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
 import { FloatingToolbar } from '@/components/plate-ui/floating-toolbar'
@@ -42,47 +43,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BorderRadiusPlugin } from '@/components/plate-ui/plugins/border-radius/react'
 import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
-import { isBlock, type TElement } from '@udecode/plate-common'
+import { isBlockAboveEmpty, isSelectionAtBlockStart } from '@udecode/plate-common'
 import {
   FontBackgroundColorPlugin,
   FontColorPlugin,
   FontSizePlugin,
 } from '@udecode/plate-font/react'
 import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
-import { Editor, insertNodes, Node, Element as SlateElement } from 'slate'
 
-const ENTER_KEY: string = 'Enter' as const
-
-function createEmptyParagraph(editor: TPlateEditor, id: string): TElement {
-  const [match] = Editor.nodes(editor as Editor, {
-    match: (node) => SlateElement.isElement(node) && isBlock(editor, node),
-  })
-  const type =
-    match && SlateElement.isElement(match[0]) ? (match[0] as TElement).type : ParagraphPlugin.key
-
-  return {
-    id,
-    type,
-    children: [{ text: '' }],
-  }
-}
-
-function handleEnterKey(editor: TPlateEditor, event: React.KeyboardEvent): void {
-  if (event.key === ENTER_KEY) {
-    const plateNodeId = Math.random().toString(36).slice(2, 7)
-    event.preventDefault()
-
-    const { selection } = editor
-    if (!selection) return
-
-    insertNodes(editor as Editor, createEmptyParagraph(editor, plateNodeId), {
-      at: selection.focus,
-      match: (node: Node) => {
-        return SlateElement.isElement(node) && isBlock(editor, node)
-      },
-      select: true,
-    })
-  }
+const resetBlockTypesCommonRule = {
+  types: [HEADING_KEYS.h1, HEADING_KEYS.h3, HEADING_KEYS.h3],
+  defaultType: ParagraphPlugin.key,
 }
 
 export interface FormValues {
@@ -132,8 +103,49 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
       UnderlinePlugin,
       NodeIdPlugin,
       DndPlugin.configure({ options: { enableScroller: true } }),
-      BlockSelectionPlugin,
+      TrailingBlockPlugin.configure({
+        options: { type: ParagraphPlugin.key },
+      }),
+      BlockSelectionPlugin.configure({
+        options: {
+          enableContextMenu: false,
+        },
+      }),
       BaseSlashPlugin.configure({ options: { trigger: TRIGGER } }),
+      SoftBreakPlugin.configure({
+        options: {
+          rules: [
+            { hotkey: 'shift+enter' },
+            // {
+            //   hotkey: 'enter',
+            //   query: {
+            //     allow: [
+            //       CodeBlockPlugin.key,
+            //       BlockquotePlugin.key,
+            //       TableCellPlugin.key,
+            //       TableCellHeaderPlugin.key,
+            //     ],
+            //   },
+            // },
+          ],
+        },
+      }),
+      ResetNodePlugin.configure({
+        options: {
+          rules: [
+            {
+              ...resetBlockTypesCommonRule,
+              hotkey: 'Enter',
+              predicate: isBlockAboveEmpty,
+            },
+            {
+              ...resetBlockTypesCommonRule,
+              hotkey: 'Backspace',
+              predicate: isSelectionAtBlockStart,
+            },
+          ],
+        },
+      }),
       ExitBreakPlugin.configure({
         options: {
           rules: [
@@ -222,7 +234,6 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
               <div className="relative w-full">
                 <PlateContent
                   className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
-                  onKeyDown={(event) => handleEnterKey(editor, event)}
                   data-plate-selectable
                   disableDefaultStyles
                   style={{

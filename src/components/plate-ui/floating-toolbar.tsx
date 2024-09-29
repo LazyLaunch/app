@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useRef } from 'react'
 
 import { cn, withRef } from '@udecode/cn'
 import {
@@ -8,28 +8,10 @@ import {
   useEventEditorSelectors,
 } from '@udecode/plate-common/react'
 import type { FloatingToolbarState } from '@udecode/plate-floating'
-import { flip, offset, useFloatingToolbar, useFloatingToolbarState } from '@udecode/plate-floating'
+import { flip, offset, useFloatingToolbarState } from '@udecode/plate-floating'
 
+import { useFloatingToolbar } from '@/components/plate-ui/floating-toolbar/useFloatingToolbar'
 import { Toolbar } from '@/components/plate-ui/toolbar'
-
-function useClickOutside(ref: React.RefObject<HTMLDivElement>, handler: () => void) {
-  const handleClickOutside = useCallback(
-    (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        handler()
-      }
-    },
-    [ref, handler]
-  )
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside, true)
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside, true)
-    }
-  }, [handleClickOutside])
-}
 
 export const FloatingToolbar = withRef<
   typeof Toolbar,
@@ -57,16 +39,14 @@ export const FloatingToolbar = withRef<
     },
   })
 
-  const { hidden, props: rootProps, ref: floatingRef } = useFloatingToolbar(floatingToolbarState)
+  const toolbarRef = useRef<HTMLDivElement>(null)
+  const {
+    hidden,
+    props: rootProps,
+    ref: floatingRef,
+  } = useFloatingToolbar(floatingToolbarState, toolbarRef)
 
   const ref = useComposedRef<HTMLDivElement>(componentRef, floatingRef)
-
-  const toolbarRef = useRef<HTMLDivElement>(null)
-  const onClose = () => {
-    floatingToolbarState.setOpen(false)
-    floatingToolbarState.setMousedown(true)
-  }
-  useClickOutside(toolbarRef, onClose)
 
   if (hidden) return null
 

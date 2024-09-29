@@ -17,7 +17,9 @@ import '@/styles/app.css'
     <title>Astro</title>
     <ViewTransitions />
   </head>
-  <body class="bg-background font-sans antialiased">
+  <body
+    class="bg-background font-sans antialiased [&_.slate-selected]:!bg-primary/20 [&_.slate-selection-area]:border [&_.slate-selection-area]:border-primary [&_.slate-selection-area]:bg-primary/10"
+  >
     <main id="main">
       <slot />
     </main>
