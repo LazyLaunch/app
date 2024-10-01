@@ -20,6 +20,7 @@ import {
 import { setSelection, type SlateEditor, type TElement } from '@udecode/plate-common'
 import { focusEditor } from '@udecode/plate-common/react'
 import { useEffect, useRef, useState } from 'react'
+import { LineHeightInput } from './floating-node-options/line-height-input'
 
 function findRowById(editor: SlateEditor, id: string) {
   return editor.children.findIndex((node) => node.id === id)
@@ -185,6 +186,9 @@ export function FloatingNodeOptions({
                   </TooltipPortal>
                 </Tooltip>
               </TooltipProvider>
+            </CardSection>
+            <CardSection label="Line height">
+              <LineHeightInput editor={editor} element={element} />
             </CardSection>
             <CardSection label="Actions" className="px-0" labelClassName="px-3">
               <RowActions editor={editor} element={element} />

@@ -41,7 +41,6 @@
     "@udecode/plate-basic-marks": "^38.0.1",
     "@udecode/plate-block-quote": "^38.0.1",
     "@udecode/plate-break": "^38.0.1",
-    "@udecode/plate-code-block": "^38.0.1",
     "@udecode/plate-combobox": "^38.0.1",
     "@udecode/plate-common": "^38.0.6",
     "@udecode/plate-dnd": "^38.0.0",

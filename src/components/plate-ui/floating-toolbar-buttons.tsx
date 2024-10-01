@@ -11,8 +11,8 @@ import type { TEditor } from '@udecode/plate-common'
 import { FontColorPlugin, FontSizePlugin } from '@udecode/plate-font/react'
 import { Bold, Code, Italic, Strikethrough, Underline } from 'lucide-react'
 
-import { ColorPicker } from '@/components/plate-ui/color-picker'
-import { FontSizeInput } from '@/components/plate-ui/font-size-input'
+import { ColorPicker } from '@/components/plate-ui/floating-toolbar/color-picker'
+import { FontSizeInput } from '@/components/plate-ui/floating-toolbar/font-size-input'
 import { MarkToolbarButton } from '@/components/plate-ui/mark-toolbar-button'
 import { ToolbarGroup } from '@/components/plate-ui/toolbar'
 import { TurnIntoDropdownMenu } from '@/components/plate-ui/turn-into-dropdown-menu'
@@ -41,7 +41,7 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
             StrikethroughPlugin.key,
             CodePlugin.key,
           ]}
-          ariaLabel="Text formatting"
+          ariaLabel="Text marks"
         >
           <MarkToolbarButton nodeType={BoldPlugin.key} value={BoldPlugin.key} tooltip="Bold (⌘+B)">
             <Bold className="size-4" />
@@ -73,7 +73,7 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
         </ToolbarGroup>
         <ToolbarGroup
           value={[FontColorPlugin.key, FontSizePlugin.key]}
-          ariaLabel="Text modification"
+          ariaLabel="Text formatting"
           noSeparator
         >
           <TooltipProvider delayDuration={150}>

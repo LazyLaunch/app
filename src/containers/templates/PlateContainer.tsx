@@ -1,6 +1,7 @@
 import { Paintbrush } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { isBlockAboveEmpty, isSelectionAtBlockStart } from '@udecode/plate-common'
 import {
   focusEditor,
   ParagraphPlugin,
@@ -9,14 +10,10 @@ import {
   usePlateEditor,
 } from '@udecode/plate-common/react'
 
-import { AlignPlugin } from '@udecode/plate-alignment/react'
-import { DndPlugin } from '@udecode/plate-dnd'
-import { NodeIdPlugin } from '@udecode/plate-node-id'
-import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
-import { BaseSlashPlugin } from '@udecode/plate-slash-command'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 
+import { AlignPlugin } from '@udecode/plate-alignment/react'
 import {
   BoldPlugin,
   CodePlugin,
@@ -26,10 +23,19 @@ import {
   SuperscriptPlugin,
   UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
-
 import { ExitBreakPlugin, SoftBreakPlugin } from '@udecode/plate-break/react'
+import { DndPlugin } from '@udecode/plate-dnd'
+import {
+  FontBackgroundColorPlugin,
+  FontColorPlugin,
+  FontSizePlugin,
+} from '@udecode/plate-font/react'
+import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
+import { NodeIdPlugin } from '@udecode/plate-node-id'
 import { ResetNodePlugin } from '@udecode/plate-reset-node/react'
+import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
+import { BaseSlashPlugin } from '@udecode/plate-slash-command'
 import { TrailingBlockPlugin } from '@udecode/plate-trailing-block'
 
 import { createPlateUI } from '@/components/plate-ui/create-plate-ui'
@@ -41,20 +47,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { BorderRadiusPlugin } from '@/components/plate-ui/plugins/border-radius/react'
+import { LineHeightPlugin } from '@/components/plate-ui/plugins/line-height/react'
 import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
-import { TRIGGER } from '@/components/plate-ui/slash-input-element'
-import { isBlockAboveEmpty, isSelectionAtBlockStart } from '@udecode/plate-common'
-import {
-  FontBackgroundColorPlugin,
-  FontColorPlugin,
-  FontSizePlugin,
-} from '@udecode/plate-font/react'
-import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 
-const resetBlockTypesCommonRule = {
-  types: [HEADING_KEYS.h1, HEADING_KEYS.h3, HEADING_KEYS.h3],
-  defaultType: ParagraphPlugin.key,
-}
+import { TRIGGER } from '@/components/plate-ui/slash-input-element'
+
+const ENTER_KEY = 'Enter' as const
 
 export interface FormValues {
   bgColor: string
@@ -66,6 +64,11 @@ export interface FormValues {
   bodyVPadding: number
   bgHPadding: number
   bodyHPadding: number
+}
+
+const resetBlockTypesCommonRule = {
+  types: [HEADING_KEYS.h1, HEADING_KEYS.h3, HEADING_KEYS.h3],
+  defaultType: ParagraphPlugin.key,
 }
 
 export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
@@ -85,6 +88,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
     plugins: [
       BorderRadiusPlugin,
       PaddingPlugin,
+      LineHeightPlugin,
       FontBackgroundColorPlugin,
       FontSizePlugin,
       FontColorPlugin,
@@ -135,7 +139,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
           rules: [
             {
               ...resetBlockTypesCommonRule,
-              hotkey: 'Enter',
+              hotkey: ENTER_KEY,
               predicate: isBlockAboveEmpty,
             },
             {
@@ -157,7 +161,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
               before: true,
             },
             {
-              hotkey: 'enter',
+              hotkey: ENTER_KEY,
               query: {
                 start: true,
                 end: true,

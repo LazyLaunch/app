@@ -17,15 +17,47 @@ export function capitalizeFirstLetter(text: string | undefined | null): string |
 }
 
 export function handleNumberInput(value: string, options?: { min?: number; max?: number }): string {
+  const minNumber = options?.min ?? 0
+  const maxNumber = options?.max ?? 100
+
   const numValue = parseInt(value, 10)
-  const minNumber = 0
-  const maxNumber = 100
 
   if (isNaN(numValue)) return '0'
-  if (numValue < (options?.min || minNumber)) return String(options?.min || minNumber)
-  if (numValue > (options?.max || maxNumber)) return String(options?.max || maxNumber)
+
+  if (numValue < minNumber) return String(minNumber)
+  if (numValue > maxNumber) return String(maxNumber)
 
   return numValue.toString()
+}
+
+export function handleFloatInput(
+  value: string,
+  options?: {
+    min?: number
+    max?: number
+    maxAfterDot?: number
+    skipMin?: boolean
+  }
+): string {
+  const minNumber = options?.min ?? 0
+  const maxNumber = options?.max ?? 100
+  const isSkipMin = options?.skipMin ?? false
+  const limitAfterDot = options?.maxAfterDot ?? 2
+
+  const [beforeDot, afterDot] = value.split('.')[0]
+  if (beforeDot?.length >= maxNumber) return String(maxNumber)
+  if (afterDot?.length > limitAfterDot) return parseFloat(value).toFixed(limitAfterDot)
+
+  const floatRegex = /^(0?\.\d{0,2}|[1-9]\d*\.\d{0,2})$/
+  if (floatRegex.test(value)) return value
+
+  const numValue = parseFloat(value)
+  if (isNaN(numValue)) return '0'
+
+  if (numValue > maxNumber) return String(maxNumber)
+  if (!isSkipMin && numValue < minNumber) return String(minNumber)
+
+  return String(numValue)
 }
 
 export function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {

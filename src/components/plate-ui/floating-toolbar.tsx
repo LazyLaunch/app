@@ -10,7 +10,7 @@ import {
 import type { FloatingToolbarState } from '@udecode/plate-floating'
 import { flip, offset, useFloatingToolbarState } from '@udecode/plate-floating'
 
-import { useFloatingToolbar } from '@/components/plate-ui/floating-toolbar/useFloatingToolbar'
+import { useFloatingToolbar } from '@/components/plate-ui/floating-toolbar/use-floating-toolbar'
 import { Toolbar } from '@/components/plate-ui/toolbar'
 
 export const FloatingToolbar = withRef<
