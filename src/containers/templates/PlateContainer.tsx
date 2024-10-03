@@ -32,6 +32,7 @@ import {
 } from '@udecode/plate-font/react'
 import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
+import { LinkPlugin } from '@udecode/plate-link/react'
 import { NodeIdPlugin } from '@udecode/plate-node-id'
 import { ResetNodePlugin } from '@udecode/plate-reset-node/react'
 import { BlockSelectionPlugin } from '@udecode/plate-selection/react'
@@ -50,6 +51,7 @@ import { BorderRadiusPlugin } from '@/components/plate-ui/plugins/border-radius/
 import { LineHeightPlugin } from '@/components/plate-ui/plugins/line-height/react'
 import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 
+import { LinkFloatingToolbar } from '@/components/plate-ui/floating-toolbar/link-floating-toolbar'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
 
 const ENTER_KEY = 'Enter' as const
@@ -172,6 +174,9 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
             },
           ],
         },
+      }),
+      LinkPlugin.configure({
+        render: { afterEditable: () => <LinkFloatingToolbar /> },
       }),
     ],
     override: {

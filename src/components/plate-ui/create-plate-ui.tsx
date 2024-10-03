@@ -8,12 +8,14 @@ import {
 } from '@udecode/plate-basic-marks/react'
 import { ParagraphPlugin, PlateLeaf } from '@udecode/plate-common/react'
 import { HEADING_KEYS } from '@udecode/plate-heading'
+import { LinkPlugin } from '@udecode/plate-link/react'
 import { BaseSlashInputPlugin } from '@udecode/plate-slash-command'
 
 import { type NodeComponent } from '@udecode/plate-common/react'
 
 import { CodeLeaf } from '@/components/plate-ui/code-leaf'
 import { HeadingElement } from '@/components/plate-ui/heading-element'
+import { LinkElement } from '@/components/plate-ui/link-element'
 import { ParagraphElement } from '@/components/plate-ui/paragraph-element'
 import { SlashInputElement } from '@/components/plate-ui/slash-input-element'
 import { withDraggables } from '@/components/plate-ui/with-draggables'
@@ -30,6 +32,7 @@ export function createPlateUI() {
     [HEADING_KEYS.h1]: withProps(HeadingElement, { variant: 'h1' }),
     [HEADING_KEYS.h2]: withProps(HeadingElement, { variant: 'h2' }),
     [HEADING_KEYS.h3]: withProps(HeadingElement, { variant: 'h3' }),
+    [LinkPlugin.key]: LinkElement,
   }
 
   // components = withPlaceholders(components)

@@ -13,6 +13,7 @@ import { Bold, Code, Italic, Strikethrough, Underline } from 'lucide-react'
 
 import { ColorPicker } from '@/components/plate-ui/floating-toolbar/color-picker'
 import { FontSizeInput } from '@/components/plate-ui/floating-toolbar/font-size-input'
+import { LinkToolbarButton } from '@/components/plate-ui/floating-toolbar/link-toolbar-button'
 import { MarkToolbarButton } from '@/components/plate-ui/mark-toolbar-button'
 import { ToolbarGroup } from '@/components/plate-ui/toolbar'
 import { TurnIntoDropdownMenu } from '@/components/plate-ui/turn-into-dropdown-menu'
@@ -23,6 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { LinkPlugin } from '@udecode/plate-link/react'
 
 export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
   const [isOpenTooltip, setOpenTooltip] = useState<boolean | undefined>(undefined)
@@ -71,11 +73,7 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
             <Code className="size-4" />
           </MarkToolbarButton>
         </ToolbarGroup>
-        <ToolbarGroup
-          value={[FontColorPlugin.key, FontSizePlugin.key]}
-          ariaLabel="Text formatting"
-          noSeparator
-        >
+        <ToolbarGroup value={[FontColorPlugin.key, FontSizePlugin.key]} ariaLabel="Text formatting">
           <TooltipProvider delayDuration={150}>
             <Tooltip open={isOpenTooltip}>
               <TooltipTrigger>
@@ -100,6 +98,9 @@ export function FloatingToolbarButtons({ editor }: { editor: TEditor }) {
               </TooltipPortal>
             </Tooltip>
           </TooltipProvider>
+        </ToolbarGroup>
+        <ToolbarGroup value={[LinkPlugin.key]} ariaLabel="Insert link" noSeparator>
+          <LinkToolbarButton value={LinkPlugin.key} />
         </ToolbarGroup>
       </div>
     </div>
