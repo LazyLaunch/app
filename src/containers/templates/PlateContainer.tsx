@@ -167,7 +167,7 @@ export function PlateContainer({ plateNodeId }: { plateNodeId: string }) {
               query: {
                 start: true,
                 end: true,
-                allow: HEADING_LEVELS,
+                allow: [...HEADING_LEVELS, ParagraphPlugin.key],
               },
               relative: true,
               level: 1,
