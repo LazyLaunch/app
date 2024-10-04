@@ -7,7 +7,7 @@ import { BorderSectionComponent } from '@/components/templates/form-sections/bor
 import { Form } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 
-import type { EditorGlobalFormValues } from '@/containers/templates/PlateContainer'
+import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
 
 interface Props extends EditorGlobalFormValues {
   onSubmit: (

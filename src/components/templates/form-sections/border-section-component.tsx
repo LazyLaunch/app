@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { buttonVariants } from '@/components/ui/button'
 import { cn, handleKeyDown, handleNumberInput } from '@/lib/utils'
 
-import type { EditorGlobalFormValues } from '@/containers/templates/PlateContainer'
+import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
 import type { UseFormReturn } from 'react-hook-form'
 
 interface Props {

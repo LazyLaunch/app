@@ -2,11 +2,11 @@ import { useEffect } from 'react'
 
 import { isBlockAboveEmpty, isSelectionAtBlockStart } from '@udecode/plate-common'
 import {
-  focusEditor,
-  ParagraphPlugin,
-  Plate,
-  PlateContent,
-  usePlateEditor,
+    focusEditor,
+    ParagraphPlugin,
+    Plate,
+    PlateContent,
+    usePlateEditor,
 } from '@udecode/plate-common/react'
 
 import { DndProvider } from 'react-dnd'
@@ -14,20 +14,20 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import { AlignPlugin } from '@udecode/plate-alignment/react'
 import {
-  BoldPlugin,
-  CodePlugin,
-  ItalicPlugin,
-  StrikethroughPlugin,
-  SubscriptPlugin,
-  SuperscriptPlugin,
-  UnderlinePlugin,
+    BoldPlugin,
+    CodePlugin,
+    ItalicPlugin,
+    StrikethroughPlugin,
+    SubscriptPlugin,
+    SuperscriptPlugin,
+    UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 import { ExitBreakPlugin, SoftBreakPlugin } from '@udecode/plate-break/react'
 import { DndPlugin } from '@udecode/plate-dnd'
 import {
-  FontBackgroundColorPlugin,
-  FontColorPlugin,
-  FontSizePlugin,
+    FontBackgroundColorPlugin,
+    FontColorPlugin,
+    FontSizePlugin,
 } from '@udecode/plate-font/react'
 import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
@@ -48,7 +48,7 @@ import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 
 import { LinkFloatingToolbar } from '@/components/plate-ui/floating-toolbar/link-floating-toolbar'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
-import type { EditorGlobalFormValues } from '@/containers/templates/PlateContainer'
+import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
 
 const ENTER_KEY = 'Enter' as const
 

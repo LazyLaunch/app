@@ -3,7 +3,7 @@ import type { Team } from '@/db/models/team'
 
 import AccountLayout from '@/layouts/account/AccountLayout.astro'
 
-import { TeamsContainer } from '@/containers/accounts/TeamsContainer'
+import { TeamsContainer } from '@/containers/accounts/teams-container'
 import { getTeamsByUser } from '@/db/models/team'
 
 const csrfToken: string = Astro.locals.csrfToken!
