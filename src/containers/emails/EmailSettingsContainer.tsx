@@ -1,15 +1,15 @@
 import { useState } from 'react'
 
-import { EmailFormComponent } from '@/components/account/settings/EmailFormComponent'
-import { EmailRowComponent } from '@/components/account/settings/EmailRowComponent'
+import { EmailFormComponent } from '@/components/account/settings/email-form-component'
+import { EmailRowComponent } from '@/components/account/settings/email-row-component'
 
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from '@/components/ui/card'
 
 export interface EmailProps {
