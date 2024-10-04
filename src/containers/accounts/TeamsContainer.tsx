@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
-import type { FormResponseData } from '@/components/team/AddTeamBtnComponents'
+import type { FormResponseData } from '@/components/team/add-team-btn-component'
 import type { Team } from '@/db/models/team'
 
-import { AddTeamBtnComponent } from '@/components/team/AddTeamBtnComponents'
+import { AddTeamBtnComponent } from '@/components/team/add-team-btn-component'
 import { TeamMenuComponent } from '@/components/team/TeamMenuComponent'
 import { UserRolesEnum } from '@/lib/rbac'
 import { capitalizeFirstLetter } from '@/lib/utils'
