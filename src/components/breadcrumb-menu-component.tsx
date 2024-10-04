@@ -1,10 +1,10 @@
-import { ChevronsUpDown, Plus, Check } from 'lucide-react'
+import { Check, ChevronsUpDown, Plus } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface LinkProps {
   children: any
