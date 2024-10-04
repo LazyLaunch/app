@@ -1,7 +1,7 @@
 import { Paintbrush } from 'lucide-react'
 import { useState } from 'react'
 
-import { EmailStyleFormComponent } from '@/components/templates/EmailStyleFormComponent'
+import { EmailStyleFormComponent } from '@/components/templates/email-style-form-component'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
