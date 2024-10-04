@@ -1,7 +1,10 @@
 ---
-import AppLayout from '@/layouts/AppLayout.astro'
+import { LayoutGrid } from 'lucide-react'
+import AppLayout from '@/layouts/app-layout.astro'
 
-import { Settings, Folder } from 'lucide-react'
+import { TooltipComponent } from '@/components/tooltip-component'
+import { AvatarComponent } from '@/components/avatar-component'
+import { BreadcrumbMenuComponent } from '@/components/breadcrumb-menu-component'
 
 import {
   Breadcrumb,
@@ -10,22 +13,17 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-import { TooltipComponent } from '@/components/tooltip-component'
-import { BreadcrumbMenuComponent } from '@/components/breadcrumb-menu-component'
-import { AvatarComponent } from '@/components/avatar-component'
 import { getTeamsByUser } from '@/db/models/team'
 
 import type { UserProps } from '@/components/avatar-component'
 import type { ContentRowProps } from '@/components/breadcrumb-menu-component'
 import type { TeamProps } from '@/pages/[teamSlug]/settings.astro'
 
-interface Props {
-  team: TeamProps
-}
-
-const slug = Astro.params.teamSlug
-const { team } = Astro.props
 const user = Astro.locals.user! as UserProps
+const team = Astro.locals.team!
+const project = Astro.locals.project!
+const projectSlug = Astro.params.projectSlug
+const currentPath: string = new URL(Astro.request.url).pathname as string
 
 const teams = (await getTeamsByUser({ userId: user.id })) || []
 const teamRows: ContentRowProps[] = teams.map((team) => {
@@ -34,23 +32,19 @@ const teamRows: ContentRowProps[] = teams.map((team) => {
     url: `/${team.slug}`,
   }
 })
-const currentPath: string = new URL(Astro.request.url).pathname as string
 ---
 
 <AppLayout>
   <Fragment slot="navLinks">
-    <TooltipComponent client:idle currentPath={currentPath} text="Projects" url={`/${slug}`}>
-      <Folder className="h-5 w-5" />
-    </TooltipComponent>
     <TooltipComponent
       client:idle
       currentPath={currentPath}
-      segments={2}
-      nestedUrl={`/${slug}`}
-      text="Team Settings"
-      url={`/${slug}/settings`}
+      segments={3}
+      nestedUrl={`/${team.slug}/${projectSlug}`}
+      text="Templates"
+      url={`/${team.slug}/${projectSlug}/templates`}
     >
-      <Settings className="h-5 w-5" />
+      <LayoutGrid className="h-5 w-5" />
     </TooltipComponent>
   </Fragment>
   <Fragment slot="breadcrumbs">
@@ -82,6 +76,18 @@ const currentPath: string = new URL(Astro.request.url).pathname as string
             style="width: 22px; height: 22px;"><path d="M16.88 3.549L7.12 20.451"></path></svg
           >
         </BreadcrumbSeparator>
+        <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
+          <AvatarComponent className="h-6 w-6 text-xs" user={user} client:load />
+          {project.name}
+          <BreadcrumbMenuComponent
+            client:idle
+            title="Projects"
+            btnCreateText="Create a Project"
+            btnCreateUrl="/account/new-team"
+            rows={teamRows}
+            currentPath={currentPath}
+          />
+        </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>
   </Fragment>

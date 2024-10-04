@@ -1,21 +1,23 @@
 ---
+import TeamLayout from '@/layouts/team/team-layout.astro'
+import type { TeamProps } from '@/pages/[teamSlug]/settings.astro'
+
 interface Props {
+  team: TeamProps
   title: string
   description: string
 }
 
-import AccountLayout from '@/layouts/account/AccountLayout.astro'
+const { title, description, team } = Astro.props
+const slug = Astro.params.teamSlug
 
 import { Separator } from '@/components/ui/separator'
 
 const currentPath = new URL(Astro.request.url).pathname
-const isAccountSettings = currentPath.startsWith('/account/settings')
-const isEmailSettings = currentPath.startsWith('/account/email-settings')
-
-const { title, description } = Astro.props
+const isTeamSettings = currentPath.startsWith(`/${slug}/settings`)
 ---
 
-<AccountLayout>
+<TeamLayout team={team}>
   <div class="mx-auto flex w-full max-w-6xl flex-col space-y-6">
     <div class="space-y-0.5">
       <h2 class="text-2xl font-bold tracking-tight">{title}</h2>
@@ -26,26 +28,15 @@ const { title, description } = Astro.props
       <aside class="-mx-4 lg:w-1/5">
         <nav class="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
           <a
-            href="/account/settings"
+            href={`/${slug}/settings`}
             class:list={[
               'inline-flex h-9 items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
               {
-                'text-muted-foreground': !isAccountSettings,
+                'text-muted-foreground': !isTeamSettings,
               },
             ]}
           >
-            Account
-          </a>
-          <a
-            href="/account/email-settings"
-            class:list={[
-              'inline-flex h-9 items-center justify-start whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
-              {
-                'text-muted-foreground': !isEmailSettings,
-              },
-            ]}
-          >
-            Email Settings
+            General
           </a>
         </nav>
       </aside>
@@ -54,4 +45,4 @@ const { title, description } = Astro.props
       </div>
     </div>
   </div>
-</AccountLayout>
+</TeamLayout>
