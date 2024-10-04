@@ -1,10 +1,10 @@
 import { Search } from 'lucide-react'
 import { useState } from 'react'
 
-import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
+import type { ProjectFormResponseData } from '@/components/project/new-project-form'
 
-import { AddBtnProjectComponent } from '@/components/project/AddBtnProjectComponent'
-import { ProjectMenuComponent } from '@/components/project/ProjectMenuComponent'
+import { AddBtnProjectComponent } from '@/components/project/add-btn-project-component'
+import { ProjectMenuComponent } from '@/components/project/project-menu-component'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import type { TeamSession } from '@/middleware/checkTeamSession'

@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
+import type { ProjectFormResponseData } from '@/components/project/new-project-form'
 
 import {
     Dialog,
@@ -21,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 
 import { PermissionGuardComponent } from '@/components/permission-guard-component'
-import { NewProjectForm } from '@/components/project/NewProjectForm'
+import { NewProjectForm } from '@/components/project/new-project-form'
 import { UserPermissionsEnum, type UserRoles } from '@/lib/rbac'
 
 interface Props {
