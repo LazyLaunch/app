@@ -1,5 +1,5 @@
-import type { FormValues, SelectItem } from '@/components/CardForm'
-import { CardForm } from '@/components/CardForm'
+import type { FormValues, SelectItem } from '@/components/card-form'
+import { CardForm } from '@/components/card-form'
 import { useState } from 'react'
 
 export interface Email {

@@ -13,17 +13,17 @@ import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import type { CustomFieldError } from '@/components/CardForm'
-import { FormErrorMessage } from '@/components/CardForm'
+import type { CustomFieldError } from '@/components/card-form'
+import { FormErrorMessage } from '@/components/card-form'
 
 interface Props {
   csrfToken: string
