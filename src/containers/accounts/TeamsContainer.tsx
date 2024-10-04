@@ -8,7 +8,7 @@ import type { FormResponseData } from '@/components/team/add-team-btn-component'
 import type { Team } from '@/db/models/team'
 
 import { AddTeamBtnComponent } from '@/components/team/add-team-btn-component'
-import { TeamMenuComponent } from '@/components/team/TeamMenuComponent'
+import { TeamMenuComponent } from '@/components/team/team-menu-component'
 import { UserRolesEnum } from '@/lib/rbac'
 import { capitalizeFirstLetter } from '@/lib/utils'
 
