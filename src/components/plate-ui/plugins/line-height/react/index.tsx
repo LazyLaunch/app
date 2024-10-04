@@ -1,2 +1,1 @@
-export * from './line-height-plugin';
-
+export * from './line-height-plugin'

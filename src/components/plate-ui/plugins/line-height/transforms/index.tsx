@@ -1,2 +1,1 @@
-export * from './set-line-height';
-
+export * from './set-line-height'

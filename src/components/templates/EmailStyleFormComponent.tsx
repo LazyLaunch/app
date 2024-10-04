@@ -7,19 +7,21 @@ import { BorderSectionComponent } from '@/components/templates/form-sections/bor
 import { Form } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 
-import type { FormValues } from '@/containers/templates/PlateContainer'
+import type { EditorGlobalFormValues } from '@/containers/templates/PlateContainer'
 
-interface Props extends FormValues {
-  onSubmit: (values: FormValues | ((state: FormValues) => FormValues)) => void
+interface Props extends EditorGlobalFormValues {
+  onSubmit: (
+    values: EditorGlobalFormValues | ((state: EditorGlobalFormValues) => EditorGlobalFormValues)
+  ) => void
 }
 
 export function EmailStyleFormComponent(props: Props) {
   const { onSubmit, ...rest } = props
-  const form = useForm<FormValues>({
+  const form = useForm<EditorGlobalFormValues>({
     defaultValues: rest,
   })
 
-  function handleSubmit(values: FormValues): void {
+  function handleSubmit(values: EditorGlobalFormValues): void {
     onSubmit((prevState) => ({ ...prevState, ...values }))
   }
 

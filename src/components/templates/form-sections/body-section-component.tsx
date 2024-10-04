@@ -6,13 +6,15 @@ import { Input } from '@/components/ui/input'
 import { buttonVariants } from '@/components/ui/button'
 import { cn, handleKeyDown, handleNumberInput } from '@/lib/utils'
 
-import type { FormValues } from '@/containers/templates/PlateContainer'
+import type { EditorGlobalFormValues } from '@/containers/templates/PlateContainer'
 import type { UseFormReturn } from 'react-hook-form'
 
 interface Props {
-  form: UseFormReturn<FormValues>
+  form: UseFormReturn<EditorGlobalFormValues>
   className: string
-  onReset: (values: FormValues | ((state: FormValues) => FormValues)) => void
+  onReset: (
+    values: EditorGlobalFormValues | ((state: EditorGlobalFormValues) => EditorGlobalFormValues)
+  ) => void
 }
 
 export function BodySectionComponent({ form, className, onReset }: Props) {
