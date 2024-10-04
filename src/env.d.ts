@@ -18,8 +18,8 @@ declare namespace App {
     user: import('lucia').User | null
     csrfToken: string | null | undefined
     formDataParsed?: FormData
-    team: import('./middleware/checkTeamSession').TeamSession | null
-    project: import('./middleware/checkProjectSession').ProjectSession | null
+    team: import('./middleware/check-team-session').TeamSession | null
+    project: import('./middleware/check-project-session').ProjectSession | null
     userTeam: import('./db/schema').SelectUserTeam | null
   }
 }

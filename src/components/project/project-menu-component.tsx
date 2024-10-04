@@ -16,7 +16,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { UserPermissionsEnum } from '@/lib/rbac'
-import type { TeamSession } from '@/middleware/checkTeamSession'
+import type { TeamSession } from '@/middleware/check-team-session'
 
 interface Props {
   project: Partial<SelectProject>

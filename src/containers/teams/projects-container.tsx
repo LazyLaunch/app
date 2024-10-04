@@ -7,7 +7,7 @@ import { AddBtnProjectComponent } from '@/components/project/add-btn-project-com
 import { ProjectMenuComponent } from '@/components/project/project-menu-component'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import type { TeamSession } from '@/middleware/checkTeamSession'
+import type { TeamSession } from '@/middleware/check-team-session'
 
 interface Props {
   initProjects: ProjectFormResponseData[]

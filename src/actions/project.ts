@@ -3,7 +3,7 @@ import { z } from 'astro:schema'
 
 import { createProject, deleteProject, existsSlug } from '@/db/models/project'
 import { UserPermissionsEnum } from '@/lib/rbac'
-import { checkPermission } from '@/middleware/checkPermission'
+import { checkPermission } from '@/middleware/check-permission'
 import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 export const project = {
