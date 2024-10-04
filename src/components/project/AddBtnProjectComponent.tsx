@@ -4,25 +4,25 @@ import { useState } from 'react'
 import type { ProjectFormResponseData } from '@/components/project/NewProjectForm'
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
 import { Button } from '@/components/ui/button'
 
+import { PermissionGuardComponent } from '@/components/permission-guard-component'
 import { NewProjectForm } from '@/components/project/NewProjectForm'
 import { UserPermissionsEnum, type UserRoles } from '@/lib/rbac'
-import { PermissionGuardComponent } from '../PermissionGuardComponent'
 
 interface Props {
   csrfToken: string
