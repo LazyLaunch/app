@@ -1,18 +1,18 @@
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { actions } from 'astro:actions'
 import { LogOut, Settings } from 'lucide-react'
 
-import { AvatarComponent } from '@/components/AvatarComponent'
+import { AvatarComponent } from '@/components/avatar-component'
 
-import type { UserProps } from '@/components/AvatarComponent'
+import type { UserProps } from '@/components/avatar-component'
 
 import { CSRF_TOKEN } from '@/types'
 
