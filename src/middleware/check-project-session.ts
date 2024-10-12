@@ -9,6 +9,7 @@ const secret = await new HMAC(SHA_HASH).generateKey()
 const COOKIES_NAME = 'projectSession'
 
 export interface ProjectSession {
+  id: string
   name: string
   slug: string
   teamId: string
@@ -45,8 +46,8 @@ async function getProjectFromDB(
 
   if (!project) return null
 
-  const { name, slug, teamId } = project
-  return { name, slug, teamId } as ProjectSession
+  const { name, slug, teamId, id } = project
+  return { name, slug, teamId, id } as ProjectSession
 }
 
 async function getValidProjectFromJWT(

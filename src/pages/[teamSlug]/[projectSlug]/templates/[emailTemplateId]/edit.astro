@@ -1,0 +1,65 @@
+---
+import { checkPermission } from '@/middleware/check-permission'
+import { UserPermissionsEnum } from '@/lib/rbac'
+import { getEmailTemplate } from '@/db/models/email-template'
+
+import ProjectLayout from '@/layouts/project/project-layout.astro'
+
+import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
+import {
+  EmailTemplateFixedToolbar,
+  type Action,
+} from '@/components/templates/email-template-fixed-toolbar'
+import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
+import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { SlashSvg } from '@/components/svg/slash'
+
+const plateNodeId = Math.random().toString(36).slice(2, 7)
+const csrfToken = Astro.locals.csrfToken!
+
+const project = Astro.locals.project!
+const emailTemplateId = Astro.params.emailTemplateId!
+
+const canAccess = await checkPermission(UserPermissionsEnum.READ, Astro)
+if (!canAccess) return Astro.redirect('/404')
+
+const emailTemplate = await getEmailTemplate({ id: emailTemplateId })
+
+if (!emailTemplate) return Astro.redirect('/404')
+console.log(emailTemplate.settings, 'eeeeee')
+---
+
+<ProjectLayout>
+  <Fragment slot="exstraBreadcrumbs">
+    <BreadcrumbSeparator className="text-gray-300">
+      <SlashSvg className="!size-6" />
+    </BreadcrumbSeparator>
+    <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
+      <BreadcumbTemplateInputComponent
+        client:load
+        csrfToken={csrfToken}
+        name={emailTemplate.name as string}
+        emoji={emailTemplate.emoji as string}
+        teamId={project.teamId}
+        projectId={project.id}
+        emailTemplateId={emailTemplateId}
+        isHandleSubmit
+      />
+    </BreadcrumbItem>
+  </Fragment>
+  <EmailTemplateFixedToolbar
+    csrfToken={csrfToken}
+    teamId={project.teamId}
+    projectId={project.id}
+    emailTemplateId={emailTemplateId}
+    settings={emailTemplate.settings as string}
+    action="update"
+    client:load
+  />
+  <EmailTemplateEditor
+    content={emailTemplate.content as string}
+    plateNodeId={plateNodeId}
+    settings={emailTemplate.settings as string}
+    client:only="react"
+  />
+</ProjectLayout>

@@ -17,7 +17,7 @@ export const LinkElement = withRef<typeof PlateElement>(
         {...(linkProps as any)}
         {...props}
       >
-        <a className="text-primary underline-offset-4 hover:underline">{children}</a>
+        <a className="text-primary underline decoration-dashed underline-offset-4">{children}</a>
       </PlateElement>
     )
   }

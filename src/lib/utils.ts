@@ -16,18 +16,18 @@ export function capitalizeFirstLetter(text: string | undefined | null): string |
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function handleNumberInput(value: string, options?: { min?: number; max?: number }): string {
+export function handleNumberInput(value: string, options?: { min?: number; max?: number }): number {
   const minNumber = options?.min ?? 0
   const maxNumber = options?.max ?? 100
 
   const numValue = parseInt(value, 10)
 
-  if (isNaN(numValue)) return '0'
+  if (isNaN(numValue)) return 0
 
-  if (numValue < minNumber) return String(minNumber)
-  if (numValue > maxNumber) return String(maxNumber)
+  if (numValue < minNumber) return minNumber
+  if (numValue > maxNumber) return maxNumber
 
-  return numValue.toString()
+  return numValue
 }
 
 export function handleFloatInput(

@@ -10,10 +10,10 @@ import type { SelectProject } from '@/db/schema'
 import { PermissionGuardComponent } from '@/components/permission-guard-component'
 import { Button } from '@/components/ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { UserPermissionsEnum } from '@/lib/rbac'
 import type { TeamSession } from '@/middleware/check-team-session'

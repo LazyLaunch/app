@@ -1,4 +1,5 @@
 import { AlignHorizontalSpaceAround, AlignVerticalSpaceAround, Plus, Undo2 } from 'lucide-react'
+import type { UseFormReturn } from 'react-hook-form'
 
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
@@ -6,19 +7,18 @@ import { Input } from '@/components/ui/input'
 import { buttonVariants } from '@/components/ui/button'
 import { cn, handleKeyDown, handleNumberInput } from '@/lib/utils'
 
-import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
-import type { UseFormReturn } from 'react-hook-form'
+import type { EmailTemplateSettings } from '@/stores/template-store'
+import { DEFAULT_SETTINGS } from '@/stores/template-store'
 
 interface Props {
-  form: UseFormReturn<EditorGlobalFormValues>
+  form: UseFormReturn<EmailTemplateSettings>
   className: string
-  onReset: (
-    values: EditorGlobalFormValues | ((state: EditorGlobalFormValues) => EditorGlobalFormValues)
-  ) => void
+  onReset: (values: (state: EmailTemplateSettings) => EmailTemplateSettings) => void
 }
 
 export function BackgroundSectionComponent({ form, className, onReset }: Props) {
-  const defaultValues = form.formState.defaultValues || {}
+  const defaultValues = form.formState.defaultValues!
+  const { bgHPadding, bgVPadding, bgColor } = DEFAULT_SETTINGS
 
   return (
     <div className={cn('space-y-4', className)}>
@@ -26,14 +26,11 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
         <span>Background</span>
         <a
           onClick={() => {
-            form.resetField('bgHPadding')
-            form.resetField('bgVPadding')
-            form.resetField('bgColor')
             onReset((prevState) => ({
               ...prevState,
-              bgHPadding: defaultValues.bgHPadding as number,
-              bgVPadding: defaultValues.bgVPadding as number,
-              bgColor: defaultValues.bgColor as string,
+              bgHPadding,
+              bgVPadding,
+              bgColor,
             }))
           }}
           className={cn(buttonVariants({ variant: 'ghost', size: 'xs' }), 'cursor-pointer p-2')}
@@ -59,6 +56,7 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
                       {...field}
                       className="h-6 w-16 py-4 pl-7 pr-2.5"
                       onChange={(e) => field.onChange(handleNumberInput(e.target.value))}
+                      value={`${field.value}`}
                       onKeyDown={handleKeyDown}
                       type="text"
                       inputMode="numeric"
@@ -85,6 +83,7 @@ export function BackgroundSectionComponent({ form, className, onReset }: Props) 
                       {...field}
                       className="h-6 w-16 py-4 pl-7 pr-2.5"
                       onChange={(e) => field.onChange(handleNumberInput(e.target.value))}
+                      value={`${field.value}`}
                       onKeyDown={handleKeyDown}
                       type="text"
                       inputMode="numeric"

@@ -17,6 +17,7 @@ export async function getProjectBySlugAndUser({
 }): Promise<Partial<SelectProject | undefined>> {
   return await db
     .select({
+      id: projectsTable.id,
       name: projectsTable.name,
       slug: projectsTable.slug,
       teamId: projectsTable.teamId,

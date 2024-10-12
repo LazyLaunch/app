@@ -4,12 +4,12 @@ import { EmailFormComponent } from '@/components/account/settings/email-form-com
 import { EmailRowComponent } from '@/components/account/settings/email-row-component'
 
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
 
 export interface EmailProps {

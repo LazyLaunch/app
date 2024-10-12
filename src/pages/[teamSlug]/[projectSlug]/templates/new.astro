@@ -1,0 +1,49 @@
+---
+import ProjectLayout from '@/layouts/project/project-layout.astro'
+
+import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
+import {
+  EmailTemplateFixedToolbar,
+  type Action,
+} from '@/components/templates/email-template-fixed-toolbar'
+import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
+import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
+import { SlashSvg } from '@/components/svg/slash'
+
+import { $emailTemplate } from '@/stores/template-store'
+
+const plateNodeId = Math.random().toString(36).slice(2, 7)
+
+const csrfToken = Astro.locals.csrfToken!
+const project = Astro.locals.project!
+
+const emailTemplateStore = $emailTemplate.get()
+const name = emailTemplateStore.name
+const emoji = JSON.stringify(emailTemplateStore.emoji) as unknown as string
+---
+
+<ProjectLayout>
+  <Fragment slot="exstraBreadcrumbs">
+    <BreadcrumbSeparator className="text-gray-300">
+      <SlashSvg className="!size-6" />
+    </BreadcrumbSeparator>
+    <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
+      <BreadcumbTemplateInputComponent
+        client:load
+        csrfToken={csrfToken}
+        name={name}
+        emoji={emoji}
+        teamId={project.teamId}
+        projectId={project.id}
+      />
+    </BreadcrumbItem>
+  </Fragment>
+  <EmailTemplateFixedToolbar
+    csrfToken={csrfToken}
+    teamId={project.teamId}
+    projectId={project.id}
+    action="create"
+    client:load
+  />
+  <EmailTemplateEditor plateNodeId={plateNodeId} client:load />
+</ProjectLayout>

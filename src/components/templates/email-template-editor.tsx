@@ -1,12 +1,13 @@
+import { useStore } from '@nanostores/react'
 import { useEffect } from 'react'
 
 import { isBlockAboveEmpty, isSelectionAtBlockStart } from '@udecode/plate-common'
 import {
-    focusEditor,
-    ParagraphPlugin,
-    Plate,
-    PlateContent,
-    usePlateEditor,
+  focusEditor,
+  ParagraphPlugin,
+  Plate,
+  PlateContent,
+  usePlateEditor,
 } from '@udecode/plate-common/react'
 
 import { DndProvider } from 'react-dnd'
@@ -14,20 +15,20 @@ import { HTML5Backend } from 'react-dnd-html5-backend'
 
 import { AlignPlugin } from '@udecode/plate-alignment/react'
 import {
-    BoldPlugin,
-    CodePlugin,
-    ItalicPlugin,
-    StrikethroughPlugin,
-    SubscriptPlugin,
-    SuperscriptPlugin,
-    UnderlinePlugin,
+  BoldPlugin,
+  CodePlugin,
+  ItalicPlugin,
+  StrikethroughPlugin,
+  SubscriptPlugin,
+  SuperscriptPlugin,
+  UnderlinePlugin,
 } from '@udecode/plate-basic-marks/react'
 import { ExitBreakPlugin, SoftBreakPlugin } from '@udecode/plate-break/react'
 import { DndPlugin } from '@udecode/plate-dnd'
 import {
-    FontBackgroundColorPlugin,
-    FontColorPlugin,
-    FontSizePlugin,
+  FontBackgroundColorPlugin,
+  FontColorPlugin,
+  FontSizePlugin,
 } from '@udecode/plate-font/react'
 import { HEADING_KEYS, HEADING_LEVELS } from '@udecode/plate-heading'
 import { HeadingPlugin } from '@udecode/plate-heading/react'
@@ -48,21 +49,10 @@ import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 
 import { LinkFloatingToolbar } from '@/components/plate-ui/floating-toolbar/link-floating-toolbar'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
-import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
+
+import { $emailTemplate } from '@/stores/template-store'
 
 const ENTER_KEY = 'Enter' as const
-
-export interface FormValues {
-  bgColor: string
-  bodyColor: string
-  borderColor: string
-  borderWidth: number
-  borderRadius: number
-  bgVPadding: number
-  bodyVPadding: number
-  bgHPadding: number
-  bodyHPadding: number
-}
 
 const resetBlockTypesCommonRule = {
   types: [HEADING_KEYS.h1, HEADING_KEYS.h3, HEADING_KEYS.h3],
@@ -71,10 +61,12 @@ const resetBlockTypesCommonRule = {
 
 interface Props {
   plateNodeId: string
-  templateProps: EditorGlobalFormValues
+  content?: string
+  settings?: string
 }
 
-export function EmailEditor({ plateNodeId, templateProps }: Props) {
+export function EmailTemplateEditor({ plateNodeId, content, settings }: Props) {
+  const emailTemplate = useStore($emailTemplate)
   const editor = usePlateEditor({
     plugins: [
       BorderRadiusPlugin,
@@ -181,22 +173,27 @@ export function EmailEditor({ plateNodeId, templateProps }: Props) {
   })
 
   useEffect(() => {
+    if (content) {
+      editor.children = JSON.parse(content)
+      $emailTemplate.setKey('content', JSON.parse(content))
+    }
+    settings && $emailTemplate.setKey('settings', JSON.parse(settings))
     focusEditor(editor)
-  }, [editor])
+  }, [editor, content, settings])
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <Plate editor={editor}>
+      <Plate editor={editor} onChange={({ value }) => $emailTemplate.setKey('content', value)}>
         <div
           style={{
-            backgroundColor: templateProps.bgColor,
+            backgroundColor: emailTemplate.settings.bgColor,
           }}
-          className="min-h-screen w-full transition-all duration-300 ease-in-out"
+          className="min-h-[calc(100vh_-_128px)] w-full transition-all duration-300 ease-in-out"
         >
           <div
             className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
             style={{
-              padding: `${templateProps.bgVPadding}px ${templateProps.bgHPadding}px`,
+              padding: `${emailTemplate.settings.bgVPadding}px ${emailTemplate.settings.bgHPadding}px`,
             }}
           >
             <div className="relative w-full">
@@ -205,13 +202,13 @@ export function EmailEditor({ plateNodeId, templateProps }: Props) {
                 data-plate-selectable
                 disableDefaultStyles
                 style={{
-                  backgroundColor: templateProps.bodyColor,
-                  padding: `${templateProps.bodyVPadding}px ${templateProps.bodyHPadding}px`,
-                  borderRadius: `${templateProps.borderRadius}px`,
-                  borderColor: templateProps.borderColor,
-                  borderWidth: `${templateProps.borderWidth}px`,
+                  backgroundColor: emailTemplate.settings.bodyColor,
+                  padding: `${emailTemplate.settings.bodyVPadding}px ${emailTemplate.settings.bodyHPadding}px`,
+                  borderRadius: `${emailTemplate.settings.borderRadius}px`,
+                  borderColor: emailTemplate.settings.borderColor,
+                  borderWidth: `${emailTemplate.settings.borderWidth}px`,
                 }}
-                placeholder="Press '/' for commands"
+                placeholder={`Press '${TRIGGER}' for commands`}
               />
             </div>
           </div>

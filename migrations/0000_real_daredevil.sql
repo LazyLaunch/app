@@ -15,6 +15,21 @@ CREATE TABLE `accounts` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE TABLE `email_templates` (
+	`id` text(256) PRIMARY KEY NOT NULL,
+	`name` text(50) NOT NULL,
+	`description` text(256),
+	`emoji` text,
+	`content` text NOT NULL,
+	`settings` text NOT NULL,
+	`user_id` text(256) NOT NULL,
+	`project_id` text(256) NOT NULL,
+	`updated_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`created_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `emails` (
 	`name` text(256) PRIMARY KEY NOT NULL,
 	`user_id` text(256) NOT NULL,
@@ -75,6 +90,9 @@ CREATE TABLE `users` (
 );
 --> statement-breakpoint
 CREATE INDEX `accounts_user_idx` ON `accounts` (`user_id`);--> statement-breakpoint
+CREATE INDEX `email_templates_name` ON `email_templates` (`name`);--> statement-breakpoint
+CREATE INDEX `email_templates_user_idx` ON `email_templates` (`user_id`);--> statement-breakpoint
+CREATE INDEX `email_templates_project_idx` ON `email_templates` (`project_id`);--> statement-breakpoint
 CREATE INDEX `emails_user_idx` ON `emails` (`user_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `projects_slug_idx` ON `projects` (`slug`);--> statement-breakpoint
 CREATE INDEX `projects_team_idx` ON `projects` (`team_id`);--> statement-breakpoint

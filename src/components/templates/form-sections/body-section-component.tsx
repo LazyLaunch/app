@@ -6,32 +6,30 @@ import { Input } from '@/components/ui/input'
 import { buttonVariants } from '@/components/ui/button'
 import { cn, handleKeyDown, handleNumberInput } from '@/lib/utils'
 
-import type { EditorGlobalFormValues } from '@/containers/templates/plate-container'
+import { DEFAULT_SETTINGS, type EmailTemplateSettings } from '@/stores/template-store'
 import type { UseFormReturn } from 'react-hook-form'
 
 interface Props {
-  form: UseFormReturn<EditorGlobalFormValues>
+  form: UseFormReturn<EmailTemplateSettings>
   className: string
-  onReset: (
-    values: EditorGlobalFormValues | ((state: EditorGlobalFormValues) => EditorGlobalFormValues)
-  ) => void
+  onReset: (values: (state: EmailTemplateSettings) => EmailTemplateSettings) => void
 }
 
 export function BodySectionComponent({ form, className, onReset }: Props) {
+  const defaultValues = form.formState.defaultValues!
+  const { bodyHPadding, bodyVPadding, bodyColor } = DEFAULT_SETTINGS
+
   return (
     <div className={cn('space-y-4', className)}>
       <FormLabel className="flex items-center space-x-2">
         <span>Body</span>
         <a
           onClick={() => {
-            form.resetField('bodyHPadding')
-            form.resetField('bodyVPadding')
-            form.resetField('bodyColor')
             onReset((prevState) => ({
               ...prevState,
-              bodyHPadding: form.formState.defaultValues?.bodyHPadding as number,
-              bodyVPadding: form.formState.defaultValues?.bodyVPadding as number,
-              bodyColor: form.formState.defaultValues?.bodyColor as string,
+              bodyHPadding,
+              bodyVPadding,
+              bodyColor,
             }))
           }}
           className={cn(buttonVariants({ variant: 'ghost', size: 'xs' }), 'cursor-pointer p-2')}
@@ -57,6 +55,7 @@ export function BodySectionComponent({ form, className, onReset }: Props) {
                       {...field}
                       className="h-6 w-16 py-4 pl-7 pr-2.5"
                       onChange={(e) => field.onChange(handleNumberInput(e.target.value))}
+                      value={`${field.value}`}
                       onKeyDown={handleKeyDown}
                       type="text"
                       inputMode="numeric"
@@ -83,6 +82,7 @@ export function BodySectionComponent({ form, className, onReset }: Props) {
                       {...field}
                       className="h-6 w-16 py-4 pl-7 pr-2.5"
                       onChange={(e) => field.onChange(handleNumberInput(e.target.value))}
+                      value={`${field.value}`}
                       onKeyDown={handleKeyDown}
                       type="text"
                       inputMode="numeric"
@@ -101,7 +101,7 @@ export function BodySectionComponent({ form, className, onReset }: Props) {
             <FormItem className="relative flex cursor-pointer space-y-0 rounded-md border border-white px-2 hover:border-input">
               <FormControl>
                 <>
-                  {field.value === form.formState.defaultValues.bodyColor && (
+                  {field.value === defaultValues.bodyColor && (
                     <Plus className="absolute left-2.5 top-2 size-4 text-muted-foreground" />
                   )}
                   <Input
@@ -110,7 +110,7 @@ export function BodySectionComponent({ form, className, onReset }: Props) {
                     id="bodyColorInput"
                     value={field.value === 'transparent' ? '#000000' : field.value}
                     className={cn('h-6 w-5 cursor-pointer self-center rounded-none border-0 p-0', {
-                      invisible: field.value === form.formState.defaultValues.bodyColor,
+                      invisible: field.value === defaultValues.bodyColor,
                     })}
                   />
                 </>
@@ -118,10 +118,10 @@ export function BodySectionComponent({ form, className, onReset }: Props) {
               <FormLabel
                 htmlFor="bodyColorInput"
                 className={cn('m-0 w-16 cursor-pointer self-center pl-1.5 text-sm', {
-                  'text-muted-foreground': field.value === form.formState.defaultValues.bodyColor,
+                  'text-muted-foreground': field.value === defaultValues.bodyColor,
                 })}
               >
-                {field.value === form.formState.defaultValues.bodyColor ? 'Color' : field.value}
+                {field.value === defaultValues.bodyColor ? 'Color' : field.value}
               </FormLabel>
             </FormItem>
           )}
