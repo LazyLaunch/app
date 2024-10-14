@@ -46,6 +46,7 @@ const settingsSchema = z
   })
   .refine(
     (val) => {
+      if (typeof val === 'string' && val === 'undefined') return true
       try {
         const parsed = JSON.parse(val)
         settingsNodeSchema.parse(parsed)
@@ -65,6 +66,7 @@ const emojiSchema = z
   })
   .refine(
     (val) => {
+      if (typeof val === 'string' && val === 'undefined') return true
       try {
         const parsed = JSON.parse(val)
         emojiNodeSchema.parse(parsed)
@@ -84,6 +86,7 @@ const contentSchema = z
   })
   .refine(
     (val) => {
+      if (typeof val === 'string' && val === 'undefined') return true
       try {
         const parsed = JSON.parse(val)
         slateNodeSchema.parse(parsed)
@@ -100,18 +103,19 @@ const contentSchema = z
 const baseSchema = z.object({
   teamId: z.string(),
   csrfToken: z.string(),
-  name: z.string(),
-  description: z.optional(z.string()),
-  emoji: emojiSchema,
-  content: contentSchema,
-  settings: settingsSchema,
   projectId: z.string(),
 })
 
 export const template = {
   create: defineAction({
     accept: 'form',
-    input: baseSchema,
+    input: baseSchema.extend({
+      name: z.string(),
+      description: z.optional(z.string()),
+      emoji: emojiSchema,
+      content: contentSchema,
+      settings: settingsSchema,
+    }),
     handler: async (
       { name, description, settings, emoji, content, teamId, projectId },
       context
@@ -141,11 +145,15 @@ export const template = {
   update: defineAction({
     accept: 'form',
     input: baseSchema.extend({
+      name: z.optional(z.string()),
+      description: z.optional(z.string()),
+      emoji: emojiSchema.optional(),
+      content: contentSchema.optional(),
+      settings: settingsSchema.optional(),
       emailTemplateId: z.string(),
     }),
     handler: async (input, context) => {
-      const { teamId, emailTemplateId, content, emoji, settings, name, description, projectId } =
-        input
+      const { teamId, emailTemplateId } = input
       const canAccess = await checkPermission(UserPermissionsEnum.UPDATE, context, { teamId })
       if (!canAccess) {
         throw new ActionError({
@@ -159,17 +167,21 @@ export const template = {
         userId: user.id,
       })
 
+      let isDirty: boolean = false
       const data: UpdateEmailTemplateProps = {
         id: emailTemplateId,
-        projectId,
-        name,
-        description,
-        emoji,
-        content,
-        settings,
+      } as UpdateEmailTemplateProps
+
+      for (const key of ['content', 'emoji', 'settings', 'name', 'description', 'projectId']) {
+        const val = input[key as keyof typeof input]
+        if (typeof val === 'undefined' || (typeof val === 'string' && val === 'undefined')) continue
+        data[key as keyof UpdateEmailTemplateProps] = val
+        isDirty = true
       }
 
-      await updateEmailTemplate({ data, team: team! })
+      if (isDirty && team) {
+        await updateEmailTemplate({ data, team })
+      }
     },
   }),
 }

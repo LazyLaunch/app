@@ -8,13 +8,12 @@ import ProjectLayout from '@/layouts/project/project-layout.astro'
 import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
 import {
   EmailTemplateFixedToolbar,
-  type Action,
+  Action,
 } from '@/components/templates/email-template-fixed-toolbar'
 import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
 import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SlashSvg } from '@/components/svg/slash'
 
-const plateNodeId = Math.random().toString(36).slice(2, 7)
 const csrfToken = Astro.locals.csrfToken!
 
 const project = Astro.locals.project!
@@ -24,9 +23,7 @@ const canAccess = await checkPermission(UserPermissionsEnum.READ, Astro)
 if (!canAccess) return Astro.redirect('/404')
 
 const emailTemplate = await getEmailTemplate({ id: emailTemplateId })
-
 if (!emailTemplate) return Astro.redirect('/404')
-console.log(emailTemplate.settings, 'eeeeee')
 ---
 
 <ProjectLayout>
@@ -53,13 +50,23 @@ console.log(emailTemplate.settings, 'eeeeee')
     projectId={project.id}
     emailTemplateId={emailTemplateId}
     settings={emailTemplate.settings as string}
-    action="update"
+    action={Action.UPDATE}
     client:load
   />
   <EmailTemplateEditor
     content={emailTemplate.content as string}
-    plateNodeId={plateNodeId}
     settings={emailTemplate.settings as string}
-    client:only="react"
+    client:load
   />
 </ProjectLayout>
+
+<script>
+  import { onMount } from 'nanostores'
+  import { $emailTemplate } from '@/stores/template-store'
+
+  onMount($emailTemplate, () => {
+    return () => {
+      $emailTemplate.set({})
+    }
+  })
+</script>

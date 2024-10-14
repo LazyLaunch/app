@@ -10,7 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { $emailTemplate, type EmailTemplateProps } from '@/stores/template-store'
 import { CSRF_TOKEN } from '@/types'
 
-export type Action = 'create' | 'update'
+export enum Action {
+  CREATE = 'create',
+  UPDATE = 'update',
+}
 
 interface EmailTemplateSubmitFormData {
   [CSRF_TOKEN]: string

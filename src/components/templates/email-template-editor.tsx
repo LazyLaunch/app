@@ -60,13 +60,13 @@ const resetBlockTypesCommonRule = {
 }
 
 interface Props {
-  plateNodeId: string
-  content?: string
-  settings?: string
+  content: string
+  settings: string
 }
 
-export function EmailTemplateEditor({ plateNodeId, content, settings }: Props) {
+export function EmailTemplateEditor({ content, settings }: Props) {
   const emailTemplate = useStore($emailTemplate)
+  const _settings = emailTemplate.settings || JSON.parse(settings)
   const editor = usePlateEditor({
     plugins: [
       BorderRadiusPlugin,
@@ -163,37 +163,26 @@ export function EmailTemplateEditor({ plateNodeId, content, settings }: Props) {
     override: {
       components: createPlateUI(),
     },
-    value: [
-      {
-        id: plateNodeId,
-        type: 'p',
-        children: [{ text: '' }],
-      },
-    ],
+    value: JSON.parse(content),
   })
 
   useEffect(() => {
-    if (content) {
-      editor.children = JSON.parse(content)
-      $emailTemplate.setKey('content', JSON.parse(content))
-    }
-    settings && $emailTemplate.setKey('settings', JSON.parse(settings))
     focusEditor(editor)
-  }, [editor, content, settings])
+  }, [editor])
 
   return (
     <DndProvider backend={HTML5Backend}>
       <Plate editor={editor} onChange={({ value }) => $emailTemplate.setKey('content', value)}>
         <div
           style={{
-            backgroundColor: emailTemplate.settings.bgColor,
+            backgroundColor: _settings.bgColor,
           }}
           className="min-h-[calc(100vh_-_128px)] w-full transition-all duration-300 ease-in-out"
         >
           <div
             className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
             style={{
-              padding: `${emailTemplate.settings.bgVPadding}px ${emailTemplate.settings.bgHPadding}px`,
+              padding: `${_settings.bgVPadding}px ${_settings.bgHPadding}px`,
             }}
           >
             <div className="relative w-full">
@@ -202,11 +191,11 @@ export function EmailTemplateEditor({ plateNodeId, content, settings }: Props) {
                 data-plate-selectable
                 disableDefaultStyles
                 style={{
-                  backgroundColor: emailTemplate.settings.bodyColor,
-                  padding: `${emailTemplate.settings.bodyVPadding}px ${emailTemplate.settings.bodyHPadding}px`,
-                  borderRadius: `${emailTemplate.settings.borderRadius}px`,
-                  borderColor: emailTemplate.settings.borderColor,
-                  borderWidth: `${emailTemplate.settings.borderWidth}px`,
+                  backgroundColor: _settings.bodyColor,
+                  padding: `${_settings.bodyVPadding}px ${_settings.bodyHPadding}px`,
+                  borderRadius: `${_settings.borderRadius}px`,
+                  borderColor: _settings.borderColor,
+                  borderWidth: `${_settings.borderWidth}px`,
                 }}
                 placeholder={`Press '${TRIGGER}' for commands`}
               />

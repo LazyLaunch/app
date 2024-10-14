@@ -34,6 +34,8 @@ export interface EmailTemplateProps {
   settings: EmailTemplateSettings
 }
 
+export const DEFAULT_EMAIL_TEMPLATE_NAME: string = 'Untitled' as const
+
 export const DEFAULT_SETTINGS: EmailTemplateSettings = {
   bgColor: 'transparent',
   bodyColor: 'transparent',
@@ -55,10 +57,21 @@ export const DEFAULT_EMOJI: EmojiProps = {
   unified: '270d-fe0f',
 } as const
 
-export const $emailTemplate = map<EmailTemplateProps>({
-  name: 'Untitled',
+const plateNodeId = Math.random().toString(36).slice(2, 7)
+export const DEFAULT_EMAIL_TEMPLATE_CONTENT: ContentProps[] = [
+  {
+    id: plateNodeId,
+    type: 'p',
+    children: [{ text: '' }],
+  },
+]
+
+export const DEFAULT_EMAIL_TEMPLATE: EmailTemplateProps = {
+  name: DEFAULT_EMAIL_TEMPLATE_NAME,
   description: undefined,
-  content: [],
+  content: DEFAULT_EMAIL_TEMPLATE_CONTENT,
   emoji: DEFAULT_EMOJI,
   settings: DEFAULT_SETTINGS,
-})
+}
+
+export const $emailTemplate = map<Partial<EmailTemplateProps>>()

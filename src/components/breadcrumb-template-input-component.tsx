@@ -2,7 +2,7 @@ import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { useStore } from '@nanostores/react'
 import { actions } from 'astro:actions'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -68,11 +68,6 @@ export function BreadcumbTemplateInputComponent({
     },
   })
   const isDirty: boolean = form.formState.isDirty
-
-  useEffect(() => {
-    $emailTemplate.setKey('name', name)
-    $emailTemplate.setKey('emoji', JSON.parse(emoji))
-  }, [])
 
   async function onSubmit(values: FormValues) {
     form.reset(values, { keepDirty: false })

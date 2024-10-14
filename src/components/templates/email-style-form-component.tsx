@@ -7,7 +7,7 @@ import { BorderSectionComponent } from '@/components/templates/form-sections/bor
 import { Form } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 
-import { $emailTemplate, DEFAULT_SETTINGS } from '@/stores/template-store'
+import { $emailTemplate } from '@/stores/template-store'
 
 import type { EmailTemplateSettings } from '@/stores/template-store'
 
@@ -17,7 +17,7 @@ function handleSubmit(values: EmailTemplateSettings): void {
 
 export function EmailStyleFormComponent({ settings }: { settings: string }) {
   const form = useForm<EmailTemplateSettings>({
-    defaultValues: settings ? JSON.parse(settings) : DEFAULT_SETTINGS,
+    defaultValues: JSON.parse(settings),
   })
 
   function onReset(fn: (state: EmailTemplateSettings) => EmailTemplateSettings) {

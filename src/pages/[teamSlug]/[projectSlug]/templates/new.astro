@@ -4,22 +4,25 @@ import ProjectLayout from '@/layouts/project/project-layout.astro'
 import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
 import {
   EmailTemplateFixedToolbar,
-  type Action,
+  Action,
 } from '@/components/templates/email-template-fixed-toolbar'
 import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
 import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SlashSvg } from '@/components/svg/slash'
 
-import { $emailTemplate } from '@/stores/template-store'
-
-const plateNodeId = Math.random().toString(36).slice(2, 7)
+import {
+  DEFAULT_EMAIL_TEMPLATE_NAME,
+  DEFAULT_SETTINGS,
+  DEFAULT_EMOJI,
+  DEFAULT_EMAIL_TEMPLATE_CONTENT,
+} from '@/stores/template-store'
 
 const csrfToken = Astro.locals.csrfToken!
 const project = Astro.locals.project!
 
-const emailTemplateStore = $emailTemplate.get()
-const name = emailTemplateStore.name
-const emoji = JSON.stringify(emailTemplateStore.emoji) as unknown as string
+const emoji = JSON.stringify(DEFAULT_EMOJI) as string
+const settings = JSON.stringify(DEFAULT_SETTINGS) as string
+const content = JSON.stringify(DEFAULT_EMAIL_TEMPLATE_CONTENT) as string
 ---
 
 <ProjectLayout>
@@ -31,7 +34,7 @@ const emoji = JSON.stringify(emailTemplateStore.emoji) as unknown as string
       <BreadcumbTemplateInputComponent
         client:load
         csrfToken={csrfToken}
-        name={name}
+        name={DEFAULT_EMAIL_TEMPLATE_NAME}
         emoji={emoji}
         teamId={project.teamId}
         projectId={project.id}
@@ -42,8 +45,9 @@ const emoji = JSON.stringify(emailTemplateStore.emoji) as unknown as string
     csrfToken={csrfToken}
     teamId={project.teamId}
     projectId={project.id}
-    action="create"
+    action={Action.CREATE}
+    settings={settings}
     client:load
   />
-  <EmailTemplateEditor plateNodeId={plateNodeId} client:load />
+  <EmailTemplateEditor content={content} client:load settings={settings} />
 </ProjectLayout>
