@@ -32,6 +32,7 @@ export interface EmailTemplateProps {
   content?: ContentProps[]
   emoji: EmojiProps
   settings: EmailTemplateSettings
+  isSubmitForm?: boolean
 }
 
 export const DEFAULT_EMAIL_TEMPLATE_NAME: string = 'Untitled' as const
@@ -66,6 +67,8 @@ export const DEFAULT_EMAIL_TEMPLATE_CONTENT: ContentProps[] = [
   },
 ]
 
+export const DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT: boolean = false as const
+
 export const DEFAULT_EMAIL_TEMPLATE: EmailTemplateProps = {
   name: DEFAULT_EMAIL_TEMPLATE_NAME,
   description: undefined,
@@ -74,4 +77,6 @@ export const DEFAULT_EMAIL_TEMPLATE: EmailTemplateProps = {
   settings: DEFAULT_SETTINGS,
 }
 
-export const $emailTemplate = map<Partial<EmailTemplateProps>>()
+export const $emailTemplate = map<Partial<EmailTemplateProps>>({
+  isSubmitForm: DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT,
+})

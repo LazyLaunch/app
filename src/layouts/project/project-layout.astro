@@ -1,5 +1,5 @@
 ---
-import { LayoutGrid } from 'lucide-react'
+import { GalleryVerticalEnd } from 'lucide-react'
 import AppLayout from '@/layouts/app-layout.astro'
 
 import { TooltipComponent } from '@/components/tooltip-component'
@@ -44,7 +44,7 @@ const teamRows: ContentRowProps[] = teams.map((team) => {
       text="Templates"
       url={`/${team.slug}/${projectSlug}/templates`}
     >
-      <LayoutGrid className="h-5 w-5" />
+      <GalleryVerticalEnd className="h-5 w-5" />
     </TooltipComponent>
   </Fragment>
   <Fragment slot="breadcrumbs">

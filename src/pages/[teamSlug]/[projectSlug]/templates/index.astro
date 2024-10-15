@@ -28,16 +28,17 @@ const emailTemplates = await getEmailTemplatesByProject({ projectId: project.id 
           <Card className="w-1/3">
             <CardContent className="flex justify-between p-3.5">
               <div>
-                <CardTitle className="text-sm">
+                <CardTitle className="text-sm flex space-x-2">
+                  <span>{JSON.parse(template.emoji).native}</span>
                   <a
                     href={`/${team.slug}/${project.slug}/templates/${template.id}/edit`}
                     class="cursor-pointer outline-0 hover:underline"
                   >
-                    {template.id}
+                    {template.name}
                   </a>
                 </CardTitle>
                 <CardDescription className="text-sm font-normal text-muted-foreground">
-                  Owner
+                  {template.description}
                 </CardDescription>
               </div>
             </CardContent>

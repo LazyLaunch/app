@@ -5,18 +5,20 @@ import { getEmailTemplate } from '@/db/models/email-template'
 
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 
-import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
 import {
-  EmailTemplateFixedToolbar,
+  EmailTemplateSubmitFormComponent,
   Action,
-} from '@/components/templates/email-template-fixed-toolbar'
+} from '@/components/templates/email-template-submit-form-component'
+import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
+import { EmailTemplateFixedToolbar } from '@/components/templates/email-template-fixed-toolbar'
 import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
 import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SlashSvg } from '@/components/svg/slash'
 
 const csrfToken = Astro.locals.csrfToken!
-
 const project = Astro.locals.project!
+const team = Astro.locals.team!
+
 const emailTemplateId = Astro.params.emailTemplateId!
 
 const canAccess = await checkPermission(UserPermissionsEnum.READ, Astro)
@@ -24,6 +26,9 @@ if (!canAccess) return Astro.redirect('/404')
 
 const emailTemplate = await getEmailTemplate({ id: emailTemplateId })
 if (!emailTemplate) return Astro.redirect('/404')
+
+const handleUrlRedirect = `/${team.slug}/${project.slug}/templates`
+const icon = emailTemplate.emoji.native
 ---
 
 <ProjectLayout>
@@ -32,25 +37,22 @@ if (!emailTemplate) return Astro.redirect('/404')
       <SlashSvg className="!size-6" />
     </BreadcrumbSeparator>
     <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
-      <BreadcumbTemplateInputComponent
-        client:load
-        csrfToken={csrfToken}
-        name={emailTemplate.name as string}
-        emoji={emailTemplate.emoji as string}
-        teamId={project.teamId}
-        projectId={project.id}
-        emailTemplateId={emailTemplateId}
-        isHandleSubmit
-      />
+      <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
+        <span class="text-lg">{JSON.parse(emailTemplate.emoji).native}</span>
+        {emailTemplate.name}
+      </BreadcrumbItem>
     </BreadcrumbItem>
   </Fragment>
-  <EmailTemplateFixedToolbar
+  <EmailTemplateSubmitFormComponent
     csrfToken={csrfToken}
+    name={emailTemplate.name}
+    description={emailTemplate.description}
+    emoji={emailTemplate.emoji}
     teamId={project.teamId}
     projectId={project.id}
     emailTemplateId={emailTemplateId}
-    settings={emailTemplate.settings as string}
     action={Action.UPDATE}
+    handleUrlRedirect={handleUrlRedirect}
     client:load
   />
   <EmailTemplateEditor
@@ -62,11 +64,13 @@ if (!emailTemplate) return Astro.redirect('/404')
 
 <script>
   import { onMount } from 'nanostores'
-  import { $emailTemplate } from '@/stores/template-store'
+  import { $emailTemplate, DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT } from '@/stores/template-store'
 
   onMount($emailTemplate, () => {
     return () => {
-      $emailTemplate.set({})
+      $emailTemplate.set({
+        isSubmitForm: DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT,
+      })
     }
   })
 </script>

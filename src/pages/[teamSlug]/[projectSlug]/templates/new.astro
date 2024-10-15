@@ -2,10 +2,11 @@
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 
 import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
+import { EmailTemplateFixedToolbar } from '@/components/templates/email-template-fixed-toolbar'
 import {
-  EmailTemplateFixedToolbar,
+  EmailTemplateSubmitFormComponent,
   Action,
-} from '@/components/templates/email-template-fixed-toolbar'
+} from '@/components/templates/email-template-submit-form-component'
 import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
 import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SlashSvg } from '@/components/svg/slash'
@@ -19,10 +20,13 @@ import {
 
 const csrfToken = Astro.locals.csrfToken!
 const project = Astro.locals.project!
+const team = Astro.locals.team!
 
 const emoji = JSON.stringify(DEFAULT_EMOJI) as string
 const settings = JSON.stringify(DEFAULT_SETTINGS) as string
 const content = JSON.stringify(DEFAULT_EMAIL_TEMPLATE_CONTENT) as string
+
+const handleUrlRedirect = `/${team.slug}/${project.slug}/templates`
 ---
 
 <ProjectLayout>
@@ -31,23 +35,32 @@ const content = JSON.stringify(DEFAULT_EMAIL_TEMPLATE_CONTENT) as string
       <SlashSvg className="!size-6" />
     </BreadcrumbSeparator>
     <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
-      <BreadcumbTemplateInputComponent
-        client:load
-        csrfToken={csrfToken}
-        name={DEFAULT_EMAIL_TEMPLATE_NAME}
-        emoji={emoji}
-        teamId={project.teamId}
-        projectId={project.id}
-      />
+      <span class="text-lg">{DEFAULT_EMOJI.native}</span>
+      {DEFAULT_EMAIL_TEMPLATE_NAME}
     </BreadcrumbItem>
   </Fragment>
-  <EmailTemplateFixedToolbar
+  <EmailTemplateSubmitFormComponent
     csrfToken={csrfToken}
+    name={DEFAULT_EMAIL_TEMPLATE_NAME}
+    emoji={emoji}
     teamId={project.teamId}
     projectId={project.id}
     action={Action.CREATE}
-    settings={settings}
+    handleUrlRedirect={handleUrlRedirect}
     client:load
   />
-  <EmailTemplateEditor content={content} client:load settings={settings} />
+  <EmailTemplateEditor content={content} settings={settings} client:load />
 </ProjectLayout>
+
+<script>
+  import { onMount } from 'nanostores'
+  import { $emailTemplate, DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT } from '@/stores/template-store'
+
+  onMount($emailTemplate, () => {
+    return () => {
+      $emailTemplate.set({
+        isSubmitForm: DEFAULT_EMAIL_TEMPLATE_FORM_SUBMIT,
+      })
+    }
+  })
+</script>

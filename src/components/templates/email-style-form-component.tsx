@@ -15,9 +15,9 @@ function handleSubmit(values: EmailTemplateSettings): void {
   $emailTemplate.setKey('settings', values)
 }
 
-export function EmailStyleFormComponent({ settings }: { settings: string }) {
+export function EmailStyleFormComponent({ settings }: { settings: EmailTemplateSettings }) {
   const form = useForm<EmailTemplateSettings>({
-    defaultValues: JSON.parse(settings),
+    defaultValues: settings,
   })
 
   function onReset(fn: (state: EmailTemplateSettings) => EmailTemplateSettings) {

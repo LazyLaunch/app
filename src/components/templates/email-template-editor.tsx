@@ -49,6 +49,7 @@ import { PaddingPlugin } from '@/components/plate-ui/plugins/padding/react'
 
 import { LinkFloatingToolbar } from '@/components/plate-ui/floating-toolbar/link-floating-toolbar'
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
+import { EmailTemplateFixedToolbar } from '@/components/templates/email-template-fixed-toolbar'
 
 import { $emailTemplate } from '@/stores/template-store'
 
@@ -170,47 +171,52 @@ export function EmailTemplateEditor({ content, settings }: Props) {
     focusEditor(editor)
   }, [editor])
 
+  if (emailTemplate.isSubmitForm) return null
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <Plate editor={editor} onChange={({ value }) => $emailTemplate.setKey('content', value)}>
-        <div
-          style={{
-            backgroundColor: _settings.bgColor,
-          }}
-          className="min-h-[calc(100vh_-_128px)] w-full transition-all duration-300 ease-in-out"
-        >
+    <>
+      <EmailTemplateFixedToolbar settings={_settings} editor={editor} />
+      <DndProvider backend={HTML5Backend}>
+        <Plate editor={editor}>
           <div
-            className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
             style={{
-              padding: `${_settings.bgVPadding}px ${_settings.bgHPadding}px`,
+              backgroundColor: _settings.bgColor,
             }}
+            className="min-h-[calc(100vh_-_128px)] w-full transition-all duration-300 ease-in-out"
           >
-            <div className="relative w-full">
-              <PlateContent
-                className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
-                data-plate-selectable
-                disableDefaultStyles
-                style={{
-                  backgroundColor: _settings.bodyColor,
-                  padding: `${_settings.bodyVPadding}px ${_settings.bodyHPadding}px`,
-                  borderRadius: `${_settings.borderRadius}px`,
-                  borderColor: _settings.borderColor,
-                  borderWidth: `${_settings.borderWidth}px`,
-                }}
-                placeholder={`Press '${TRIGGER}' for commands`}
-              />
+            <div
+              className="mx-auto w-full max-w-[600px] transition-all duration-300 ease-in-out"
+              style={{
+                padding: `${_settings.bgVPadding}px ${_settings.bgHPadding}px`,
+              }}
+            >
+              <div className="relative w-full">
+                <PlateContent
+                  className="relative min-h-20 w-full whitespace-pre-wrap break-words outline-0 transition-all duration-300 ease-in-out placeholder:text-muted-foreground"
+                  data-plate-selectable
+                  disableDefaultStyles
+                  style={{
+                    backgroundColor: _settings.bodyColor,
+                    padding: `${_settings.bodyVPadding}px ${_settings.bodyHPadding}px`,
+                    borderRadius: `${_settings.borderRadius}px`,
+                    borderColor: _settings.borderColor,
+                    borderWidth: `${_settings.borderWidth}px`,
+                  }}
+                  placeholder={`Press '${TRIGGER}' for commands`}
+                />
+              </div>
+            </div>
+            <div className="group mt-10 size-full text-center">
+              <p className="mx-auto w-full max-w-[600px] border-t border-input pt-4 text-xs font-medium tracking-wider text-gray-400/80 opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100">
+                End of email
+              </p>
             </div>
           </div>
-          <div className="group mt-10 size-full text-center">
-            <p className="mx-auto w-full max-w-[600px] border-t border-input pt-4 text-xs font-medium tracking-wider text-gray-400/80 opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100">
-              End of email
-            </p>
-          </div>
-        </div>
-        <FloatingToolbar>
-          <FloatingToolbarButtons editor={editor} />
-        </FloatingToolbar>
-      </Plate>
-    </DndProvider>
+          <FloatingToolbar>
+            <FloatingToolbarButtons editor={editor} />
+          </FloatingToolbar>
+        </Plate>
+      </DndProvider>
+    </>
   )
 }

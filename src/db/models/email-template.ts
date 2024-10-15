@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 
 import type { Team } from '@/db/models/team'
 import {
@@ -41,10 +41,13 @@ export async function getEmailTemplatesByProject({
   return await db
     .select({
       id: emailTemplatesTable.id,
-      content: emailTemplatesTable.content,
+      name: emailTemplatesTable.name,
+      description: emailTemplatesTable.description,
+      emoji: emailTemplatesTable.emoji,
     })
     .from(emailTemplatesTable)
     .where(eq(emailTemplatesTable.projectId, projectId))
+    .orderBy(desc(emailTemplatesTable.createdAt))
 }
 
 export async function createEmailTemplate(data: InsertEmailTemplate): Promise<SelectEmailTemplate> {
