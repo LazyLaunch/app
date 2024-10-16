@@ -6,12 +6,15 @@ import { navigate } from 'astro:transitions/client'
 
 import { $emailTemplate, type EmailTemplateProps, type EmojiProps } from '@/stores/template-store'
 
-import { cn } from '@/lib/utils'
-import { CSRF_TOKEN } from '@/types'
-import { useRef, useState } from 'react'
-import { useForm, type UseFormReturn } from 'react-hook-form'
-import { Button, buttonVariants } from '../ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -20,9 +23,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../ui/form'
-import { Input } from '../ui/input'
-import { Textarea } from '../ui/textarea'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
+import { CSRF_TOKEN } from '@/types'
+import { useRef, useState } from 'react'
+import { useForm, type UseFormReturn } from 'react-hook-form'
 
 export enum Action {
   CREATE = 'create',
@@ -75,10 +82,10 @@ async function handleSubmit(props: EmailTemplateSubmitFormData) {
   if (isInputError(error)) {
     const { fields } = error
 
-    for (const key of ['name', 'description']) {
-      const field = key as keyof Pick<typeof fields, 'name' | 'description'>
+    for (const key of ['name', 'description', 'emoji']) {
+      const field = key as keyof Pick<typeof fields, 'name' | 'description' | 'emoji'>
       const message = fields[field]?.[0]
-      form.setError(field, { message })
+      message && form.setError(field === 'emoji' ? 'name' : field, { message })
     }
     return
   }
@@ -103,7 +110,7 @@ function handleClickOutside({
 }
 
 interface Props extends Omit<FormValues, 'emoji'> {
-  emoji: string
+  emoji: EmojiProps
   action: Action
   handleUrlRedirect: string
 }
@@ -127,7 +134,7 @@ export function EmailTemplateSubmitFormComponent({
     defaultValues: {
       name,
       description: description || '',
-      emoji: JSON.parse(emoji),
+      emoji,
       [CSRF_TOKEN]: csrfToken,
     },
   })
@@ -205,7 +212,7 @@ export function EmailTemplateSubmitFormComponent({
                 name="name"
                 rules={{
                   required: 'Name is required.',
-                  maxLength: { value: 50, message: 'The maximum length of the name is 50' },
+                  maxLength: { value: 50, message: 'The maximum length of the name is 50.' },
                 }}
                 render={({ field }) => (
                   <FormItem className="space-y-2">
@@ -231,7 +238,7 @@ export function EmailTemplateSubmitFormComponent({
               control={form.control}
               name="description"
               rules={{
-                maxLength: { value: 256, message: 'The maximum length of the description is 256' },
+                maxLength: { value: 256, message: 'The maximum length of the description is 256.' },
               }}
               render={({ field }) => (
                 <FormItem className="space-y-2">

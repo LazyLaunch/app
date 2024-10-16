@@ -51,7 +51,11 @@ import { LinkFloatingToolbar } from '@/components/plate-ui/floating-toolbar/link
 import { TRIGGER } from '@/components/plate-ui/slash-input-element'
 import { EmailTemplateFixedToolbar } from '@/components/templates/email-template-fixed-toolbar'
 
-import { $emailTemplate } from '@/stores/template-store'
+import {
+  $emailTemplate,
+  type ContentProps,
+  type EmailTemplateSettings,
+} from '@/stores/template-store'
 
 const ENTER_KEY = 'Enter' as const
 
@@ -61,13 +65,13 @@ const resetBlockTypesCommonRule = {
 }
 
 interface Props {
-  content: string
-  settings: string
+  content: ContentProps[]
+  settings: EmailTemplateSettings
 }
 
 export function EmailTemplateEditor({ content, settings }: Props) {
   const emailTemplate = useStore($emailTemplate)
-  const _settings = emailTemplate.settings || JSON.parse(settings)
+  const _settings = emailTemplate.settings || settings
   const editor = usePlateEditor({
     plugins: [
       BorderRadiusPlugin,
@@ -164,7 +168,7 @@ export function EmailTemplateEditor({ content, settings }: Props) {
     override: {
       components: createPlateUI(),
     },
-    value: JSON.parse(content),
+    value: content,
   })
 
   useEffect(() => {

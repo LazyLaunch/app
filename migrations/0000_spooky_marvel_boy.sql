@@ -19,7 +19,7 @@ CREATE TABLE `email_templates` (
 	`id` text(256) PRIMARY KEY NOT NULL,
 	`name` text(50) NOT NULL,
 	`description` text(256),
-	`emoji` text,
+	`emoji` text NOT NULL,
 	`content` text NOT NULL,
 	`settings` text NOT NULL,
 	`user_id` text(256) NOT NULL,

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ec87e146-4579-4274-af35-f9591ff27d4b",
+  "id": "d60c0c35-e69f-4ac1-83b4-010d6649e8ae",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -157,7 +157,7 @@
           "name": "emoji",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "content": {

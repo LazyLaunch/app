@@ -9,6 +9,7 @@ import {
 import { getTeamByIds } from '@/db/models/team'
 import { UserPermissionsEnum } from '@/lib/rbac'
 import { checkPermission } from '@/middleware/check-permission'
+import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
 import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 const slateNodeSchema = z.array(
@@ -23,19 +24,19 @@ const settingsNodeSchema = z.object({
   bgColor: z.string(),
   bodyColor: z.string(),
   borderColor: z.string(),
-  borderWidth: z.number(),
-  borderRadius: z.number(),
-  bgVPadding: z.number(),
-  bodyVPadding: z.number(),
-  bgHPadding: z.number(),
-  bodyHPadding: z.number(),
+  borderWidth: z.number().min(0).max(10),
+  borderRadius: z.number().min(0).max(20),
+  bgVPadding: z.number().min(0).max(100),
+  bodyVPadding: z.number().min(0).max(100),
+  bgHPadding: z.number().min(0).max(100),
+  bodyHPadding: z.number().min(0).max(100),
 })
 
 const emojiNodeSchema = z.object({
   id: z.string(),
   keywords: z.array(z.string()),
   name: z.string(),
-  native: z.string(),
+  native: z.string().emoji({ message: 'Contains non-emoji characters.' }),
   shortcodes: z.string(),
   unified: z.string(),
 })
@@ -43,79 +44,80 @@ const emojiNodeSchema = z.object({
 const settingsSchema = z
   .string({
     required_error: 'Settings cannot be empty.',
+    invalid_type_error: 'Settings must be a string.',
   })
-  .refine(
-    (val) => {
-      if (typeof val === 'string' && val === 'undefined') return true
-      try {
-        const parsed = JSON.parse(val)
-        settingsNodeSchema.parse(parsed)
-        return true
-      } catch (err) {
-        return false
-      }
-    },
-    {
-      message: 'Settings is not valid JSON or does not match the expected structure.',
+  .transform((val, ctx) => {
+    try {
+      const parsed = JSON.parse(val) as EmailTemplateSettings
+      settingsNodeSchema.parse(parsed)
+      return parsed
+    } catch (err) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Settings is not valid JSON or does not match the expected structure.',
+      })
+      return z.NEVER
     }
-  )
+  })
 
 const emojiSchema = z
   .string({
     required_error: 'Emoji cannot be empty.',
+    invalid_type_error: 'Emoji must be a string.',
   })
-  .refine(
-    (val) => {
-      if (typeof val === 'string' && val === 'undefined') return true
-      try {
-        const parsed = JSON.parse(val)
-        emojiNodeSchema.parse(parsed)
-        return true
-      } catch (err) {
-        return false
-      }
-    },
-    {
-      message: 'Emoji is not valid JSON or does not match the expected structure.',
+  .transform((val, ctx) => {
+    try {
+      const parsed = JSON.parse(val) as EmojiProps
+      emojiNodeSchema.parse(parsed)
+      return parsed
+    } catch (err) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Emoji is not valid JSON or does not match the expected structure.',
+      })
+      return z.NEVER
     }
-  )
+  })
 
 const contentSchema = z
   .string({
     required_error: 'Content cannot be empty.',
+    invalid_type_error: 'Content must be a string.',
   })
-  .refine(
-    (val) => {
-      if (typeof val === 'string' && val === 'undefined') return true
-      try {
-        const parsed = JSON.parse(val)
-        slateNodeSchema.parse(parsed)
-        return true
-      } catch (err) {
-        return false
-      }
-    },
-    {
-      message: 'Content is not valid JSON or does not match the expected structure.',
+  .transform((val, ctx) => {
+    try {
+      const parsed = JSON.parse(val) as ContentProps[]
+      slateNodeSchema.parse(parsed)
+      return parsed
+    } catch (err) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Content is not valid JSON or does not match the expected structure.',
+      })
+      return z.NEVER
     }
-  )
+  })
 
 const baseSchema = z.object({
-  teamId: z.string(),
+  teamId: z.string().uuid(),
   csrfToken: z.string(),
-  projectId: z.string(),
+  projectId: z.string().uuid(),
+  name: z
+    .string({
+      required_error: 'Name cannot be empty.',
+      invalid_type_error: 'Name must be a string.',
+    })
+    .max(50),
+  description: z.optional(z.string().max(256)),
+  emoji: emojiSchema,
+  content: contentSchema,
+  settings: settingsSchema,
 })
 
 export const template = {
   create: defineAction({
     accept: 'form',
-    input: baseSchema.extend({
-      name: z.string(),
-      description: z.optional(z.string()),
-      emoji: emojiSchema,
-      content: contentSchema,
-      settings: settingsSchema,
-    }),
+    input: baseSchema,
     handler: async (
       { name, description, settings, emoji, content, teamId, projectId },
       context
@@ -132,8 +134,8 @@ export const template = {
       const emailTemplate = await createEmailTemplate({
         name,
         description,
-        emoji,
         content,
+        emoji,
         settings,
         userId: user.id,
         projectId,
@@ -145,15 +147,11 @@ export const template = {
   update: defineAction({
     accept: 'form',
     input: baseSchema.extend({
-      name: z.optional(z.string()),
-      description: z.optional(z.string()),
-      emoji: emojiSchema.optional(),
-      content: contentSchema.optional(),
-      settings: settingsSchema.optional(),
-      emailTemplateId: z.string(),
+      emailTemplateId: z.string().uuid(),
     }),
     handler: async (input, context) => {
-      const { teamId, emailTemplateId } = input
+      const { teamId, emailTemplateId, content, emoji, settings, name, description, projectId } =
+        input
       const canAccess = await checkPermission(UserPermissionsEnum.UPDATE, context, { teamId })
       if (!canAccess) {
         throw new ActionError({
@@ -167,19 +165,17 @@ export const template = {
         userId: user.id,
       })
 
-      let isDirty: boolean = false
       const data: UpdateEmailTemplateProps = {
         id: emailTemplateId,
+        content,
+        emoji,
+        settings,
+        name,
+        description,
+        projectId,
       } as UpdateEmailTemplateProps
 
-      for (const key of ['content', 'emoji', 'settings', 'name', 'description', 'projectId']) {
-        const val = input[key as keyof typeof input]
-        if (typeof val === 'undefined' || (typeof val === 'string' && val === 'undefined')) continue
-        data[key as keyof UpdateEmailTemplateProps] = val
-        isDirty = true
-      }
-
-      if (isDirty && team) {
+      if (team) {
         await updateEmailTemplate({ data, team })
       }
     },

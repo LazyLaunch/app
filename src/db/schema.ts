@@ -1,4 +1,5 @@
 import type { UserRoles } from '@/lib/rbac'
+import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
 import type { ProviderType } from '@/types'
 import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
@@ -190,9 +191,9 @@ export const emailTemplatesTable = sqliteTable(
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name', { length: 50 }).notNull(),
     description: text('description', { length: 256 }),
-    emoji: text('emoji', { mode: 'json' }),
-    content: text('content', { mode: 'json' }).notNull(),
-    settings: text('settings', { mode: 'json' }).notNull(),
+    emoji: text('emoji', { mode: 'json' }).$type<EmojiProps>().notNull(),
+    content: text('content', { mode: 'json' }).$type<ContentProps[]>().notNull(),
+    settings: text('settings', { mode: 'json' }).$type<EmailTemplateSettings>().notNull(),
     userId: text('user_id', { length: 256 })
       .notNull()
       .references(() => usersTable.id),

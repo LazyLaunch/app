@@ -10,8 +10,6 @@ import {
   Action,
 } from '@/components/templates/email-template-submit-form-component'
 import { EmailTemplateEditor } from '@/components/templates/email-template-editor'
-import { EmailTemplateFixedToolbar } from '@/components/templates/email-template-fixed-toolbar'
-import { BreadcumbTemplateInputComponent } from '@/components/breadcrumb-template-input-component'
 import { BreadcrumbItem, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { SlashSvg } from '@/components/svg/slash'
 
@@ -28,7 +26,6 @@ const emailTemplate = await getEmailTemplate({ id: emailTemplateId })
 if (!emailTemplate) return Astro.redirect('/404')
 
 const handleUrlRedirect = `/${team.slug}/${project.slug}/templates`
-const icon = emailTemplate.emoji.native
 ---
 
 <ProjectLayout>
@@ -38,16 +35,16 @@ const icon = emailTemplate.emoji.native
     </BreadcrumbSeparator>
     <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
       <BreadcrumbItem className="font-semibold tracking-tight text-foreground">
-        <span class="text-lg">{JSON.parse(emailTemplate.emoji).native}</span>
+        <span class="text-lg">{emailTemplate.emoji!.native}</span>
         {emailTemplate.name}
       </BreadcrumbItem>
     </BreadcrumbItem>
   </Fragment>
   <EmailTemplateSubmitFormComponent
     csrfToken={csrfToken}
-    name={emailTemplate.name}
-    description={emailTemplate.description}
-    emoji={emailTemplate.emoji}
+    name={emailTemplate.name!}
+    description={emailTemplate.description as string | undefined}
+    emoji={emailTemplate.emoji!}
     teamId={project.teamId}
     projectId={project.id}
     emailTemplateId={emailTemplateId}
@@ -56,8 +53,8 @@ const icon = emailTemplate.emoji.native
     client:load
   />
   <EmailTemplateEditor
-    content={emailTemplate.content as string}
-    settings={emailTemplate.settings as string}
+    content={emailTemplate.content!}
+    settings={emailTemplate.settings!}
     client:load
   />
 </ProjectLayout>
