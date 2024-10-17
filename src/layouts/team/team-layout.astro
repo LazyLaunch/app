@@ -45,8 +45,8 @@ const currentPath: string = new URL(Astro.request.url).pathname as string
     <TooltipComponent
       client:idle
       currentPath={currentPath}
-      segments={2}
-      nestedUrl={`/${slug}`}
+      startAt={1}
+      pageNames={['settings']}
       text="Team Settings"
       url={`/${slug}/settings`}
     >

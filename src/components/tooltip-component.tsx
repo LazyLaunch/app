@@ -1,44 +1,33 @@
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 import { cn } from '@/lib/utils'
 
 interface ActiveProps {
   url: string
   currentPath: string
-  segments: number
-  nestedUrl?: string
+  startAt?: number
+  pageNames?: string[]
 }
 
-interface Props {
+interface Props extends ActiveProps {
   text: string
-  url: string
-  currentPath: string
   children: any
-  segments?: number
-  nestedUrl?: string
 }
 
-function isActive({ segments, currentPath, nestedUrl, url }: ActiveProps): boolean {
-  if (segments < 2) {
+function isActive({ startAt, currentPath, url, pageNames }: ActiveProps): boolean {
+  if (!startAt && typeof startAt !== 'number') {
     return currentPath === url
   }
 
-  if (nestedUrl) {
-    return currentPath.startsWith(nestedUrl) && currentPath !== nestedUrl
+  if (pageNames) {
+    return pageNames.includes(currentPath.split('/').filter(Boolean)[startAt])
   }
 
   return currentPath.startsWith(url)
 }
 
-export function TooltipComponent({
-  children,
-  text,
-  url,
-  currentPath,
-  segments = 1,
-  nestedUrl,
-}: Props) {
-  const active = isActive({ segments, currentPath, nestedUrl, url })
+export function TooltipComponent({ children, text, url, currentPath, startAt, pageNames }: Props) {
+  const active = isActive({ startAt, currentPath, url, pageNames })
 
   return (
     <TooltipProvider>
