@@ -217,6 +217,39 @@ export const emailTemplatesTable = sqliteTable(
   }
 )
 
+// export const campaignsTable = sqliteTable(
+//   'campaigns',
+//   {
+//     id: text('id', { length: 256 })
+//       .primaryKey()
+//       .notNull()
+//       .$defaultFn(() => crypto.randomUUID()),
+//     name: text('name', { length: 256 }).notNull(),
+//     subject: text('subject', { length: 256 }).notNull(),
+//     from: text('from', { length: 256 }).notNull(),
+//     preheader: text('preheader', { length: 256 }).notNull(),
+//     userId: text('user_id', { length: 256 })
+//       .notNull()
+//       .references(() => usersTable.id),
+//     projectId: text('project_id', { length: 256 })
+//       .notNull()
+//       .references(() => projectsTable.id, { onDelete: 'cascade' }),
+//     updatedAt: text('updated_at', { length: 50 })
+//       .notNull()
+//       .default(sql`(CURRENT_TIMESTAMP)`)
+//       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+//     createdAt: text('created_at', { length: 50 })
+//       .notNull()
+//       .default(sql`(CURRENT_TIMESTAMP)`),
+//   },
+//   (table) => {
+//     return {
+//       campaignUserIdx: index('campaigns_user_idx').on(table.userId),
+//       campaignProjectIdx: index('campaigns_project_idx').on(table.projectId),
+//     }
+//   }
+// )
+
 export type InsertUser = typeof usersTable.$inferInsert
 export type SelectUser = typeof usersTable.$inferSelect
 
@@ -240,3 +273,6 @@ export type SelectUserTeam = typeof userTeamsTable.$inferSelect
 
 export type InsertEmailTemplate = typeof emailTemplatesTable.$inferInsert
 export type SelectEmailTemplate = typeof emailTemplatesTable.$inferSelect
+
+// export type InsertCampaign = typeof campaignsTable.$inferInsert
+// export type SelectCampaign = typeof campaignsTable.$inferSelect
