@@ -1,0 +1,37 @@
+---
+import ProjectLayout from '@/layouts/project/project-layout.astro'
+
+import { Separator } from '@/components/ui/separator'
+import { Badge } from '@/components/ui/badge'
+
+import { ContactTable } from '@/components/contacts/contact-table'
+
+import { getContact, getContactTotal } from '@/db/models/contact'
+import { NewContactForm } from '@/components/contacts/new-contact-form'
+
+const csrfToken = Astro.locals.csrfToken!
+const team = Astro.locals.team!
+const project = Astro.locals.project!
+const data = await getContact({
+  teamId: team.id,
+  projectId: project.id,
+})
+const total = await getContactTotal({
+  teamId: team.id,
+  projectId: project.id,
+})
+---
+
+<ProjectLayout>
+  <div class="container space-y-6">
+    <div class="flex items-center justify-between space-y-0.5">
+      <div class="inline-flex items-center space-x-2">
+        <h2 class="text-2xl font-bold tracking-tight">Contacts</h2>
+        <Badge className="mt-0.5">{total}</Badge>
+      </div>
+      <NewContactForm csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
+    </div>
+    <Separator />
+    <ContactTable csrfToken={csrfToken} data={data} className="pt-6" client:load />
+  </div>
+</ProjectLayout>

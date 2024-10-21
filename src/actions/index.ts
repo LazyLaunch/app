@@ -1,3 +1,4 @@
+import { contact } from '@/actions/contact'
 import { email } from '@/actions/email'
 import { template } from '@/actions/email-template'
 import { project } from '@/actions/project'
@@ -10,4 +11,5 @@ export const server = {
   user,
   project,
   template,
+  contact,
 }

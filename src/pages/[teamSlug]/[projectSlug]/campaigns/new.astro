@@ -2,7 +2,6 @@
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 
 import { Separator } from '@/components/ui/separator'
-import { buttonVariants } from '@/components/ui/button'
 
 import { CampaignsDetailForm } from '@/components/campaigns/campaigns-detail-form'
 import { CampaignsInboxPreview } from '@/components/campaigns/campaigns-inbox-preview'
@@ -26,7 +25,12 @@ const cancelUrl = `/${team.slug}/${project.slug}/campaigns`
     </div>
     <Separator />
     <div class="flex justify-between gap-24">
-      <CampaignsDetailForm client:load className="basis-1/2" cancelUrl={cancelUrl} defaultValues={{...DEFAULT_CAMPAIGN_DETAILS, csrfToken}} />
+      <CampaignsDetailForm
+        client:load
+        className="basis-1/2"
+        cancelUrl={cancelUrl}
+        defaultValues={{ ...DEFAULT_CAMPAIGN_DETAILS, csrfToken }}
+      />
       <CampaignsInboxPreview client:load className="h-full basis-1/2" />
     </div>
   </div>

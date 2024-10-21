@@ -26,7 +26,7 @@ export function CampaignsInboxPreview({ className }: { className: string }) {
       <SkeletonSection />
       <div className="-ml-3 items-start rounded-l border-b border-l-[0.3rem] border-t border-l-green-500 bg-white px-6 py-5 shadow-md dark:border-b-gray-500 dark:border-t-gray-500 dark:bg-gray-700">
         <div className="items-start space-y-1">
-          <h5 className="leading-tight font-semibold">
+          <h5 className="font-semibold leading-tight">
             {_campaign.from || 'Your sender name will appear here.'}
           </h5>
           <p className="pt-[0.13rem] text-xs text-black text-opacity-75 dark:text-white dark:text-opacity-75">

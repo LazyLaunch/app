@@ -1,5 +1,5 @@
 ---
-import { GalleryVerticalEnd, Mail } from 'lucide-react'
+import { GalleryVerticalEnd, Mail, Users } from 'lucide-react'
 import AppLayout from '@/layouts/app-layout.astro'
 
 import { TooltipComponent } from '@/components/tooltip-component'
@@ -45,6 +45,16 @@ const teamRows: ContentRowProps[] = teams.map((team) => {
       url={`/${team.slug}/${projectSlug}/campaigns`}
     >
       <Mail className="h-5 w-5" />
+    </TooltipComponent>
+    <TooltipComponent
+      client:idle
+      currentPath={currentPath}
+      startAt={2}
+      pageNames={['contacts']}
+      text="Contacts"
+      url={`/${team.slug}/${projectSlug}/contacts`}
+    >
+      <Users className="h-5 w-5" />
     </TooltipComponent>
     <TooltipComponent
       client:idle

@@ -26,7 +26,11 @@ function onSubmit(values: FormValues) {
   console.log(values)
 }
 
-export function CampaignsDetailForm({ className, cancelUrl, defaultValues }: {
+export function CampaignsDetailForm({
+  className,
+  cancelUrl,
+  defaultValues,
+}: {
   className: string
   cancelUrl: string
   defaultValues: FormValues
@@ -110,13 +114,14 @@ export function CampaignsDetailForm({ className, cancelUrl, defaultValues }: {
                   <FormLabel>Sender Name</FormLabel>
                   <FormControl>
                     <Input
-                    {...field} value={field.value || ''}
-                    placeholder="Enter sender name"
-                    onChange={(e) => {
-                      const val = e.target.value
-                      $campaign.setKey('from', val)
-                      field.onChange(e)
-                    }}
+                      {...field}
+                      value={field.value || ''}
+                      placeholder="Enter sender name"
+                      onChange={(e) => {
+                        const val = e.target.value
+                        $campaign.setKey('from', val)
+                        field.onChange(e)
+                      }}
                     />
                   </FormControl>
                   <FormDescription>
@@ -177,8 +182,10 @@ export function CampaignsDetailForm({ className, cancelUrl, defaultValues }: {
               )}
             />
           </CardContent>
-          <CardFooter className='flex justify-between'>
-            <a className={buttonVariants({ variant: 'outline' })} href={cancelUrl}>Cancel</a>
+          <CardFooter className="flex justify-between">
+            <a className={buttonVariants({ variant: 'outline' })} href={cancelUrl}>
+              Cancel
+            </a>
             <Button type="submit">Next</Button>
           </CardFooter>
         </Card>

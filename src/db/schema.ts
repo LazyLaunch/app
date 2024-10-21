@@ -200,6 +200,9 @@ export const emailTemplatesTable = sqliteTable(
     projectId: text('project_id', { length: 256 })
       .notNull()
       .references(() => projectsTable.id, { onDelete: 'cascade' }),
+    teamId: text('team_id', { length: 256 })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
     updatedAt: text('updated_at', { length: 50 })
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
@@ -213,8 +216,114 @@ export const emailTemplatesTable = sqliteTable(
       emailTemplateName: index('email_templates_name').on(table.name),
       emailTemplateUserIdx: index('email_templates_user_idx').on(table.userId),
       emailTemplateProjectIdx: index('email_templates_project_idx').on(table.projectId),
+      emailTemplateTeamIdx: index('email_templates_team_idx').on(table.teamId),
     }
   }
+)
+
+export const contactsTable = sqliteTable(
+  'contacts',
+  {
+    id: text('id', { length: 256 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    email: text('email', { length: 256 }).notNull(),
+    firstName: text('first_name', { length: 256 }),
+    lastName: text('last_name', { length: 256 }),
+    subscribed: integer('subscribed', { mode: 'boolean' }).notNull().default(true),
+    source: text('source', { enum: ['form', 'api', 'app'], length: 25 })
+      .notNull()
+      .default('app'),
+    userId: text('user_id', { length: 256 })
+      .notNull()
+      .references(() => usersTable.id),
+    projectId: text('project_id', { length: 256 })
+      .notNull()
+      .references(() => projectsTable.id, { onDelete: 'cascade' }),
+    teamId: text('team_id', { length: 256 })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
+    updatedAt: text('updated_at', { length: 50 })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => {
+    return {
+      contactEmailProjctIdx: uniqueIndex('contacts_email_project_idx').on(
+        table.email,
+        table.projectId
+      ),
+      contactEmail: index('contacts_email').on(table.email),
+      contactFirstName: index('contacts_first_name').on(table.firstName),
+      contactLastName: index('contacts_last_name').on(table.lastName),
+      contactSubscribed: index('contacts_subscribed').on(table.subscribed),
+      contactUserIdx: index('contacts_user_idx').on(table.userId),
+      contactProjectIdx: index('contacts_project_idx').on(table.projectId),
+      contactTeamIdx: index('contacts_team_idx').on(table.teamId),
+    }
+  }
+)
+
+export const customFieldsTable = sqliteTable(
+  'custom_fields',
+  {
+    id: text('id', { length: 256 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => crypto.randomUUID()),
+    name: text('name', { length: 50 }).notNull(),
+    type: text('type', { enum: ['text', 'number', 'date', 'boolean'] })
+      .notNull()
+      .default('text'),
+    projectId: text('project_id', { length: 256 })
+      .notNull()
+      .references(() => projectsTable.id, { onDelete: 'cascade' }),
+    teamId: text('team_id', { length: 256 })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
+    userId: text('user_id', { length: 256 })
+      .notNull()
+      .references(() => usersTable.id),
+    updatedAt: text('updated_at', { length: 50 })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`)
+      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 })
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    customFieldNameProjectIdx: uniqueIndex('custom_fields_name_and_project_idx').on(
+      table.name,
+      table.projectId
+    ),
+    customFieldProjectIdx: index('custom_fields_project_idx').on(table.projectId),
+    customFieldTeamIdx: index('custom_fields_team_idx').on(table.teamId),
+  })
+)
+
+export const contactCustomFieldsTable = sqliteTable(
+  'contact_custom_fields',
+  {
+    contactId: text('contact_id', { length: 256 })
+      .notNull()
+      .references(() => contactsTable.id, { onDelete: 'cascade' }),
+    customFieldId: text('custom_field_id', { length: 256 })
+      .notNull()
+      .references(() => customFieldsTable.id, { onDelete: 'cascade' }),
+    value: text('value', { length: 256 }),
+  },
+  (table) => ({
+    compositePk: primaryKey({
+      columns: [table.contactId, table.customFieldId],
+    }),
+    value: index('contact_custom_fields_value').on(table.value),
+  })
 )
 
 // export const campaignsTable = sqliteTable(
@@ -273,6 +382,15 @@ export type SelectUserTeam = typeof userTeamsTable.$inferSelect
 
 export type InsertEmailTemplate = typeof emailTemplatesTable.$inferInsert
 export type SelectEmailTemplate = typeof emailTemplatesTable.$inferSelect
+
+export type InsertContact = typeof contactsTable.$inferInsert
+export type SelectContact = typeof contactsTable.$inferSelect
+
+export type InsertCustomField = typeof customFieldsTable.$inferInsert
+export type SelectCustomField = typeof customFieldsTable.$inferSelect
+
+export type InsertContactCustomField = typeof contactCustomFieldsTable.$inferInsert
+export type SelectContactCustomField = typeof contactCustomFieldsTable.$inferSelect
 
 // export type InsertCampaign = typeof campaignsTable.$inferInsert
 // export type SelectCampaign = typeof campaignsTable.$inferSelect
