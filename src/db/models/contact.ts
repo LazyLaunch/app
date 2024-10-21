@@ -6,7 +6,7 @@ import type {
   SelectCustomField,
 } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
-import { and, count, eq, sql } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, sql } from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
 const SKIP_CONTACT_COLUMNS: string[] = [
@@ -60,7 +60,7 @@ export async function getContact({
     .leftJoin(customFieldsTable, eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId))
     .where(and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId)))
     .groupBy(contactsTable.id)
-    .orderBy(contactsTable.id)
+    .orderBy(desc(contactsTable.createdAt))
 }
 
 export async function getContactTotal({
@@ -159,4 +159,48 @@ export async function hasContactPermission({
     .limit(1)
 
   return Boolean(isAllowed)
+}
+
+export async function getUniqueContactEmails({
+  emails,
+  teamId,
+  projectId,
+}: {
+  emails: string[]
+  teamId: string
+  projectId: string
+}): Promise<string[]> {
+  const finalUniqueEmails = [...new Set(emails)]
+
+  const existingEmails = await db
+    .select({ email: contactsTable.email })
+    .from(contactsTable)
+    .where(
+      and(
+        eq(contactsTable.teamId, teamId),
+        eq(contactsTable.projectId, projectId),
+        inArray(contactsTable.email, finalUniqueEmails)
+      )
+    )
+
+  const existingEmailSet = new Set(existingEmails.map((contact) => contact.email))
+
+  return finalUniqueEmails.filter((email) => !existingEmailSet.has(email))
+}
+
+export async function bulkCreateContactEmails({
+  emails,
+  teamId,
+  projectId,
+  userId,
+}: {
+  emails: string[]
+  teamId: string
+  projectId: string
+  userId: string
+}): Promise<void> {
+  const data = emails.map((email) => {
+    return { email, teamId, projectId, userId }
+  })
+  await db.insert(contactsTable).values(data)
 }

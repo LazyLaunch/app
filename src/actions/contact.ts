@@ -2,14 +2,59 @@ import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
 import {
+  bulkCreateContactEmails,
   createContact,
   deleteContact,
+  getUniqueContactEmails,
   hasContactPermission,
   isUniqContactEmail,
 } from '@/db/models/contact'
+import { validateEmails } from '@/lib/validate-emails'
 import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 export const contact = {
+  createBulk: defineAction({
+    accept: 'form',
+    input: z
+      .object({
+        csrfToken: z.string(),
+        projectId: z.string().uuid(),
+        teamId: z.string().uuid(),
+        emails: z
+          .string({
+            required_error: 'Please enter at least one email address.',
+            invalid_type_error:
+              'Invalid emails format. Enter the email addresses, separated by commas.',
+          })
+          .max(50000, { message: 'Email addresses cannot exceed 50,000 characters.' })
+          .superRefine((emails, ctx) => {
+            const { isValid, invalidEmails } = validateEmails(emails)
+
+            if (!isValid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `One or more email addresses are invalid. Please check and try again.\n ${invalidEmails.join(',')}`,
+              })
+            }
+          }),
+      })
+      .transform(async (input) => {
+        const { emails, teamId, projectId } = input
+        const uniqEmails = await getUniqueContactEmails({
+          emails: emails.split(',').map((val) => val.trim()),
+          teamId,
+          projectId,
+        })
+
+        return { ...input, emails: uniqEmails }
+      }),
+    handler: async ({ emails, projectId, teamId }, context) => {
+      const user = context.locals.user!
+      await bulkCreateContactEmails({ emails, projectId, teamId, userId: user.id })
+
+      return true
+    },
+  }),
   create: defineAction({
     accept: 'form',
     input: z
