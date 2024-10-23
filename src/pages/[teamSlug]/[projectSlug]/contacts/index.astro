@@ -1,7 +1,7 @@
 ---
 import ProjectLayout from '@/layouts/project/project-layout.astro'
+import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
 
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 
 import { ContactTable } from '@/components/contacts/contact-table'
@@ -57,17 +57,18 @@ const total = await getContactTotal(ids)
       </div>
       <NewContactForm csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
     </div>
-    <Separator />
-    <ContactTable
-      apiAction="contact"
-      ids={ids}
-      csrfToken={csrfToken}
-      total={total}
-      pagination={pagination}
-      csrfToken={csrfToken}
-      data={data}
-      className="pt-6"
-      client:load
-    />
+    <ProjectContactNav active="contacts">
+      <ContactTable
+        apiAction="contact"
+        ids={ids}
+        csrfToken={csrfToken}
+        total={total}
+        pagination={pagination}
+        csrfToken={csrfToken}
+        data={data}
+        className="pt-6"
+        client:load
+      />
+    </ProjectContactNav>
   </div>
 </ProjectLayout>

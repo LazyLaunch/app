@@ -1,0 +1,23 @@
+---
+import { ContactNavLink, type ContactNavLinkId } from '@/components/contacts/contact-nav-link'
+
+const { teamSlug, projectSlug } = Astro.params
+const url = `/${teamSlug}/${projectSlug}/contacts`
+
+const tabs: { label: string; id: ContactNavLinkId; url: string }[] = [
+  { label: 'All Contacts', id: 'contacts', url },
+  { label: 'Fields', id: 'fields', url: url + '/fields' },
+]
+
+interface Props {
+  active: ContactNavLinkId
+}
+const active = Astro.props.active
+---
+
+<div class="flex w-full border-b">
+  <nav aria-label="tabs" class="-mb-0.5 flex">
+    {tabs.map((tab) => <ContactNavLink {...{ ...tab, active }} />)}
+  </nav>
+</div>
+<slot />
