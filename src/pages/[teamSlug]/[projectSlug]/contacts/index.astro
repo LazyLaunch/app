@@ -6,20 +6,46 @@ import { Badge } from '@/components/ui/badge'
 
 import { ContactTable } from '@/components/contacts/contact-table'
 
-import { getContact, getContactTotal } from '@/db/models/contact'
+import { getContacts, getContactTotal } from '@/db/models/contact'
 import { NewContactForm } from '@/components/contacts/new-contact-form'
+import { handleNumberInput } from '@/lib/utils'
+import {
+  DEFAULT_MAX_PAGE_SIZE,
+  DEFAULT_PAGE_INDEX,
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_PAGE_SIZES,
+} from '@/types'
+
+const searchParams = Astro.url.searchParams
+
+let pageSize = searchParams.get('pageSize') ?? `${DEFAULT_PAGE_SIZE}`
+pageSize = DEFAULT_PAGE_SIZES.includes(parseInt(pageSize)) ? pageSize : `${DEFAULT_PAGE_SIZE}`
+const limit = handleNumberInput(pageSize, { min: DEFAULT_PAGE_SIZE, max: DEFAULT_MAX_PAGE_SIZE })
+
+const page = searchParams.get('page') ?? DEFAULT_PAGE_INDEX
+const pageIndex = handleNumberInput(`${page}`, { min: 1 }) - 1
+const pagination = {
+  pageIndex,
+  pageSize: limit,
+}
+const offset = pageIndex * limit
 
 const csrfToken = Astro.locals.csrfToken!
 const team = Astro.locals.team!
 const project = Astro.locals.project!
-const data = await getContact({
+const ids = {
   teamId: team.id,
   projectId: project.id,
+}
+
+const data = await getContacts({
+  ...ids,
+  limit,
+  offset,
+  sortFields: [],
+  columnFilters: [],
 })
-const total = await getContactTotal({
-  teamId: team.id,
-  projectId: project.id,
-})
+const total = await getContactTotal(ids)
 ---
 
 <ProjectLayout>
@@ -32,6 +58,16 @@ const total = await getContactTotal({
       <NewContactForm csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
     </div>
     <Separator />
-    <ContactTable csrfToken={csrfToken} data={data} className="pt-6" client:load />
+    <ContactTable
+      apiAction="contact"
+      ids={ids}
+      csrfToken={csrfToken}
+      total={total}
+      pagination={pagination}
+      csrfToken={csrfToken}
+      data={data}
+      className="pt-6"
+      client:load
+    />
   </div>
 </ProjectLayout>

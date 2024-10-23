@@ -1,5 +1,6 @@
 import type { SHAHash } from 'oslo/crypto'
 import type { JWTAlgorithm } from 'oslo/jwt'
+
 export const JWT_ALGORITHM: JWTAlgorithm = 'HS256' as const
 export const SHA_HASH: SHAHash = 'SHA-256' as const
 
@@ -57,3 +58,26 @@ export enum ResponseCodeEnum {
   NOT_FOUND = 404,
   UNAUTHORIZED = 401,
 }
+
+export const DEFAULT_PAGE_INDEX: number = 0 as const
+export const DEFAULT_PAGE_SIZE: number = 10 as const
+export const DEFAULT_MAX_PAGE_SIZE: number = 100 as const
+export const DEFAULT_PAGE_SIZES: number[] = [
+  DEFAULT_PAGE_SIZE,
+  20,
+  50,
+  DEFAULT_MAX_PAGE_SIZE,
+] as const
+
+export const CONTACT_SOURCE_LIST: Record<string, string> = {
+  form: 'form',
+  api: 'api',
+  app: 'app',
+} as const
+
+export const CUSTOM_FIELD_TYPE_LIST: Record<string, string> = {
+  text: 'text',
+  number: 'number',
+  date: 'date',
+  boolean: 'boolean',
+} as const

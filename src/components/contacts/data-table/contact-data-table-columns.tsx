@@ -6,13 +6,11 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ContactDataTableRowActions } from '@/components/contacts/data-table/contact-data-table-row-actions'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 
-import type { ContactProps } from '@/db/models/contact'
-
-export function contactDataTableColumns({
+export function contactDataTableColumns<TData>({
   csrfToken,
 }: {
   csrfToken: string
-}): ColumnDef<ContactProps>[] {
+}): ColumnDef<TData>[] {
   return [
     {
       id: 'select',
@@ -35,40 +33,87 @@ export function contactDataTableColumns({
           className="translate-y-[2px]"
         />
       ),
+      size: 32,
       enableSorting: false,
       enableHiding: false,
     },
     {
       accessorKey: 'email',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
-      cell: ({ row }) => <div className="w-[80px]">{row.getValue('email')}</div>,
+      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Email" />,
+      cell: ({ row }) => <div>{row.getValue('email')}</div>,
       enableSorting: true,
       enableHiding: false,
     },
     {
       accessorKey: 'firstName',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="First name" />,
-      cell: ({ row }) => <div className="w-[80px]">{row.getValue('firstName')}</div>,
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="First Name" />
+      ),
+      cell: ({ row }) => <div>{row.getValue('firstName')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'lastName',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Last name" />,
-      cell: ({ row }) => <div className="w-[80px]">{row.getValue('lastName')}</div>,
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="Last Name" />
+      ),
+      cell: ({ row }) => <div>{row.getValue('lastName')}</div>,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: 'source',
+      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Source" />,
+      cell: ({ row }) => <div>{row.getValue('source')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'subscribed',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Subscribed" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="Subscribed" />
+      ),
       cell: ({ row }) => {
-        const label = row.getValue('subscribed') ? 'Yes' : 'No'
+        const isSubscribed = row.getValue('subscribed')
+        const label = isSubscribed ? 'Yes' : 'No'
 
-        return (
-          <Badge variant={row.getValue('subscribed') ? 'default' : 'destructive'}>{label}</Badge>
-        )
+        return <Badge variant={isSubscribed ? 'default' : 'destructive'}>{label}</Badge>
       },
+    },
+    {
+      accessorKey: 'teamId',
+      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Team Id" />,
+      cell: ({ row }) => <div>{row.getValue('teamId')}</div>,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: 'projectId',
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="Project Id" />
+      ),
+      cell: ({ row }) => <div>{row.getValue('projectId')}</div>,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: 'updatedAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="Updated At" />
+      ),
+      cell: ({ row }) => <div>{row.getValue('updatedAt')}</div>,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader<TData, any> column={column} title="Created At" />
+      ),
+      cell: ({ row }) => <div>{row.getValue('createdAt')}</div>,
+      enableSorting: true,
+      enableHiding: true,
     },
     // {
     //   accessorKey: 'status',
@@ -115,7 +160,7 @@ export function contactDataTableColumns({
     {
       id: 'actions',
       cell: ({ row, table }) => (
-        <ContactDataTableRowActions<ContactProps> row={row} table={table} csrfToken={csrfToken} />
+        <ContactDataTableRowActions<TData> row={row} table={table} csrfToken={csrfToken} />
       ),
     },
   ]

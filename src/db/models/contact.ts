@@ -6,7 +6,18 @@ import type {
   SelectCustomField,
 } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
-import { and, count, desc, eq, inArray, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  like,
+  or,
+  sql,
+  type InferSelectModel,
+} from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
 const SKIP_CONTACT_COLUMNS: string[] = [
@@ -29,13 +40,57 @@ interface ExtendedContact extends SelectContact {
 export interface ContactProps
   extends Omit<ExtendedContact, 'updatedAt' | 'createdAt' | 'projectId' | 'teamId' | 'userId'> {}
 
-export async function getContact({
+type ContactColumn = keyof InferSelectModel<typeof contactsTable>
+export type ContactSortFields = Array<{ id: ContactColumn; desc: boolean }>
+export type ContactColumnFilters = Array<{
+  id: ContactColumn
+  value: string | number | boolean | Array<string | number | boolean>
+}>
+
+export async function getContacts({
   projectId,
   teamId,
+  limit,
+  offset,
+  sortFields = [{ id: 'createdAt', desc: true }],
+  columnFilters = [],
 }: {
   projectId: string
   teamId: string
+  limit: number
+  offset: number
+  sortFields?: ContactSortFields
+  columnFilters: ContactColumnFilters
 }): Promise<ContactProps[]> {
+  const sortBy = sortFields.map((field) =>
+    field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
+  )
+
+  const filters = columnFilters.map((filter) => {
+    const column = contactsTable[filter.id]
+
+    if (Array.isArray(filter.value)) {
+      if (['string', 'boolean'].includes(typeof filter.value[0])) {
+        return inArray(column, filter.value as string[] | boolean[])
+      }
+      if (typeof filter.value[0] === 'number') {
+        return or(...(filter.value as number[]).map((val) => eq(column as any, val)))
+      }
+    }
+
+    if (typeof filter.value === 'string') {
+      return like(column, `%${filter.value}%`)
+    }
+
+    return eq(column as any, filter.value)
+  })
+
+  const whereConditions = and(
+    eq(contactsTable.projectId, projectId),
+    eq(contactsTable.teamId, teamId),
+    ...filters
+  )
+
   return await db
     .select({
       id: contactsTable.id,
@@ -44,6 +99,8 @@ export async function getContact({
       lastName: contactsTable.lastName,
       subscribed: contactsTable.subscribed,
       source: contactsTable.source,
+      updatedAt: contactsTable.updatedAt,
+      createdAt: contactsTable.createdAt,
       customFields: sql<ContactCustomFields[]>`
         CASE WHEN COUNT(custom_fields.id) = 0 THEN NULL
           ELSE json_group_array(
@@ -58,9 +115,11 @@ export async function getContact({
     .from(contactsTable)
     .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
     .leftJoin(customFieldsTable, eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId))
-    .where(and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId)))
+    .where(whereConditions)
     .groupBy(contactsTable.id)
-    .orderBy(desc(contactsTable.createdAt))
+    .orderBy(...sortBy)
+    .limit(limit)
+    .offset(offset)
 }
 
 export async function getContactTotal({
