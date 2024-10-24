@@ -50,7 +50,7 @@ const total = await getContactTotal(ids)
 
 <ProjectLayout>
   <div class="container space-y-6">
-    <div class="flex items-center justify-between space-y-0.5">
+    <div class="flex items-center justify-between">
       <div class="inline-flex items-center space-x-2">
         <h2 class="text-2xl font-bold tracking-tight">Contacts</h2>
         <Badge className="mt-0.5">{total}</Badge>
@@ -59,7 +59,6 @@ const total = await getContactTotal(ids)
     </div>
     <ProjectContactNav active="contacts">
       <ContactTable
-        apiAction="contact"
         ids={ids}
         csrfToken={csrfToken}
         total={total}

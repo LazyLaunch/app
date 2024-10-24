@@ -1,4 +1,3 @@
-import { actions } from 'astro:actions'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 
 import {
@@ -14,7 +13,6 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 
-import type { ListActions, ServerActions } from '@/actions'
 import { DataTablePagination } from '@/components/data-table/data-table-pagination'
 import {
   Table,
@@ -56,7 +54,7 @@ interface DataTableProps<TData, TValue> {
   className: string
   children: any
   onDelete?: (data: TData[], props: any) => void
-  apiAction: ListActions
+  reqFilter: (data: FormData) => Promise<any>
   csrfToken: string
   ids?: Record<string, string>
   pagination: TablePaginationState
@@ -69,7 +67,7 @@ export function DataTable<TData, TValue>({
   className,
   children,
   onDelete = (data, props) => {},
-  apiAction,
+  reqFilter,
   total,
   csrfToken,
   pagination,
@@ -136,7 +134,7 @@ export function DataTable<TData, TValue>({
     formData.append('columnFilters', JSON.stringify(columnFilters))
 
     const doRequest = async () => {
-      const { data } = await actions[apiAction as keyof ServerActions].filters(formData)
+      const { data } = await reqFilter(formData)
       setData(data)
     }
 
