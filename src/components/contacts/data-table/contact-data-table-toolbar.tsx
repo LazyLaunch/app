@@ -1,14 +1,14 @@
+import type { Table } from '@tanstack/react-table'
 import { FileText, Monitor, Server, ThumbsDown, ThumbsUp, X } from 'lucide-react'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter'
-import { CONTACT_SOURCE_LIST } from '@/types'
-import type { Table } from '@tanstack/react-table'
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { ContactSourceEnum } from '@/types'
 
 interface ContactDataTableToolbarProps<TData> {
   table: Table<TData>
@@ -30,17 +30,17 @@ const subscribed = [
 const source = [
   {
     label: 'App',
-    value: CONTACT_SOURCE_LIST.app,
+    value: ContactSourceEnum.APP,
     icon: Monitor,
   },
   {
     label: 'Api',
-    value: CONTACT_SOURCE_LIST.api,
+    value: ContactSourceEnum.API,
     icon: Server,
   },
   {
     label: 'Form',
-    value: CONTACT_SOURCE_LIST.form,
+    value: ContactSourceEnum.FORM,
     icon: FileText,
   },
 ]

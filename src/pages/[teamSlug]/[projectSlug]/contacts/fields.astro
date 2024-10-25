@@ -1,15 +1,42 @@
 ---
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
+
+import { NewCustomFieldForm } from '@/components/custom-fields/new-custom-field-form'
+import { Badge } from '@/components/ui/badge'
+import { getCustomFields } from '@/db/models/custom-field'
+import { CustomFieldTable } from '@/components/custom-fields/custom-field-table'
+
+const csrfToken = Astro.locals.csrfToken!
+const team = Astro.locals.team!
+const project = Astro.locals.project!
+const ids = {
+  teamId: team.id,
+  projectId: project.id,
+}
+
+const data = await getCustomFields({ projectId: project.id, teamId: team.id })
+const total = data.length
 ---
 
 <ProjectLayout>
   <div class="container space-y-6">
-    <div class="flex items-center justify-between space-y-0.5">
+    <div class="flex items-center justify-between">
       <div class="inline-flex items-center space-x-2">
         <h2 class="text-2xl font-bold tracking-tight">Fields</h2>
+        <Badge className="mt-0.5">{total}</Badge>
       </div>
+      <NewCustomFieldForm client:load csrfToken={csrfToken} ids={ids} />
     </div>
-    <ProjectContactNav active="fields"> Content </ProjectContactNav>
+    <ProjectContactNav active="fields">
+      <CustomFieldTable
+        className="pt-6"
+        csrfToken={csrfToken}
+        data={data}
+        total={total}
+        ids={ids}
+        client:load
+      />
+    </ProjectContactNav>
   </div>
 </ProjectLayout>

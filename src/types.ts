@@ -69,15 +69,22 @@ export const DEFAULT_PAGE_SIZES: number[] = [
   DEFAULT_MAX_PAGE_SIZE,
 ] as const
 
-export const CONTACT_SOURCE_LIST: Record<string, string> = {
-  form: 'form',
-  api: 'api',
-  app: 'app',
-} as const
+export enum ContactSourceEnum {
+  FORM = 'form',
+  API = 'api',
+  APP = 'app',
+}
 
-export const CUSTOM_FIELD_TYPE_LIST: Record<string, string> = {
-  text: 'text',
-  number: 'number',
-  date: 'date',
-  boolean: 'boolean',
-} as const
+export enum CustomFieldTypeEnum {
+  TEXT = 'text',
+  NUMBER = 'number',
+  DATE = 'date',
+  BOOLEAN = 'boolean',
+}
+
+export const CUSTOM_FIELD_TYPE_LIST = [
+  CustomFieldTypeEnum.TEXT,
+  CustomFieldTypeEnum.NUMBER,
+  CustomFieldTypeEnum.DATE,
+  CustomFieldTypeEnum.BOOLEAN,
+] as const

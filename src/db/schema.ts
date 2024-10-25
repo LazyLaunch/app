@@ -1,6 +1,11 @@
 import type { UserRoles } from '@/lib/rbac'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
-import { CONTACT_SOURCE_LIST, CUSTOM_FIELD_TYPE_LIST, type ProviderType } from '@/types'
+import {
+  ContactSourceEnum,
+  CUSTOM_FIELD_TYPE_LIST,
+  CustomFieldTypeEnum,
+  type ProviderType,
+} from '@/types'
 import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
@@ -233,11 +238,11 @@ export const contactsTable = sqliteTable(
     lastName: text('last_name', { length: 256 }),
     subscribed: integer('subscribed', { mode: 'boolean' }).notNull().default(true),
     source: text('source', {
-      enum: [CONTACT_SOURCE_LIST.form, CONTACT_SOURCE_LIST.api, CONTACT_SOURCE_LIST.app],
+      enum: [ContactSourceEnum.FORM, ContactSourceEnum.API, ContactSourceEnum.APP],
       length: 25,
     })
       .notNull()
-      .default(CONTACT_SOURCE_LIST.app),
+      .default(ContactSourceEnum.APP),
     userId: text('user_id', { length: 256 })
       .notNull()
       .references(() => usersTable.id),
@@ -280,16 +285,9 @@ export const customFieldsTable = sqliteTable(
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name', { length: 50 }).notNull(),
-    type: text('type', {
-      enum: [
-        CUSTOM_FIELD_TYPE_LIST.text,
-        CUSTOM_FIELD_TYPE_LIST.number,
-        CUSTOM_FIELD_TYPE_LIST.date,
-        CUSTOM_FIELD_TYPE_LIST.boolean,
-      ],
-    })
+    type: text('type', { enum: CUSTOM_FIELD_TYPE_LIST })
       .notNull()
-      .default(CUSTOM_FIELD_TYPE_LIST.text),
+      .default(CustomFieldTypeEnum.TEXT),
     projectId: text('project_id', { length: 256 })
       .notNull()
       .references(() => projectsTable.id, { onDelete: 'cascade' }),

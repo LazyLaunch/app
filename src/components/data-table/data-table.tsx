@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils'
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
-    onDelete?: (props: any) => void
+    onDelete: (fn: (params: { data: TData[]; setData: (data: TData[]) => void }) => void) => void
   }
 }
 
