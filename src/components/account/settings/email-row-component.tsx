@@ -129,7 +129,7 @@ export function EmailRowComponent({ csrfToken, deleteEmail, email, setPrimaryEma
                   </form>
                 )}
                 {!isVerified && (
-                  <button disabled className="disabled text-muted-foreground">
+                  <button disabled type="button" className="disabled text-muted-foreground">
                     Set as primary
                   </button>
                 )}
@@ -158,7 +158,7 @@ export function EmailRowComponent({ csrfToken, deleteEmail, email, setPrimaryEma
                 </form>
               )}
               {isPrimary && (
-                <button disabled className="disabled text-muted-foreground">
+                <button disabled type="button" className="disabled text-muted-foreground">
                   Delete
                 </button>
               )}

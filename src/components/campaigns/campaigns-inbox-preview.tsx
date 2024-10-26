@@ -8,8 +8,8 @@ import { $campaign } from '@/stores/campaign-store'
 function SkeletonSection() {
   return (
     <div className="space-y-4 bg-gray-50 bg-opacity-50 py-6 pl-6 dark:bg-gray-600">
-      <div className="h-[0.55rem] w-1/5 rounded bg-gray-300 dark:bg-gray-400"></div>
-      <div className="h-[0.5rem] w-2/3 rounded bg-gray-200 bg-opacity-75 dark:bg-gray-500"></div>
+      <div className="h-[0.55rem] w-1/5 rounded bg-gray-300 dark:bg-gray-400" />
+      <div className="h-[0.5rem] w-2/3 rounded bg-gray-200 bg-opacity-75 dark:bg-gray-500" />
     </div>
   )
 }

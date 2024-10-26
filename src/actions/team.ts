@@ -88,7 +88,7 @@ export const team = {
         name: team!.name,
         address: team!.address,
       }
-      let isDirty: boolean = false
+      let isDirty = false
 
       for (const key of Object.keys(input)) {
         const val = input[key as keyof typeof input]

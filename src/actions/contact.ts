@@ -51,7 +51,7 @@ export const contact = {
       ),
       pageSize: z.optional(
         z.string().transform((val) => {
-          const pageSize = DEFAULT_PAGE_SIZES.includes(parseInt(val)) ? val : `${DEFAULT_PAGE_SIZE}`
+          const pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(val)) ? val : `${DEFAULT_PAGE_SIZE}`
           return handleNumberInput(pageSize, { min: DEFAULT_PAGE_SIZE, max: DEFAULT_MAX_PAGE_SIZE })
         })
       ),

@@ -21,7 +21,7 @@ function updateSize({
   const value = handleNumberInput(e.target.value, { max: TEXT_MAX_SIZE, min: TEXT_MIN_SIZE })
   e.target.value = value
   valRef.current = value
-  setSize(parseInt(value))
+  setSize(Number.parseInt(value))
 }
 
 function handleFocus(inputRef: React.RefObject<HTMLInputElement>) {
@@ -36,7 +36,7 @@ export function FontSizeInput({ editor, nodeType }: { editor: TEditor; nodeType:
 
   const setSize = useCallback(
     (value: number) => {
-      if (editor.selection && parseInt(currentSize) !== value) {
+      if (editor.selection && Number.parseInt(currentSize) !== value) {
         select(editor, editor.selection)
         setMarks(editor, { [nodeType]: value })
       }
@@ -47,7 +47,7 @@ export function FontSizeInput({ editor, nodeType }: { editor: TEditor; nodeType:
   useEffect(() => {
     return () => {
       if (valRef.current && valRef.current !== currentSize) {
-        setSize(parseInt(valRef.current))
+        setSize(Number.parseInt(valRef.current))
       }
     }
   }, [])
@@ -65,9 +65,9 @@ export function FontSizeInput({ editor, nodeType }: { editor: TEditor; nodeType:
         onChange={(e) => {
           const value = handleNumberInput(e.target.value, { max: TEXT_MAX_SIZE })
           e.target.value = value
-          if (parseInt(value) >= TEXT_MIN_SIZE) {
+          if (Number.parseInt(value) >= TEXT_MIN_SIZE) {
             valRef.current = value
-            setSize(parseInt(value))
+            setSize(Number.parseInt(value))
           }
         }}
         defaultValue={(selectionDefined && currentSize) || TEXT_MIN_SIZE}

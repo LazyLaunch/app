@@ -1,5 +1,6 @@
 import type { useFloatingToolbarState } from '@udecode/plate-floating'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import type React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 export const useFloatingToolbar = (
   {

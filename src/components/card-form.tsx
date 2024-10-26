@@ -27,9 +27,9 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import {
+  SelectItem as LocalSelectItem,
   Select,
   SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -130,7 +130,7 @@ function selectField({
         </FormControl>
         <SelectContent>
           {selectItems.map(({ val, text, disabled, badges = [] }, index) => (
-            <SelectItem
+            <LocalSelectItem
               disabled={disabled}
               key={val + index}
               value={val}
@@ -142,7 +142,7 @@ function selectField({
                   {badge.text}
                 </Badge>
               ))}
-            </SelectItem>
+            </LocalSelectItem>
           ))}
         </SelectContent>
         <FormErrorMessage>{errors?.[field.name]?.message}</FormErrorMessage>
@@ -247,7 +247,7 @@ export function CardForm({
     }
 
     form.reset(values)
-    handleCallback && handleCallback(values)
+    handleCallback?.(values)
     toast.info(title, { duration: TOAST_SUCCESS_TIME, description: successMsg })
     if (handleUrlRedirect) navigate(handleUrlRedirect)
   }

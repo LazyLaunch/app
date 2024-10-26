@@ -5,7 +5,7 @@ import { setLineHeight } from '@/components/plate-ui/plugins/line-height'
 
 import { Input } from '@/components/ui/input'
 import { handleFloatInput } from '@/lib/utils'
-import { type SlateEditor, type TEditor, type TElement } from '@udecode/plate-common'
+import type { SlateEditor, TEditor, TElement } from '@udecode/plate-common'
 
 const MIN_VALUE: number = 1.5 as const
 const MAX_VALUE: number = 3 as const
@@ -26,7 +26,7 @@ function updateLineHeight({
   e.target.value = value
   valRef.current = value
 
-  setLineHeight(editor as SlateEditor, { value: parseFloat(value) })
+  setLineHeight(editor as SlateEditor, { value: Number.parseFloat(value) })
 }
 
 function handleFocus(inputRef: React.RefObject<HTMLInputElement>) {
@@ -41,7 +41,7 @@ export function LineHeightInput({ editor, element }: { editor: TEditor; element:
   useEffect(() => {
     return () => {
       if (valRef.current && valRef.current !== currentLineHeight) {
-        setLineHeight(editor as SlateEditor, { value: parseFloat(valRef.current) })
+        setLineHeight(editor as SlateEditor, { value: Number.parseFloat(valRef.current) })
       }
     }
   }, [])
@@ -63,9 +63,9 @@ export function LineHeightInput({ editor, element }: { editor: TEditor; element:
             skipMin: true,
           })
           e.target.value = value
-          if (parseFloat(value) >= MIN_VALUE) {
+          if (Number.parseFloat(value) >= MIN_VALUE) {
             valRef.current = value
-            setLineHeight(editor as SlateEditor, { value: parseFloat(value) })
+            setLineHeight(editor as SlateEditor, { value: Number.parseFloat(value) })
           }
         }}
         defaultValue={currentLineHeight}

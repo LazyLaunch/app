@@ -1,6 +1,6 @@
 import { createSlatePlugin, type PluginConfig, type SlatePlugin } from '@udecode/plate-common'
 
-import { type PaddingPluginOptions } from '@/components/plate-ui/plugins/padding'
+import type { PaddingPluginOptions } from '@/components/plate-ui/plugins/padding'
 
 export const BasePaddingPlugin: SlatePlugin<PluginConfig<'padding', PaddingPluginOptions>> =
   createSlatePlugin({

@@ -12,8 +12,9 @@ export function SlashSvg({ className }: { className: string }) {
       height="16"
       width="16"
       className={className}
+      ariaLabel="Slash"
     >
-      <path d="M16.88 3.549L7.12 20.451"></path>
+      <path d="M16.88 3.549L7.12 20.451" />
     </svg>
   )
 }

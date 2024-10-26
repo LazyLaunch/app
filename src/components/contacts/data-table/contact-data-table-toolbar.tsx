@@ -58,7 +58,7 @@ export function ContactDataTableToolbar<TData>({ table }: ContactDataTableToolba
     if (typeof searchValue === 'undefined') {
       searchForm.reset()
     }
-  }, [searchValue])
+  }, [searchValue, searchForm.reset])
 
   function onSearchSubmit(values: { email: string }) {
     table.getColumn('email')?.setFilterValue(values.email)

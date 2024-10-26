@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import { CSRF_TOKEN, CUSTOM_FIELD_TYPE_LIST, CustomFieldTypeEnum } from '@/types'
+import { CSRF_TOKEN, CUSTOM_FIELD_TYPE_LIST, type CustomFieldTypeEnum } from '@/types'
 import { navigate } from 'astro:transitions/client'
 
 interface FormValues {

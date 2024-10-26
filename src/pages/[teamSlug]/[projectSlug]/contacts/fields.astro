@@ -8,7 +8,6 @@ import { getCustomFields, type CustomFieldList } from '@/db/models/custom-field'
 import { getContactColumns } from '@/db/models/contact'
 import { CustomFieldTable } from '@/components/custom-fields/custom-field-table'
 
-import { TO_CUSTOM_FIELD_TYPE } from '@/types'
 import { toTag } from '@/lib/to-tag'
 
 const csrfToken = Astro.locals.csrfToken!
@@ -19,7 +18,10 @@ const ids = {
   projectId: project.id,
 }
 
-let customFields = await getCustomFields({ projectId: project.id, teamId: team.id })
+let customFields = (await getCustomFields({
+  projectId: project.id,
+  teamId: team.id,
+})) as CustomFieldList[]
 customFields = customFields.map((col) => ({ ...col, isCustomField: true }))
 const contactColumns: CustomFieldList[] = getContactColumns().map((col) => {
   return {
@@ -30,10 +32,10 @@ const contactColumns: CustomFieldList[] = getContactColumns().map((col) => {
     isCustomField: false,
     updatedAt: new Date('1000').toISOString(),
     createdAt: new Date('1000').toISOString(),
-  }
+  } as CustomFieldList
 })
 const data = [...contactColumns, ...customFields].sort(
-  (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  (a, b) => (new Date(b.createdAt) as any) - (new Date(a.createdAt) as any)
 )
 const total = data.length
 ---

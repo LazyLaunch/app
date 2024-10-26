@@ -1,4 +1,4 @@
-import { hasPermission, UserPermissionsEnum, type UserRoles } from '@/lib/rbac'
+import { hasPermission, type UserPermissionsEnum, type UserRoles } from '@/lib/rbac'
 
 interface Props {
   role: UserRoles

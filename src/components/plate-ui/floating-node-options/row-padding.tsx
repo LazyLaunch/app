@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import type { TooltipContentProps } from '@radix-ui/react-tooltip'
-import { type TEditor, type TElement } from '@udecode/plate-common'
+import type { TEditor, TElement } from '@udecode/plate-common'
 import type { PlateEditor } from '@udecode/plate-common/react'
 import { useState } from 'react'
 

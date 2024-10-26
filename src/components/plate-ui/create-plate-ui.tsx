@@ -11,7 +11,7 @@ import { HEADING_KEYS } from '@udecode/plate-heading'
 import { LinkPlugin } from '@udecode/plate-link/react'
 import { BaseSlashInputPlugin } from '@udecode/plate-slash-command'
 
-import { type NodeComponent } from '@udecode/plate-common/react'
+import type { NodeComponent } from '@udecode/plate-common/react'
 
 import { CodeLeaf } from '@/components/plate-ui/code-leaf'
 import { HeadingElement } from '@/components/plate-ui/heading-element'

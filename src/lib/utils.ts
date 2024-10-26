@@ -20,7 +20,7 @@ export function handleNumberInput(value: string, options?: { min?: number; max?:
   const minNumber = options?.min ?? 0
   const maxNumber = options?.max ?? 100
 
-  const numValue = parseInt(value, 10)
+  const numValue = Number.parseInt(value, 10)
 
   if (isNaN(numValue)) return 0
 
@@ -46,12 +46,12 @@ export function handleFloatInput(
 
   const [beforeDot, afterDot] = value.split('.')[0]
   if (beforeDot?.length >= maxNumber) return String(maxNumber)
-  if (afterDot?.length > limitAfterDot) return parseFloat(value).toFixed(limitAfterDot)
+  if (afterDot?.length > limitAfterDot) return Number.parseFloat(value).toFixed(limitAfterDot)
 
   const floatRegex = /^(0?\.\d{0,2}|[1-9]\d*\.\d{0,2})$/
   if (floatRegex.test(value)) return value
 
-  const numValue = parseFloat(value)
+  const numValue = Number.parseFloat(value)
   if (isNaN(numValue)) return '0'
 
   if (numValue > maxNumber) return String(maxNumber)

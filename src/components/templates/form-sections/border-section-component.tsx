@@ -51,7 +51,7 @@ export function BorderSectionComponent({ form, className, onReset }: Props) {
                 <FormControl>
                   <>
                     <Square
-                      strokeWidth={parseInt(`${field.value}`) || 1}
+                      strokeWidth={Number.parseInt(`${field.value}`) || 1}
                       className="absolute left-2.5 top-2.5 size-4"
                     />
                     <Input

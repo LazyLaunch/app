@@ -13,7 +13,7 @@ export function FontSizeSvg({ className }: { className: string }) {
         fill="currentColor"
         fillRule="evenodd"
         clipRule="evenodd"
-      ></path>
+      />
     </svg>
   )
 }

@@ -5,7 +5,7 @@ import {
   setNodes,
   type SlateEditor,
 } from '@udecode/plate-common'
-import { Editor, nodes } from 'slate'
+import { type Editor, nodes } from 'slate'
 
 const extendEditor = (editor: SlateEditor) => {
   const { insertBreak } = editor

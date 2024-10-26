@@ -139,7 +139,7 @@ export function DataTable<TData, TValue>({
     }
 
     doRequest()
-  }, [_pagination, sorting, columnFilters])
+  }, [_pagination, sorting, columnFilters, reqFilter, ids, csrfToken])
 
   return (
     <div className={cn(className, 'space-y-4')}>

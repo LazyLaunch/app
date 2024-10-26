@@ -19,7 +19,9 @@ import {
 const searchParams = Astro.url.searchParams
 
 let pageSize = searchParams.get('pageSize') ?? `${DEFAULT_PAGE_SIZE}`
-pageSize = DEFAULT_PAGE_SIZES.includes(parseInt(pageSize)) ? pageSize : `${DEFAULT_PAGE_SIZE}`
+pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(pageSize))
+  ? pageSize
+  : `${DEFAULT_PAGE_SIZE}`
 const limit = handleNumberInput(pageSize, { min: DEFAULT_PAGE_SIZE, max: DEFAULT_MAX_PAGE_SIZE })
 
 const page = searchParams.get('page') ?? DEFAULT_PAGE_INDEX

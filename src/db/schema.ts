@@ -24,9 +24,7 @@ export const usersTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -49,9 +47,7 @@ export const emailsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => ({
     emailUserIdx: index('emails_user_idx').on(table.userId),
@@ -77,9 +73,7 @@ export const accountsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => ({
     compositePk: primaryKey({
@@ -101,9 +95,7 @@ export const sessionsTable = sqliteTable(
       .references(() => usersTable.id, { onDelete: 'cascade' }),
     expiresAt: integer('expires_at').notNull(),
     fresh: integer('fresh', { mode: 'boolean' }),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -129,9 +121,7 @@ export const teamsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -157,9 +147,7 @@ export const projectsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -212,9 +200,7 @@ export const emailTemplatesTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -256,9 +242,7 @@ export const contactsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => {
     return {
@@ -302,9 +286,7 @@ export const customFieldsTable = sqliteTable(
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`)
       .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 })
-      .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => ({
     customFieldNameProjectIdx: uniqueIndex('custom_fields_name_and_project_idx').on(

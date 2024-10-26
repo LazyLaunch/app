@@ -1,5 +1,6 @@
 import { Heading1, Heading2, Heading3 } from 'lucide-react'
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import type React from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 import {
   Combobox,
