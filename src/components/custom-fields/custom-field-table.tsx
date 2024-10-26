@@ -25,16 +25,27 @@ import { toTag } from '@/lib/to-tag'
 import { cn } from '@/lib/utils'
 
 import { Checkbox } from '@/components/ui/checkbox'
+import { CustomFieldTypeEnum } from '@/types'
+import { Calendar, HashIcon, TextCursorIcon, ToggleLeftIcon } from 'lucide-react'
 
-function contactDataTableColumns<TData>({
+const ICONS: Record<CustomFieldTypeEnum, any> = {
+  [CustomFieldTypeEnum.TEXT]: TextCursorIcon,
+  [CustomFieldTypeEnum.NUMBER]: HashIcon,
+  [CustomFieldTypeEnum.BOOLEAN]: ToggleLeftIcon,
+  [CustomFieldTypeEnum.DATE]: Calendar,
+}
+
+function contactDataTableColumns({
   csrfToken,
   setRowSelection,
   rowSelection,
+  projectId,
 }: {
   csrfToken: string
   rowSelection: Record<string, boolean>
   setRowSelection: (state: RowSelectionState) => void
-}): ColumnDef<TData>[] {
+  projectId: string
+}): ColumnDef<CustomFieldList>[] {
   return [
     {
       id: 'select',
@@ -64,24 +75,35 @@ function contactDataTableColumns<TData>({
     {
       accessorKey: 'name',
       header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Column Name" />
+        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Column Name" />
       ),
-      cell: ({ row }) => <div>{row.getValue('name')}</div>,
+      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
       enableSorting: true,
       enableHiding: false,
     },
     {
       accessorKey: 'type',
       header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Column Type" />
+        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Column Type" />
       ),
-      cell: ({ row }) => <div>{row.getValue('type')}</div>,
+      cell: ({ row }) => {
+        const type = row.getValue('type') as CustomFieldTypeEnum
+        const Icon = ICONS[type]
+        return (
+          <div className="flex items-center space-x-2">
+            <Icon className="size-4 text-muted-foreground" />
+            <span>{type}</span>
+          </div>
+        )
+      },
       enableSorting: true,
       enableHiding: false,
     },
     {
       id: 'tag',
-      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Tag" />,
+      header: ({ column }) => (
+        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Tag" />
+      ),
       cell: ({ row }) => <div>{toTag(row.getValue('name'), { withPrefix: true })}</div>,
       enableSorting: false,
       enableHiding: false,
@@ -89,37 +111,39 @@ function contactDataTableColumns<TData>({
     {
       id: 'actions',
       cell: ({ row, table }) => (
-        <CustomFieldRowActions<TData>
+        <CustomFieldRowActions
           row={row}
           table={table}
           setRowSelection={setRowSelection}
           rowSelection={rowSelection}
           csrfToken={csrfToken}
+          projectId={projectId}
         />
       ),
     },
   ]
 }
 
-interface DataTableProps<TData> {
+interface DataTableProps {
   className?: string
-  data: TData[]
+  data: CustomFieldList[]
   csrfToken: string
   total: number
+  projectId: string
 }
 
-export function CustomFieldTable({
-  className,
-  data,
-  total,
-  csrfToken,
-}: DataTableProps<CustomFieldList>) {
+export function CustomFieldTable({ className, data, total, csrfToken, projectId }: DataTableProps) {
   const [_data, setData] = useState<CustomFieldList[]>(data)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
   const table = useReactTable<CustomFieldList>({
     data: _data,
-    columns: contactDataTableColumns<CustomFieldList>({ csrfToken, setRowSelection, rowSelection }),
+    columns: contactDataTableColumns({
+      csrfToken,
+      setRowSelection,
+      rowSelection,
+      projectId,
+    }),
     rowCount: total,
     state: {
       rowSelection,

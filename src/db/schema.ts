@@ -285,9 +285,10 @@ export const customFieldsTable = sqliteTable(
       .notNull()
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name', { length: 50 }).notNull(),
-    type: text('type', { enum: CUSTOM_FIELD_TYPE_LIST })
+    type: text('type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 })
       .notNull()
       .default(CustomFieldTypeEnum.TEXT),
+    tag: text('tag', { length: 50 }).notNull(),
     projectId: text('project_id', { length: 256 })
       .notNull()
       .references(() => projectsTable.id, { onDelete: 'cascade' }),
@@ -308,6 +309,10 @@ export const customFieldsTable = sqliteTable(
   (table) => ({
     customFieldNameProjectIdx: uniqueIndex('custom_fields_name_and_project_idx').on(
       table.name,
+      table.projectId
+    ),
+    customFieldTagProjectIdx: uniqueIndex('custom_fields_tag_and_project_idx').on(
+      table.tag,
       table.projectId
     ),
     customFieldProjectIdx: index('custom_fields_project_idx').on(table.projectId),

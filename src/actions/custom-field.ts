@@ -6,12 +6,44 @@ import {
   createCustomField,
   hasCustomFieldsPermission,
   isUniqCustomFieldName,
+  updateCustomField,
 } from '@/db/models/custom-field'
 import { CUSTOM_FIELD_TYPE_LIST, ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 const customFieldIdsSchema = z.array(z.string().uuid())
 
 export const customField = {
+  update: defineAction({
+    accept: 'form',
+    input: z
+      .object({
+        csrfToken: z.string(),
+        projectId: z.string().uuid(),
+        id: z.string().uuid(),
+        name: z.string({
+          required_error: 'Name is required.',
+          invalid_type_error: 'Invalid name format. Please enter a valid name.',
+        }),
+      })
+      .refine(async ({ name, projectId }) => await isUniqCustomFieldName(name, projectId), {
+        message: 'This field name is already in use. Please use a different name.',
+        path: ['name'],
+      }),
+    handler: async ({ id, projectId, name }, context) => {
+      const ids = [id]
+      const user = context.locals.user!
+      const hasPermission = await hasCustomFieldsPermission({ ids, userId: user.id })
+      if (!hasPermission) {
+        throw new ActionError({
+          code: ResponseStatusEnum.UNAUTHORIZED,
+          message: ResponseStatusMessageEnum.UNAUTHORIZED,
+        })
+      }
+
+      await updateCustomField({ id, projectId, name })
+      return true
+    },
+  }),
   create: defineAction({
     accept: 'form',
     input: z

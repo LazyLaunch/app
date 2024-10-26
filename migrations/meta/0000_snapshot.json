@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "8d40aefe-646e-4ab5-b8db-cea0b3cb9b75",
+  "id": "6b136b42-d488-4bbf-88dd-72cd65bb7751",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -409,11 +409,18 @@
         },
         "type": {
           "name": "type",
-          "type": "text",
+          "type": "text(50)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
           "default": "'text'"
+        },
+        "tag": {
+          "name": "tag",
+          "type": "text(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "project_id": {
           "name": "project_id",
@@ -458,6 +465,14 @@
           "name": "custom_fields_name_and_project_idx",
           "columns": [
             "name",
+            "project_id"
+          ],
+          "isUnique": true
+        },
+        "custom_fields_tag_and_project_idx": {
+          "name": "custom_fields_tag_and_project_idx",
+          "columns": [
+            "tag",
             "project_id"
           ],
           "isUnique": true

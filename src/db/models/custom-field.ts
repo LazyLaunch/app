@@ -44,6 +44,22 @@ export async function bulkDeleteCustomField({ ids }: { ids: string[] }): Promise
   await db.delete(customFieldsTable).where(inArray(customFieldsTable.id, ids))
 }
 
+interface UpdateCustomFieldData extends Pick<InsertCustomField, 'name' | 'projectId'> {
+  id: string
+}
+
+export async function updateCustomField({ id, ...data }: UpdateCustomFieldData): Promise<void> {
+  await db
+    .update(customFieldsTable)
+    .set(data)
+    .where(
+      and(
+        eq(customFieldsTable.id, id),
+        eq(customFieldsTable.projectId, customFieldsTable.projectId)
+      )
+    )
+}
+
 export async function hasCustomFieldsPermission({
   ids,
   userId,

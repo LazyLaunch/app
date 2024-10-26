@@ -44,7 +44,8 @@ CREATE TABLE `contacts` (
 CREATE TABLE `custom_fields` (
 	`id` text(256) PRIMARY KEY NOT NULL,
 	`name` text(50) NOT NULL,
-	`type` text DEFAULT 'text' NOT NULL,
+	`type` text(50) DEFAULT 'text' NOT NULL,
+	`tag` text(50) NOT NULL,
 	`project_id` text(256) NOT NULL,
 	`team_id` text(256) NOT NULL,
 	`user_id` text(256) NOT NULL,
@@ -142,6 +143,7 @@ CREATE INDEX `contacts_user_idx` ON `contacts` (`user_id`);--> statement-breakpo
 CREATE INDEX `contacts_project_idx` ON `contacts` (`project_id`);--> statement-breakpoint
 CREATE INDEX `contacts_team_idx` ON `contacts` (`team_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `custom_fields_name_and_project_idx` ON `custom_fields` (`name`,`project_id`);--> statement-breakpoint
+CREATE UNIQUE INDEX `custom_fields_tag_and_project_idx` ON `custom_fields` (`tag`,`project_id`);--> statement-breakpoint
 CREATE INDEX `custom_fields_project_idx` ON `custom_fields` (`project_id`);--> statement-breakpoint
 CREATE INDEX `custom_fields_team_idx` ON `custom_fields` (`team_id`);--> statement-breakpoint
 CREATE INDEX `email_templates_name` ON `email_templates` (`name`);--> statement-breakpoint

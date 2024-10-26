@@ -16,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,12 +26,16 @@ import {
 import { Form } from '@/components/ui/form'
 import { CSRF_TOKEN } from '@/types'
 
-interface RowActionsProps<TData> {
-  row: Row<TData>
-  table: Table<TData>
+import { EditCustomFieldForm } from '@/components/custom-fields/edit-custom-field-form'
+import type { CustomFieldList } from '@/db/models/custom-field'
+
+interface RowActionsProps {
+  row: Row<CustomFieldList>
+  table: Table<CustomFieldList>
   [CSRF_TOKEN]: string
   setRowSelection: (state: RowSelectionState) => void
   rowSelection: Record<string, boolean>
+  projectId: string
 }
 
 interface DeleteFormValues {
@@ -38,17 +43,19 @@ interface DeleteFormValues {
   [CSRF_TOKEN]: string
 }
 
-export function CustomFieldRowActions<TData>({
+export function CustomFieldRowActions({
   row,
   table,
   csrfToken,
   rowSelection,
   setRowSelection,
-}: RowActionsProps<TData>) {
+  projectId,
+}: RowActionsProps) {
+  const rowId = (row.original as unknown as { id: string }).id
   const deleteForm = useForm<DeleteFormValues>({
     defaultValues: {
       [CSRF_TOKEN]: csrfToken,
-      id: (row.original as unknown as { id: string }).id,
+      id: rowId,
     },
   })
 
@@ -74,10 +81,19 @@ export function CustomFieldRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem className="space-x-2">
-            <Pencil className="size-4" />
-            <span>Edit</span>
-          </DropdownMenuItem>
+          <Dialog>
+            <DropdownMenuItem asChild>
+              <>
+                <DialogTrigger className="relative flex w-full cursor-pointer select-none items-center space-x-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                  <Pencil className="size-4" />
+                  <span>Edit</span>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <EditCustomFieldForm projectId={projectId} csrfToken={csrfToken} row={row} />
+                </DialogContent>
+              </>
+            </DropdownMenuItem>
+          </Dialog>
           <DropdownMenuItem asChild>
             <AlertDialogTrigger className="flex w-full cursor-pointer space-x-2 focus:bg-red-100">
               <Trash2 className="size-4" />
