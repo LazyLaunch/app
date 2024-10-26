@@ -1,10 +1,12 @@
-export function toTag(fieldName: string, { withPrefix = false }: { withPrefix?: boolean }): string {
-  const tag = fieldName
+export function tagWithPlaceholder(tag: string): string {
+  return '{$' + tag + '}'
+}
+
+export function toTag(fieldName: string): string {
+  return fieldName
     .toLowerCase()
     .replace(/[^a-z0-9 ]/g, '')
     .replace(/\s+/g, '_')
-
-  return withPrefix ? '{$' + tag + '}' : tag
 }
 
 export function replaceTags(text: string, dbValues: Record<string, string>): string {

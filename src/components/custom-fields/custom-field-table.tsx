@@ -21,7 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { CustomFieldList } from '@/db/models/custom-field'
-import { toTag } from '@/lib/to-tag'
+import { tagWithPlaceholder } from '@/lib/to-tag'
 import { cn } from '@/lib/utils'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -100,11 +100,11 @@ function contactDataTableColumns({
       enableHiding: false,
     },
     {
-      id: 'tag',
+      accessorKey: 'tag',
       header: ({ column }) => (
         <DataTableColumnHeader<CustomFieldList, any> column={column} title="Tag" />
       ),
-      cell: ({ row }) => <div>{toTag(row.getValue('name'), { withPrefix: true })}</div>,
+      cell: ({ row }) => <div>{tagWithPlaceholder(row.getValue('tag'))}</div>,
       enableSorting: false,
       enableHiding: false,
     },

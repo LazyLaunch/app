@@ -1,5 +1,6 @@
 import { db } from '@/db'
 import { customFieldsTable, type InsertCustomField, type SelectCustomField } from '@/db/schema'
+import { toTag } from '@/lib/to-tag'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
 export interface CustomFieldList
@@ -16,6 +17,7 @@ export async function getCustomFields({
     .select({
       id: customFieldsTable.id,
       name: customFieldsTable.name,
+      tag: customFieldsTable.tag,
       type: customFieldsTable.type,
       createdAt: customFieldsTable.createdAt,
       updatedAt: customFieldsTable.updatedAt,
@@ -36,8 +38,16 @@ export async function isUniqCustomFieldName(name: string, projectId: string): Pr
   return Number((obj ?? { exists: 0 }).exists) === 0
 }
 
-export async function createCustomField(data: InsertCustomField): Promise<SelectCustomField> {
-  return await db.insert(customFieldsTable).values(data).returning().get()
+export async function createCustomField(
+  data: Omit<InsertCustomField, 'tag'>
+): Promise<SelectCustomField> {
+  const tag = toTag(data.name)
+
+  return await db
+    .insert(customFieldsTable)
+    .values({ ...data, tag })
+    .returning()
+    .get()
 }
 
 export async function bulkDeleteCustomField({ ids }: { ids: string[] }): Promise<void> {
