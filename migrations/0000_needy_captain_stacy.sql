@@ -44,7 +44,7 @@ CREATE TABLE `contacts` (
 CREATE TABLE `custom_fields` (
 	`id` text(256) PRIMARY KEY NOT NULL,
 	`name` text(50) NOT NULL,
-	`type` text(50) DEFAULT 'text' NOT NULL,
+	`type` text(50) DEFAULT 'string' NOT NULL,
 	`tag` text(50) NOT NULL,
 	`project_id` text(256) NOT NULL,
 	`team_id` text(256) NOT NULL,

@@ -3,8 +3,11 @@ import { customFieldsTable, type InsertCustomField, type SelectCustomField } fro
 import { toTag } from '@/lib/to-tag'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
-export interface CustomFieldList
-  extends Omit<SelectCustomField, 'teamId' | 'projectId' | 'userId'> {}
+interface CustomFieldProps extends Omit<SelectCustomField, 'teamId' | 'projectId' | 'userId'> {}
+
+export interface CustomFieldList extends CustomFieldProps {
+  isCustomField: boolean
+}
 
 export async function getCustomFields({
   projectId,
@@ -12,7 +15,7 @@ export async function getCustomFields({
 }: {
   projectId: string
   teamId: string
-}): Promise<CustomFieldList[]> {
+}): Promise<CustomFieldProps[]> {
   return await db
     .select({
       id: customFieldsTable.id,

@@ -4,8 +4,12 @@ import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
 
 import { NewCustomFieldForm } from '@/components/custom-fields/new-custom-field-form'
 import { Badge } from '@/components/ui/badge'
-import { getCustomFields } from '@/db/models/custom-field'
+import { getCustomFields, type CustomFieldList } from '@/db/models/custom-field'
+import { getContactColumns } from '@/db/models/contact'
 import { CustomFieldTable } from '@/components/custom-fields/custom-field-table'
+
+import { TO_CUSTOM_FIELD_TYPE } from '@/types'
+import { toTag } from '@/lib/to-tag'
 
 const csrfToken = Astro.locals.csrfToken!
 const team = Astro.locals.team!
@@ -15,7 +19,22 @@ const ids = {
   projectId: project.id,
 }
 
-const data = await getCustomFields({ projectId: project.id, teamId: team.id })
+let customFields = await getCustomFields({ projectId: project.id, teamId: team.id })
+customFields = customFields.map((col) => ({ ...col, isCustomField: true }))
+const contactColumns: CustomFieldList[] = getContactColumns().map((col) => {
+  return {
+    id: Math.random().toString(36).slice(2, 7),
+    name: col.name,
+    tag: toTag(col.name),
+    type: col.type,
+    isCustomField: false,
+    updatedAt: new Date('1000').toISOString(),
+    createdAt: new Date('1000').toISOString(),
+  }
+})
+const data = [...contactColumns, ...customFields].sort(
+  (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+)
 const total = data.length
 ---
 

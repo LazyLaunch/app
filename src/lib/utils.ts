@@ -73,3 +73,10 @@ export function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
 
   if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) e.preventDefault()
 }
+
+export function formatFieldName(fieldName: string): string {
+  return fieldName
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/(^\w|\s\w)/g, (match) => match.toUpperCase())
+}

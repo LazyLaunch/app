@@ -287,7 +287,7 @@ export const customFieldsTable = sqliteTable(
     name: text('name', { length: 50 }).notNull(),
     type: text('type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 })
       .notNull()
-      .default(CustomFieldTypeEnum.TEXT),
+      .default(CustomFieldTypeEnum.STRING),
     tag: text('tag', { length: 50 }).notNull(),
     projectId: text('project_id', { length: 256 })
       .notNull()

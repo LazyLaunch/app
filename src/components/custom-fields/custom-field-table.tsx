@@ -7,6 +7,7 @@ import {
   type ColumnDef,
   type RowSelectionState,
 } from '@tanstack/react-table'
+import { AlignLeft, Calendar, HashIcon, Lock, ToggleLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { CustomFieldRowActions } from '@/components/custom-fields/table/custom-field-row-actions'
@@ -22,14 +23,13 @@ import {
 } from '@/components/ui/table'
 import type { CustomFieldList } from '@/db/models/custom-field'
 import { tagWithPlaceholder } from '@/lib/to-tag'
-import { cn } from '@/lib/utils'
+import { cn, formatFieldName } from '@/lib/utils'
 
 import { Checkbox } from '@/components/ui/checkbox'
 import { CustomFieldTypeEnum } from '@/types'
-import { Calendar, HashIcon, TextCursorIcon, ToggleLeftIcon } from 'lucide-react'
 
 const ICONS: Record<CustomFieldTypeEnum, any> = {
-  [CustomFieldTypeEnum.TEXT]: TextCursorIcon,
+  [CustomFieldTypeEnum.STRING]: AlignLeft,
   [CustomFieldTypeEnum.NUMBER]: HashIcon,
   [CustomFieldTypeEnum.BOOLEAN]: ToggleLeftIcon,
   [CustomFieldTypeEnum.DATE]: Calendar,
@@ -40,35 +40,42 @@ function contactDataTableColumns({
   setRowSelection,
   rowSelection,
   projectId,
+  isAnyCustomFields,
 }: {
   csrfToken: string
   rowSelection: Record<string, boolean>
   setRowSelection: (state: RowSelectionState) => void
   projectId: string
+  isAnyCustomFields: boolean
 }): ColumnDef<CustomFieldList>[] {
   return [
     {
       id: 'select',
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="translate-y-[2px]"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-          className="translate-y-[2px]"
-        />
-      ),
-      size: 32,
+      header: ({ table }) =>
+        isAnyCustomFields ? (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && 'indeterminate')
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ) : (
+          <Lock className="size-4 text-muted-foreground" />
+        ),
+      cell: ({ row }) =>
+        row.original.isCustomField ? (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ) : (
+          <Lock className="size-4 text-muted-foreground" />
+        ),
       enableSorting: false,
       enableHiding: false,
     },
@@ -77,7 +84,7 @@ function contactDataTableColumns({
       header: ({ column }) => (
         <DataTableColumnHeader<CustomFieldList, any> column={column} title="Column Name" />
       ),
-      cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+      cell: ({ row }) => <div className="font-medium">{formatFieldName(row.getValue('name'))}</div>,
       enableSorting: true,
       enableHiding: false,
     },
@@ -109,17 +116,28 @@ function contactDataTableColumns({
       enableHiding: false,
     },
     {
-      id: 'actions',
-      cell: ({ row, table }) => (
-        <CustomFieldRowActions
-          row={row}
-          table={table}
-          setRowSelection={setRowSelection}
-          rowSelection={rowSelection}
-          csrfToken={csrfToken}
-          projectId={projectId}
-        />
+      accessorKey: 'createdAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Created At" />
       ),
+      cell: ({ row }) =>
+        row.original.isCustomField ? <div>{row.getValue('createdAt')}</div> : '-',
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
+      id: 'actions',
+      cell: ({ row, table }) =>
+        row.original.isCustomField && (
+          <CustomFieldRowActions
+            row={row}
+            table={table}
+            setRowSelection={setRowSelection}
+            rowSelection={rowSelection}
+            csrfToken={csrfToken}
+            projectId={projectId}
+          />
+        ),
     },
   ]
 }
@@ -135,6 +153,7 @@ interface DataTableProps {
 export function CustomFieldTable({ className, data, total, csrfToken, projectId }: DataTableProps) {
   const [_data, setData] = useState<CustomFieldList[]>(data)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const isAnyCustomFields = _data.some((d) => d.isCustomField)
 
   const table = useReactTable<CustomFieldList>({
     data: _data,
@@ -143,11 +162,13 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
       setRowSelection,
       rowSelection,
       projectId,
+      isAnyCustomFields,
     }),
     rowCount: total,
     state: {
       rowSelection,
     },
+    enableRowSelection: (row) => row.original.isCustomField,
     getRowId: (row) => (row as unknown as { id: string }).id,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),

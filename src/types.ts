@@ -76,14 +76,14 @@ export enum ContactSourceEnum {
 }
 
 export enum CustomFieldTypeEnum {
-  TEXT = 'text',
+  STRING = 'string',
   NUMBER = 'number',
   DATE = 'date',
   BOOLEAN = 'boolean',
 }
 
 export const CUSTOM_FIELD_TYPE_LIST = [
-  CustomFieldTypeEnum.TEXT,
+  CustomFieldTypeEnum.STRING,
   CustomFieldTypeEnum.NUMBER,
   CustomFieldTypeEnum.DATE,
   CustomFieldTypeEnum.BOOLEAN,

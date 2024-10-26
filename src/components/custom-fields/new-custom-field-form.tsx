@@ -152,7 +152,7 @@ export function NewCustomFieldForm({ csrfToken, ids }: Props) {
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a data type (e.g., Text, Number, Date)" />
+                            <SelectValue placeholder="Select a data type (e.g., String, Boolean)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
