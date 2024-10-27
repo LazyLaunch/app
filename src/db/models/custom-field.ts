@@ -3,7 +3,8 @@ import { customFieldsTable, type InsertCustomField, type SelectCustomField } fro
 import { toTag } from '@/lib/to-tag'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
-interface CustomFieldProps extends Omit<SelectCustomField, 'teamId' | 'projectId' | 'userId'> {}
+export interface CustomFieldProps
+  extends Omit<SelectCustomField, 'teamId' | 'projectId' | 'userId'> {}
 
 export interface CustomFieldList extends CustomFieldProps {
   isCustomField: boolean

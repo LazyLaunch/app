@@ -10,6 +10,7 @@ import {
   hasContactPermission,
   isUniqContactEmail,
   type ContactColumnFilters,
+  type ContactCustomFieldSort,
   type ContactSortFields,
 } from '@/db/models/contact'
 import { handleNumberInput } from '@/lib/utils'
@@ -30,6 +31,7 @@ const sortingSchema = z.array(
   })
 )
 
+const customFieldSchema = z.record(z.string().uuid(), z.string())
 const columnFiltersSchema = z.array(
   z.object({
     id: z.string(),
@@ -51,8 +53,29 @@ export const contact = {
       ),
       pageSize: z.optional(
         z.string().transform((val) => {
-          const pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(val)) ? val : `${DEFAULT_PAGE_SIZE}`
-          return handleNumberInput(pageSize, { min: DEFAULT_PAGE_SIZE, max: DEFAULT_MAX_PAGE_SIZE })
+          const pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(val))
+            ? val
+            : `${DEFAULT_PAGE_SIZE}`
+          return handleNumberInput(pageSize, {
+            min: DEFAULT_PAGE_SIZE,
+            max: DEFAULT_MAX_PAGE_SIZE,
+          })
+        })
+      ),
+      customFieldsSorting: z.optional(
+        z.string().transform((val, ctx) => {
+          try {
+            const parsed: ContactCustomFieldSort[] = JSON.parse(val)
+            sortingSchema.parse(parsed)
+            return parsed
+          } catch (err) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'Contact custom field sorting is not valid JSON or does not match the expected structure.',
+            })
+            return z.NEVER
+          }
         })
       ),
       sorting: z.optional(
@@ -96,6 +119,7 @@ export const contact = {
         sorting = [],
         pageSize = DEFAULT_PAGE_SIZE,
         pageIndex = DEFAULT_PAGE_INDEX,
+        customFieldsSorting,
       },
       context
     ) => {
@@ -106,6 +130,7 @@ export const contact = {
         offset: pageIndex * pageSize,
         sortFields: sorting,
         columnFilters,
+        customFieldsSorting,
       })
 
       return data
@@ -169,6 +194,19 @@ export const contact = {
           .email({ message: 'Please enter a valid email address.' }),
         firstName: z.string().max(256).optional(),
         lastName: z.string().max(256).optional(),
+        customFields: z.string().transform((val, ctx) => {
+          try {
+            const parsed = JSON.parse(val)
+            customFieldSchema.parse(parsed)
+            return parsed
+          } catch (err) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Custom field is not valid JSON or does not match the expected structure.',
+            })
+            return z.NEVER
+          }
+        }),
       })
       .refine(
         async ({ email, projectId }) => await isUniqContactEmail(email, projectId),
@@ -177,10 +215,10 @@ export const contact = {
           path: ['email'],
         })
       ),
-    handler: async (input, context) => {
+    handler: async ({ customFields, ...input }, context) => {
       const user = context.locals.user!
 
-      await createContact({ ...input, userId: user.id })
+      await createContact({ ...input, userId: user.id }, customFields)
       return true
     },
   }),

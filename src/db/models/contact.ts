@@ -1,10 +1,5 @@
 import { db } from '@/db'
-import type {
-  InsertContact,
-  SelectContact,
-  SelectContactCustomField,
-  SelectCustomField,
-} from '@/db/schema'
+import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
 import {
   and,
@@ -13,6 +8,7 @@ import {
   desc,
   eq,
   inArray,
+  isNull,
   like,
   or,
   sql,
@@ -29,8 +25,8 @@ const SKIP_CONTACT_COLUMNS: string[] = [
   'id',
 ] as const
 
-interface ContactCustomFields extends Pick<SelectCustomField, 'name' | 'type'> {
-  value: Pick<SelectContactCustomField, 'value'>
+export interface ContactCustomFields extends Pick<SelectCustomField, 'name' | 'type' | 'tag'> {
+  value: string | null
 }
 
 interface ExtendedContact extends SelectContact {
@@ -46,6 +42,7 @@ export type ContactColumnFilters = Array<{
   id: ContactColumn
   value: string | number | boolean | Array<string | number | boolean>
 }>
+export type ContactCustomFieldSort = { id: string; desc: boolean }
 
 export async function getContacts({
   projectId,
@@ -54,6 +51,7 @@ export async function getContacts({
   offset,
   sortFields = [{ id: 'createdAt', desc: true }],
   columnFilters = [],
+  customFieldsSorting = [],
 }: {
   projectId: string
   teamId: string
@@ -61,6 +59,7 @@ export async function getContacts({
   offset: number
   sortFields?: ContactSortFields
   columnFilters: ContactColumnFilters
+  customFieldsSorting?: ContactCustomFieldSort[]
 }): Promise<ContactProps[]> {
   const sortBy = sortFields.map((field) =>
     field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
@@ -91,7 +90,7 @@ export async function getContacts({
     ...filters
   )
 
-  return await db
+  const results = await db
     .select({
       id: contactsTable.id,
       email: contactsTable.email,
@@ -102,24 +101,47 @@ export async function getContacts({
       updatedAt: contactsTable.updatedAt,
       createdAt: contactsTable.createdAt,
       customFields: sql<ContactCustomFields[]>`
-        CASE WHEN COUNT(custom_fields.id) = 0 THEN NULL
-          ELSE json_group_array(
-            json_object(
-              'name', custom_fields.name,
-              'type', custom_fields.type,
-              'value', contact_custom_fields.value
-            )
+        json_group_array(
+          json_object(
+            'name', custom_fields.name,
+            'type', custom_fields.type,
+            'tag', custom_fields.tag,
+            'value', COALESCE(contact_custom_fields.value, '')
           )
-        END`.as('custom_fields'),
+        )
+      `.as('custom_fields'),
     })
     .from(contactsTable)
     .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
-    .leftJoin(customFieldsTable, eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId))
+    .leftJoin(
+      customFieldsTable,
+      or(
+        isNull(contactCustomFieldsTable.customFieldId),
+        eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
+      )
+    )
     .where(whereConditions)
     .groupBy(contactsTable.id)
     .orderBy(...sortBy)
     .limit(limit)
     .offset(offset)
+
+  return results.sort((a, b) => {
+    for (const { id, desc } of customFieldsSorting) {
+      const aValue =
+        (JSON.parse(a.customFields as unknown as string) as ContactCustomFields[]).find(
+          (field) => field.tag === id
+        )?.value || ''
+      const bValue =
+        (JSON.parse(b.customFields as unknown as string) as ContactCustomFields[]).find(
+          (field) => field.tag === id
+        )?.value || ''
+
+      if (aValue < bValue) return desc ? 1 : -1
+      if (aValue > bValue) return desc ? -1 : 1
+    }
+    return 0
+  })
 }
 
 export async function getContactTotal({
@@ -172,8 +194,29 @@ export function getContactColumns(): ContactFields[] {
     })
 }
 
-export async function createContact(data: InsertContact): Promise<SelectContact> {
-  return await db.insert(contactsTable).values(data).returning().get()
+export async function createContact(
+  data: InsertContact,
+  customFields: Record<string, string>
+): Promise<SelectContact> {
+  const ids: string[] = Object.keys(customFields)
+
+  return await db.transaction(async (tx) => {
+    const contact = await tx.insert(contactsTable).values(data).returning().get()
+
+    const contactCustomFieldData = ids.map((id) => {
+      const value = customFields[id]
+
+      return {
+        customFieldId: id,
+        contactId: contact.id,
+        value,
+      }
+    })
+
+    await tx.insert(contactCustomFieldsTable).values(contactCustomFieldData)
+
+    return contact
+  })
 }
 
 export async function deleteContact({ id }: { id: string }): Promise<void> {

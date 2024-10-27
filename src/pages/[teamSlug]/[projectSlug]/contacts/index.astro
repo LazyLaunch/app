@@ -15,6 +15,7 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZES,
 } from '@/types'
+import { getCustomFields } from '@/db/models/custom-field'
 
 const searchParams = Astro.url.searchParams
 
@@ -40,6 +41,10 @@ const ids = {
   projectId: project.id,
 }
 
+const customFields = await getCustomFields({
+  projectId: project.id,
+  teamId: team.id,
+})
 const data = await getContacts({
   ...ids,
   limit,
@@ -57,7 +62,7 @@ const total = await getContactTotal(ids)
         <h2 class="text-2xl font-bold tracking-tight">Contacts</h2>
         <Badge className="mt-0.5">{total}</Badge>
       </div>
-      <NewContactForm csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
+      <NewContactForm customFields={customFields} csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
     </div>
     <ProjectContactNav active="contacts">
       <ContactTable
@@ -68,6 +73,7 @@ const total = await getContactTotal(ids)
         csrfToken={csrfToken}
         data={data}
         className="pt-6"
+        customFields={customFields}
         client:load
       />
     </ProjectContactNav>

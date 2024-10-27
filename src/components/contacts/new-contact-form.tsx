@@ -13,6 +13,8 @@ import { useState } from 'react'
 import { IndividualContactsForm } from '@/components/contacts/forms/individual-contacts-form'
 import { SingleContactForm } from '@/components/contacts/forms/single-contact-form'
 
+import type { CustomFieldProps } from '@/db/models/custom-field'
+
 interface FormValues {
   [CSRF_TOKEN]: string
   email: string
@@ -22,9 +24,11 @@ interface FormValues {
   projectId: string
 }
 
-interface Props extends Pick<FormValues, 'csrfToken' | 'teamId' | 'projectId'> {}
+interface Props extends Pick<FormValues, 'csrfToken' | 'teamId' | 'projectId'> {
+  customFields: CustomFieldProps[]
+}
 
-export function NewContactForm({ csrfToken, teamId, projectId }: Props) {
+export function NewContactForm({ csrfToken, teamId, projectId, customFields }: Props) {
   const [openSingleContactForm, setOpenSingleContactForm] = useState<boolean>(false)
   const [openIndividualContactsForm, setOpenIndividualContactsForm] = useState<boolean>(false)
 
@@ -51,6 +55,7 @@ export function NewContactForm({ csrfToken, teamId, projectId }: Props) {
         </DropdownMenuItem>
       </DropdownMenuContent>
       <SingleContactForm
+        customFields={customFields}
         open={openSingleContactForm}
         setOpen={setOpenSingleContactForm}
         csrfToken={csrfToken}

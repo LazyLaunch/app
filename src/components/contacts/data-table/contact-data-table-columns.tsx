@@ -6,11 +6,37 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ContactDataTableRowActions } from '@/components/contacts/data-table/contact-data-table-row-actions'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 
+import type { ContactCustomFields } from '@/db/models/contact'
+import type { CustomFieldProps } from '@/db/models/custom-field'
+import type { Column, Row } from '@tanstack/react-table'
+
 export function contactDataTableColumns<TData>({
   csrfToken,
+  customFields,
 }: {
   csrfToken: string
+  customFields: CustomFieldProps[]
 }): ColumnDef<TData>[] {
+  const newFields = customFields.map((field) => {
+    return {
+      accessorKey: field.tag,
+      header: ({ column }: { column: Column<TData> }) => (
+        <DataTableColumnHeader<TData, any> column={column} title={field.name} />
+      ),
+      cell: ({ row }: { row: Row<any> }) => {
+        const fields = row.original.customFields
+        if (!fields) return
+        const parsed: ContactCustomFields[] = JSON.parse(
+          fields as unknown as string
+        ) as ContactCustomFields[]
+        const val = parsed.find((entry) => entry.tag === field.tag)?.value
+        return <div>{val}</div>
+      },
+      enableSorting: true,
+      enableHiding: true,
+    }
+  })
+
   return [
     {
       id: 'select',
@@ -44,6 +70,7 @@ export function contactDataTableColumns<TData>({
       enableSorting: true,
       enableHiding: false,
     },
+    ...newFields,
     {
       accessorKey: 'firstName',
       header: ({ column }) => (
@@ -82,22 +109,6 @@ export function contactDataTableColumns<TData>({
       },
     },
     {
-      accessorKey: 'teamId',
-      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Team Id" />,
-      cell: ({ row }) => <div>{row.getValue('teamId')}</div>,
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: 'projectId',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Project Id" />
-      ),
-      cell: ({ row }) => <div>{row.getValue('projectId')}</div>,
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
       accessorKey: 'updatedAt',
       header: ({ column }) => (
         <DataTableColumnHeader<TData, any> column={column} title="Updated At" />
@@ -115,48 +126,6 @@ export function contactDataTableColumns<TData>({
       enableSorting: true,
       enableHiding: true,
     },
-    // {
-    //   accessorKey: 'status',
-    //   header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-    //   cell: ({ row }) => {
-    //     const status = statuses.find((status) => status.value === row.getValue('status'))
-
-    //     if (!status) {
-    //       return null
-    //     }
-
-    //     return (
-    //       <div className="flex w-[100px] items-center">
-    //         {status.icon && <status.icon className="mr-2 h-4 w-4 text-muted-foreground" />}
-    //         <span>{status.label}</span>
-    //       </div>
-    //     )
-    //   },
-    //   filterFn: (row, id, value) => {
-    //     return value.includes(row.getValue(id))
-    //   },
-    // },
-    // {
-    //   accessorKey: 'priority',
-    //   header: ({ column }) => <DataTableColumnHeader column={column} title="Priority" />,
-    //   cell: ({ row }) => {
-    //     const priority = priorities.find((priority) => priority.value === row.getValue('priority'))
-
-    //     if (!priority) {
-    //       return null
-    //     }
-
-    //     return (
-    //       <div className="flex items-center">
-    //         {priority.icon && <priority.icon className="mr-2 h-4 w-4 text-muted-foreground" />}
-    //         <span>{priority.label}</span>
-    //       </div>
-    //     )
-    //   },
-    //   filterFn: (row, id, value) => {
-    //     return value.includes(row.getValue(id))
-    //   },
-    // },
     {
       id: 'actions',
       cell: ({ row, table }) => (

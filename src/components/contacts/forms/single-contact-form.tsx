@@ -1,4 +1,3 @@
-import { actions, isInputError } from 'astro:actions'
 import { navigate } from 'astro:transitions/client'
 import { useForm } from 'react-hook-form'
 
@@ -23,7 +22,46 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
+import { actions, isInputError } from 'astro:actions'
+
+import type { CustomFieldProps } from '@/db/models/custom-field'
+
+function fieldInfo(
+  fieldName: string,
+  type: CustomFieldTypeEnum
+): { desc: string; placeholder: string | undefined } {
+  const info = {
+    [CustomFieldTypeEnum.STRING]: {
+      // desc: 'This field allows you to enter information specific to this contact, such as their ${name}',
+      desc: `Enter detailed information for ${fieldName.toLowerCase()} in text form.`,
+      placeholder: 'Enter a text...',
+    },
+    [CustomFieldTypeEnum.NUMBER]: {
+      desc: `Provide a numerical value that represents ${fieldName.toLowerCase()}.`,
+      placeholder: 'Enter a number...',
+    },
+    [CustomFieldTypeEnum.BOOLEAN]: {
+      desc: `Indicate a true or false value for ${fieldName.toLowerCase()}.`,
+      placeholder: undefined,
+    },
+    [CustomFieldTypeEnum.DATE]: {
+      desc: `Choose a date that reflects the intended ${fieldName.toLowerCase()} context.`,
+      placeholder: 'Choose a date...',
+    },
+  }
+
+  return info[type]
+}
+
+function getFields(data: CustomFieldProps[]): Record<string, string> {
+  const fields: Record<string, string> = {}
+  for (const field of data) {
+    fields[field.id] = ''
+  }
+
+  return fields
+}
 
 interface FormValues {
   [CSRF_TOKEN]: string
@@ -32,29 +70,33 @@ interface FormValues {
   lastName: string
   teamId: string
   projectId: string
+  customFields: Record<string, string>
 }
 
 interface Props extends Pick<FormValues, 'teamId' | 'projectId' | 'csrfToken'> {
   open: boolean
   setOpen: (open: boolean) => void
+  customFields: CustomFieldProps[]
 }
 
-export function SingleContactForm({ open, setOpen, csrfToken, ...rest }: Props) {
+export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...rest }: Props) {
   const form = useForm<FormValues>({
     defaultValues: {
-      email: '',
+      email: 'wq@wq.com',
       firstName: '',
       lastName: '',
       csrfToken,
+      customFields: getFields(customFields),
       ...rest,
     },
   })
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit({ customFields, ...values }: FormValues) {
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
     }
+    formData.append('customFields', JSON.stringify(customFields))
     const { error } = await actions.contact.create(formData)
 
     if (isInputError(error)) {
@@ -68,8 +110,6 @@ export function SingleContactForm({ open, setOpen, csrfToken, ...rest }: Props) 
     }
 
     navigate(window.location.pathname)
-    // form.reset()
-    // setOpen(false)
   }
 
   function onClose() {
@@ -158,6 +198,29 @@ export function SingleContactForm({ open, setOpen, csrfToken, ...rest }: Props) 
                   </FormItem>
                 )}
               />
+              {customFields.map((entry) => {
+                const info = fieldInfo(entry.name, entry.type)
+                return (
+                  <FormField
+                    key={entry.id}
+                    control={form.control}
+                    name={`customFields.${entry.id}`}
+                    rules={{
+                      maxLength: { value: 256, message: 'Last name cannot exceed 256 characters.' },
+                    }}
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <FormLabel>{entry.name}</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder={info.placeholder} />
+                        </FormControl>
+                        <FormDescription>{info.desc}</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )
+              })}
             </div>
             <DialogFooter className="space-x-2">
               <DialogClose asChild>

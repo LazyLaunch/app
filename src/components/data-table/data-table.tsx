@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
+import type { CustomFieldProps } from '@/db/models/custom-field'
+
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
     onDelete: (fn: (params: { data: TData[]; setData: (data: TData[]) => void }) => void) => void
@@ -59,6 +61,7 @@ interface DataTableProps<TData, TValue> {
   ids?: Record<string, string>
   pagination: TablePaginationState
   total: number
+  customFields: CustomFieldProps[]
 }
 
 export function DataTable<TData, TValue>({
@@ -72,6 +75,7 @@ export function DataTable<TData, TValue>({
   csrfToken,
   pagination,
   ids = {},
+  customFields = [],
 }: DataTableProps<TData, TValue>) {
   const isDry = useRef<boolean>(true)
   const [_data, setData] = useState<TData[]>(data)
@@ -126,12 +130,20 @@ export function DataTable<TData, TValue>({
     // window.history.replaceState(null, '', url);
     // const parsedFilters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get('filters')));
 
+    const columnTags = customFields.map((f) => f.tag)
     const formData = new FormData()
     for (const [key, value] of Object.entries({ ..._pagination, ...ids, csrfToken })) {
       formData.append(key, value?.toString() || '')
     }
-    formData.append('sorting', JSON.stringify(sorting))
+    formData.append('sorting', JSON.stringify(sorting.filter((c) => !columnTags.includes(c.id))))
     formData.append('columnFilters', JSON.stringify(columnFilters))
+
+    const customFieldsSorting = []
+    for (const tag of columnTags) {
+      const sorted = sorting.find((sortedField) => sortedField.id === tag)
+      sorted && customFieldsSorting.push(sorted)
+    }
+    formData.append('customFieldsSorting', JSON.stringify(customFieldsSorting))
 
     const doRequest = async () => {
       const { data } = await reqFilter(formData)
@@ -139,7 +151,7 @@ export function DataTable<TData, TValue>({
     }
 
     doRequest()
-  }, [_pagination, sorting, columnFilters, reqFilter, ids, csrfToken])
+  }, [_pagination, sorting, columnFilters, reqFilter, ids, csrfToken, customFields])
 
   return (
     <div className={cn(className, 'space-y-4')}>
