@@ -16,14 +16,7 @@ import {
 } from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
-const SKIP_CONTACT_COLUMNS: string[] = [
-  'created_at',
-  'updated_at',
-  'team_id',
-  'project_id',
-  'user_id',
-  'id',
-] as const
+const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 
 export interface ContactCustomFields extends Pick<SelectCustomField, 'name' | 'type' | 'tag'> {
   value: string | null
@@ -64,6 +57,18 @@ export async function getContacts({
   const sortBy = sortFields.map((field) =>
     field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
   )
+
+  for (const customFieldSort of customFieldsSorting) {
+    const customSortCondition = sql`
+      (SELECT value
+       FROM ${contactCustomFieldsTable}
+       WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+       AND ${contactCustomFieldsTable.customFieldId} = ${customFieldSort.id})
+    `
+
+    const sort = customFieldSort.desc ? desc(customSortCondition) : asc(customSortCondition)
+    sortBy.push(sort)
+  }
 
   const filters = columnFilters.map((filter) => {
     const column = contactsTable[filter.id]
@@ -126,22 +131,7 @@ export async function getContacts({
     .limit(limit)
     .offset(offset)
 
-  return results.sort((a, b) => {
-    for (const { id, desc } of customFieldsSorting) {
-      const aValue =
-        (JSON.parse(a.customFields as unknown as string) as ContactCustomFields[]).find(
-          (field) => field.tag === id
-        )?.value || ''
-      const bValue =
-        (JSON.parse(b.customFields as unknown as string) as ContactCustomFields[]).find(
-          (field) => field.tag === id
-        )?.value || ''
-
-      if (aValue < bValue) return desc ? 1 : -1
-      if (aValue > bValue) return desc ? -1 : 1
-    }
-    return 0
-  })
+  return results
 }
 
 export async function getContactTotal({

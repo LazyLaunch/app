@@ -116,6 +116,16 @@ function contactDataTableColumns({
       enableHiding: false,
     },
     {
+      accessorKey: 'updatedAt',
+      header: ({ column }) => (
+        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Updated At" />
+      ),
+      cell: ({ row }) =>
+        row.original.isCustomField ? <div>{row.getValue('updatedAt')}</div> : '-',
+      enableSorting: true,
+      enableHiding: false,
+    },
+    {
       accessorKey: 'createdAt',
       header: ({ column }) => (
         <DataTableColumnHeader<CustomFieldList, any> column={column} title="Created At" />

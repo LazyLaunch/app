@@ -130,18 +130,22 @@ export function DataTable<TData, TValue>({
     // window.history.replaceState(null, '', url);
     // const parsedFilters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get('filters')));
 
-    const columnTags = customFields.map((f) => f.tag)
+    const customColumnTags = customFields.map((f) => f.tag)
     const formData = new FormData()
     for (const [key, value] of Object.entries({ ..._pagination, ...ids, csrfToken })) {
       formData.append(key, value?.toString() || '')
     }
-    formData.append('sorting', JSON.stringify(sorting.filter((c) => !columnTags.includes(c.id))))
     formData.append('columnFilters', JSON.stringify(columnFilters))
 
+    formData.append(
+      'sorting',
+      JSON.stringify(sorting.filter((c) => !customColumnTags.includes(c.id)))
+    )
+
     const customFieldsSorting = []
-    for (const tag of columnTags) {
-      const sorted = sorting.find((sortedField) => sortedField.id === tag)
-      sorted && customFieldsSorting.push(sorted)
+    for (const sort of sorting) {
+      const field = customFields.find((cf) => cf.tag === sort.id)
+      field && customFieldsSorting.push({ ...sort, id: field.id })
     }
     formData.append('customFieldsSorting', JSON.stringify(customFieldsSorting))
 

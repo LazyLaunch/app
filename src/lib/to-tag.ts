@@ -1,11 +1,11 @@
 export function tagWithPlaceholder(tag: string): string {
-  return '{$' + tag + '}'
+  return `{$${tag}}`
 }
 
 export function toTag(fieldName: string): string {
   return fieldName
     .toLowerCase()
-    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/[^a-z0-9\s_]/g, '')
     .replace(/\s+/g, '_')
 }
 

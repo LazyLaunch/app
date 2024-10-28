@@ -30,6 +30,12 @@ const sortingSchema = z.array(
     desc: z.boolean(),
   })
 )
+const customFieldSortingSchema = z.array(
+  z.object({
+    id: z.string().uuid(),
+    desc: z.boolean(),
+  })
+)
 
 const customFieldSchema = z.record(z.string().uuid(), z.string())
 const columnFiltersSchema = z.array(
@@ -66,7 +72,7 @@ export const contact = {
         z.string().transform((val, ctx) => {
           try {
             const parsed: ContactCustomFieldSort[] = JSON.parse(val)
-            sortingSchema.parse(parsed)
+            customFieldSortingSchema.parse(parsed)
             return parsed
           } catch (err) {
             ctx.addIssue({
