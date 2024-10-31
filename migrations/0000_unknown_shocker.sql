@@ -34,8 +34,8 @@ CREATE TABLE `contacts` (
 	`user_id` text(256) NOT NULL,
 	`project_id` text(256) NOT NULL,
 	`team_id` text(256) NOT NULL,
-	`updated_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
-	`created_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	`updated_at` integer DEFAULT (strftime('%s', 'now') * 1000) NOT NULL,
+	`created_at` integer DEFAULT (strftime('%s', 'now') * 1000) NOT NULL,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE cascade

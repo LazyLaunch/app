@@ -1,15 +1,20 @@
+import { endOfDay, parseISO, startOfDay } from 'date-fns'
+
 import { db } from '@/db'
 import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
+import type { CustomFieldTypeEnum } from '@/types'
 import {
   and,
   asc,
   count,
   desc,
   eq,
+  gte,
   inArray,
   isNull,
   like,
+  lte,
   or,
   sql,
   type InferSelectModel,
@@ -33,8 +38,19 @@ type ContactColumn = keyof InferSelectModel<typeof contactsTable>
 export type ContactSortFields = Array<{ id: ContactColumn; desc: boolean }>
 export type ContactColumnFilters = Array<{
   id: ContactColumn
-  value: string | number | boolean | Array<string | number | boolean>
+  value: string | number | boolean | Array<string | number | boolean | null>
 }>
+export type ContactCustomColumnFilters = Array<{
+  id: string
+  value: string | number | boolean | Array<string | number | boolean | null>
+}>
+type AnyContactField = 'any'
+export interface GlobalContactColumnFilter {
+  id: 'string' | undefined
+  field: ContactColumn | AnyContactField
+  value: string | number
+  isCustomField: boolean
+}
 export type ContactCustomFieldSort = { id: string; desc: boolean }
 
 export async function getContacts({
@@ -45,6 +61,8 @@ export async function getContacts({
   sortFields = [{ id: 'createdAt', desc: true }],
   columnFilters = [],
   customFieldsSorting = [],
+  globalFilter = [],
+  customColumnFilters = [],
 }: {
   projectId: string
   teamId: string
@@ -52,8 +70,12 @@ export async function getContacts({
   offset: number
   sortFields?: ContactSortFields
   columnFilters: ContactColumnFilters
+  customColumnFilters: ContactCustomColumnFilters
   customFieldsSorting?: ContactCustomFieldSort[]
+  globalFilter?: GlobalContactColumnFilter[]
 }): Promise<ContactProps[]> {
+  const dateColumnIds: Array<keyof typeof contactsTable> = ['createdAt', 'updatedAt']
+
   const sortBy = sortFields.map((field) =>
     field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
   )
@@ -70,24 +92,119 @@ export async function getContacts({
     sortBy.push(sort)
   }
 
-  const filters = columnFilters.map((filter) => {
-    const column = contactsTable[filter.id]
+  const filters = columnFilters
+    .map((filter) => {
+      const column = contactsTable[filter.id]
 
-    if (Array.isArray(filter.value)) {
-      if (['string', 'boolean'].includes(typeof filter.value[0])) {
-        return inArray(column, filter.value as string[] | boolean[])
+      if (Array.isArray(filter.value)) {
+        if (['string', 'boolean'].includes(typeof filter.value[0])) {
+          return inArray(column, filter.value as string[] | boolean[])
+        }
+        if (typeof filter.value[0] === 'number') {
+          return or(...(filter.value as number[]).map((val) => eq(column as any, val)))
+        }
+
+        if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
+          const obj = new Map<'type' | 'from' | 'to', CustomFieldTypeEnum | 'any'>(
+            filter.value as Iterable<['type' | 'from' | 'to', CustomFieldTypeEnum | 'any']>
+          )
+          const from = obj.get('from') as string | null
+          const to = obj.get('to') as string | null
+
+          if (from && to && dateColumnIds.includes(filter.id)) {
+            const fromDate = parseISO(from)
+            const toDate = parseISO(to)
+            const dayStart = startOfDay(fromDate)
+            const dayEnd = endOfDay(toDate)
+
+            return and(gte(column, dayStart), lte(column, dayEnd))
+          }
+        }
       }
-      if (typeof filter.value[0] === 'number') {
-        return or(...(filter.value as number[]).map((val) => eq(column as any, val)))
+
+      if (typeof filter.value === 'string') {
+        return like(column, `%${filter.value}%`)
       }
-    }
 
-    if (typeof filter.value === 'string') {
-      return like(column, `%${filter.value}%`)
-    }
+      // return eq(column as any, filter.value)
+    })
+    .filter(Boolean)
 
-    return eq(column as any, filter.value)
-  })
+  if (customColumnFilters?.length > 0) {
+    const customFilterConditions = customColumnFilters
+      .map((filter) => {
+        if (Array.isArray(filter.value)) {
+          if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
+            const obj = new Map<'from' | 'to', 'any'>(
+              filter.value as Iterable<['from' | 'to', 'any']>
+            )
+            const from = obj.get('from') as string | null
+            const to = obj.get('to') as string | null
+
+            if (from && to) {
+              const fromDate = parseISO(from)
+              const toDate = parseISO(to)
+              const dayStart = startOfDay(fromDate)
+              const dayEnd = endOfDay(toDate)
+
+              return sql<boolean>`
+                EXISTS (
+                  SELECT 1
+                  FROM ${contactCustomFieldsTable}
+                  WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+                    AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
+                    AND ${contactCustomFieldsTable.value} BETWEEN ${dayStart} AND ${dayEnd}
+                )
+              `
+            }
+          }
+        }
+      })
+      .filter(Boolean)
+
+    filters.push(...customFilterConditions)
+  }
+
+  if (globalFilter?.length > 0) {
+    const globalConditions = globalFilter
+      .map((filter) => {
+        if (filter.field === 'any') {
+          const contactFieldsCondition = or(
+            like(contactsTable.email, `%${filter.value}%`),
+            like(contactsTable.firstName, `%${filter.value}%`),
+            like(contactsTable.lastName, `%${filter.value}%`)
+          )
+
+          const customFieldsCondition = sql<boolean>`
+          EXISTS (
+            SELECT 1
+            FROM ${contactCustomFieldsTable}
+            WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+            AND ${contactCustomFieldsTable.value} LIKE '%' || ${filter.value} || '%'
+          )
+        `
+
+          return or(contactFieldsCondition, customFieldsCondition)
+        }
+
+        if (filter.isCustomField) {
+          return sql<boolean>`
+                EXISTS (
+                  SELECT 1
+                  FROM ${contactCustomFieldsTable}
+                  WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+                  AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
+                  AND ${contactCustomFieldsTable.value} LIKE '%' || ${filter.value} || '%'
+                )
+              `
+        }
+
+        return like(contactsTable[filter.field], `%${filter.value}%`)
+      })
+      .filter(Boolean)
+
+    filters.push(...globalConditions)
+  }
 
   const whereConditions = and(
     eq(contactsTable.projectId, projectId),
@@ -192,6 +309,7 @@ export async function createContact(
 
   return await db.transaction(async (tx) => {
     const contact = await tx.insert(contactsTable).values(data).returning().get()
+    if (ids.length === 0) return contact
 
     const contactCustomFieldData = ids.map((id) => {
       const value = customFields[id]

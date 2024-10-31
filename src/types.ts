@@ -80,6 +80,7 @@ export enum CustomFieldTypeEnum {
   NUMBER = 'number',
   DATE = 'date',
   BOOLEAN = 'boolean',
+  ENUM = 'enum',
 }
 
 export const CUSTOM_FIELD_TYPE_LIST = [
@@ -88,3 +89,5 @@ export const CUSTOM_FIELD_TYPE_LIST = [
   CustomFieldTypeEnum.DATE,
   CustomFieldTypeEnum.BOOLEAN,
 ] as const
+
+export const DATE_TEXT_FORMAT: string = 'LLL dd, y kk:mm:ss' as const

@@ -1,3 +1,5 @@
+import { createId } from '@paralleldrive/cuid2'
+
 import type { UserRoles } from '@/lib/rbac'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
 import {
@@ -218,7 +220,7 @@ export const contactsTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     email: text('email', { length: 256 }).notNull(),
     firstName: text('first_name', { length: 256 }),
     lastName: text('last_name', { length: 256 }),
@@ -238,11 +240,13 @@ export const contactsTable = sqliteTable(
     teamId: text('team_id', { length: 256 })
       .notNull()
       .references(() => teamsTable.id, { onDelete: 'cascade' }),
-    updatedAt: text('updated_at', { length: 50 })
+    updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
       .notNull()
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
+      .default(sql`(strftime('%s', 'now') * 1000)`)
+      .$onUpdate(() => sql`(strftime('%s', 'now') * 1000)`),
+    createdAt: integer('created_at', { mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(strftime('%s', 'now') * 1000)`),
   },
   (table) => {
     return {

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6366425b-4bf9-4555-a7e7-5d3a61eeaf6d",
+  "id": "34b0701d-ed10-4201-992d-5813ced10fac",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "accounts": {
@@ -272,19 +272,19 @@
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "text(50)",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
+          "default": "(strftime('%s', 'now') * 1000)"
         },
         "created_at": {
           "name": "created_at",
-          "type": "text(50)",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "(CURRENT_TIMESTAMP)"
+          "default": "(strftime('%s', 'now') * 1000)"
         }
       },
       "indexes": {

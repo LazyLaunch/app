@@ -10,8 +10,10 @@ import {
   hasContactPermission,
   isUniqContactEmail,
   type ContactColumnFilters,
+  type ContactCustomColumnFilters,
   type ContactCustomFieldSort,
   type ContactSortFields,
+  type GlobalContactColumnFilter,
 } from '@/db/models/contact'
 import { handleNumberInput } from '@/lib/utils'
 import { validateEmails } from '@/lib/validate-emails'
@@ -41,7 +43,11 @@ const customFieldSchema = z.record(z.string().uuid(), z.string())
 const columnFiltersSchema = z.array(
   z.object({
     id: z.string(),
-    value: z.union([z.any(), z.array(z.any())]),
+    value: z.union([
+      z.array(z.boolean()),
+      z.array(z.string()),
+      z.array(z.array(z.union([z.string(), z.date(), z.null()]))),
+    ]),
   })
 )
 
@@ -100,6 +106,30 @@ export const contact = {
           }
         })
       ),
+      globalFilter: z.optional(
+        z.string().transform((val, ctx) => {
+          try {
+            const parsed: GlobalContactColumnFilter[] = JSON.parse(val)
+            z.array(
+              z.object({
+                id: z.optional(z.string().uuid()),
+                field: z.string(),
+                value: z.union([z.string(), z.number()]),
+                isCustomField: z.boolean(),
+              })
+            ).parse(parsed)
+
+            return parsed
+          } catch (err) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'Global contact column filters is not valid JSON or does not match the expected structure.',
+            })
+            return z.NEVER
+          }
+        })
+      ),
       columnFilters: z.optional(
         z.string().transform((val, ctx) => {
           try {
@@ -116,16 +146,34 @@ export const contact = {
           }
         })
       ),
+      customColumnFilters: z.optional(
+        z.string().transform((val, ctx) => {
+          try {
+            const parsed: ContactCustomColumnFilters = JSON.parse(val)
+            columnFiltersSchema.parse(parsed)
+            return parsed
+          } catch (err) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message:
+                'Custom contact column filters is not valid JSON or does not match the expected structure.',
+            })
+            return z.NEVER
+          }
+        })
+      ),
     }),
     handler: async (
       {
         teamId,
         projectId,
         columnFilters = [],
-        sorting = [],
+        sorting,
         pageSize = DEFAULT_PAGE_SIZE,
         pageIndex = DEFAULT_PAGE_INDEX,
         customFieldsSorting,
+        globalFilter = [],
+        customColumnFilters = [],
       },
       context
     ) => {
@@ -137,6 +185,8 @@ export const contact = {
         sortFields: sorting,
         columnFilters,
         customFieldsSorting,
+        globalFilter,
+        customColumnFilters,
       })
 
       return data
@@ -202,7 +252,7 @@ export const contact = {
         lastName: z.string().max(256).optional(),
         customFields: z.string().transform((val, ctx) => {
           try {
-            const parsed = JSON.parse(val)
+            const parsed: Record<string, string> = JSON.parse(val)
             customFieldSchema.parse(parsed)
             return parsed
           } catch (err) {

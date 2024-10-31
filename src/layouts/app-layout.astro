@@ -20,9 +20,9 @@ const csrfToken = Astro.locals.csrfToken!
         <slot name="navLinks" />
       </nav>
     </aside>
-    <div class="flex flex-col sm:gap-4 sm:pl-14 sm:pt-4">
+    <div class="flex flex-col gap-4 pl-14">
       <header
-        class="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6"
+        class="sticky top-0 z-50 flex items-center bg-muted/0 justify-between h-auto border-0 pt-4 px-6"
       >
         <slot name="breadcrumbs" />
         <UserMenuComponent client:load user={user} csrfToken={csrfToken} />

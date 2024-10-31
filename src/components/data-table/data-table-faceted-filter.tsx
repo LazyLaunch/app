@@ -1,9 +1,9 @@
 import type { Column } from '@tanstack/react-table'
-import { Check, CirclePlus } from 'lucide-react'
-import type * as React from 'react'
+import { CalendarIcon, Check, CirclePlus } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Command,
   CommandEmpty,
@@ -15,32 +15,103 @@ import {
 } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
+
 import { cn } from '@/lib/utils'
+import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
+import { addHours, format } from 'date-fns'
+import type { DateRange } from 'react-day-picker'
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>
   title?: string
   withSearchCommand?: boolean
-  options: {
+  type: CustomFieldTypeEnum
+  options?: {
     label: string
     value: string | boolean
     icon?: React.ComponentType<{ className?: string }>
   }[]
+  className?: string
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
+function CalendarFacet<TData, TValue>({
+  title,
+  className,
+  column,
+}: Pick<DataTableFacetedFilterProps<TData, TValue>, 'title' | 'className' | 'column'>) {
+  const selectedDateFilter = new Map<'to' | 'from', Date | undefined>(
+    column?.getFilterValue() as Iterable<['from' | 'to', Date | undefined]>
+  )
+  const fromDate = selectedDateFilter.get('from')
+  const toDate = selectedDateFilter.get('to')
+  const dateStart = fromDate && addHours(fromDate, -fromDate.getTimezoneOffset() / 60)
+  const dateEnd = toDate && addHours(toDate, -toDate.getTimezoneOffset() / 60)
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className={cn('h-8 border-dashed', className)}>
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {title}
+          {(dateStart || dateEnd) && <Separator orientation="vertical" className="mx-2 h-4" />}
+          <div className="hidden space-x-1 lg:flex">
+            {dateStart && (
+              <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                {format(dateStart, DATE_TEXT_FORMAT)}
+              </Badge>
+            )}
+            {dateEnd && (
+              <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                {format(dateEnd, DATE_TEXT_FORMAT)}
+              </Badge>
+            )}
+          </div>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          initialFocus
+          captionLayout="dropdown"
+          mode="range"
+          disabled={{ after: new Date() }}
+          defaultMonth={new Date()}
+          selected={{ from: dateStart, to: dateEnd } as DateRange}
+          onSelect={(date) => {
+            if (date) {
+              selectedDateFilter.set(
+                'from',
+                date?.from ? addHours(date.from, -date.from.getTimezoneOffset() / 60) : undefined
+              )
+              selectedDateFilter.set(
+                'to',
+                date?.to ? addHours(date.to, -date.to.getTimezoneOffset() / 60) : undefined
+              )
+            } else {
+              selectedDateFilter.set('from', undefined)
+              selectedDateFilter.set('to', undefined)
+            }
+            column?.setFilterValue(Array.from(selectedDateFilter))
+          }}
+          numberOfMonths={2}
+        />
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function DefaultFacet<TData, TValue>({
   column,
   title,
-  options,
+  options = [],
   withSearchCommand = false,
-}: DataTableFacetedFilterProps<TData, TValue>) {
-  const facets = column?.getFacetedUniqueValues()
+  className,
+}: Omit<DataTableFacetedFilterProps<TData, TValue>, 'type'>) {
   const selectedValues = new Set<string | boolean>(column?.getFilterValue() as string[] | boolean[])
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 border-dashed">
+        <Button variant="outline" size="sm" className={cn('h-8 border-dashed', className)}>
           <CirclePlus className="mr-2 h-4 w-4" />
           {title}
           {selectedValues?.size > 0 && (
@@ -106,11 +177,6 @@ export function DataTableFacetedFilter<TData, TValue>({
                     </div>
                     {option.icon && <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />}
                     <span>{option.label}</span>
-                    {facets?.get(option.value) && (
-                      <span className="ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs">
-                        {facets.get(option.value)}
-                      </span>
-                    )}
                   </CommandItem>
                 )
               })}
@@ -133,4 +199,15 @@ export function DataTableFacetedFilter<TData, TValue>({
       </PopoverContent>
     </Popover>
   )
+}
+
+export function DataTableFacetedFilter<TData, TValue>({
+  type,
+  ...rest
+}: DataTableFacetedFilterProps<TData, TValue>) {
+  if (type === CustomFieldTypeEnum.DATE) {
+    return <CalendarFacet<TData, TValue> {...rest} />
+  }
+
+  return <DefaultFacet<TData, TValue> {...rest} />
 }

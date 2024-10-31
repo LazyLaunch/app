@@ -1,11 +1,13 @@
 import { contactDataTableColumns } from '@/components/contacts/data-table/contact-data-table-columns'
-import { ContactDataTableToolbar } from '@/components/contacts/data-table/contact-data-table-toolbar'
+import {
+  ContactDataTableToolbar,
+  type ContactDataTableToolbarProps,
+} from '@/components/contacts/data-table/contact-data-table-toolbar'
 import { DataTable, type TablePaginationState } from '@/components/data-table'
 import type { ContactProps } from '@/db/models/contact'
 import { actions } from 'astro:actions'
 
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import type { Table } from '@tanstack/react-table'
 
 export function ContactTable({
   data,
@@ -36,7 +38,9 @@ export function ContactTable({
       reqFilter={actions.contact.filters}
       customFields={customFields}
     >
-      {({ table }: { table: Table<ContactProps> }) => <ContactDataTableToolbar table={table} />}
+      {({ table, customFields, csrfToken }: ContactDataTableToolbarProps<ContactProps>) => (
+        <ContactDataTableToolbar table={table} customFields={customFields} csrfToken={csrfToken} />
+      )}
     </DataTable>
   )
 }

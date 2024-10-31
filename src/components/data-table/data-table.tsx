@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
+import type { GlobalContactColumnFilter } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
 declare module '@tanstack/react-table' {
@@ -80,6 +81,7 @@ export function DataTable<TData, TValue>({
   const isDry = useRef<boolean>(true)
   const [_data, setData] = useState<TData[]>(data)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [sorting, setSorting] = useState<SortingState>([])
@@ -94,6 +96,10 @@ export function DataTable<TData, TValue>({
     data: _data,
     columns,
     rowCount: total,
+    initialState: {
+      globalFilter: [],
+      columnFilters: [],
+    },
     state: {
       pagination: _pagination,
       sorting,
@@ -101,11 +107,13 @@ export function DataTable<TData, TValue>({
       rowSelection,
       columnFilters,
       columnPinning,
+      globalFilter,
     },
     onPaginationChange: setPagination,
     getRowId: (row) => (row as unknown as { id: string }).id,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnPinningChange: setColumnPinning,
@@ -135,13 +143,22 @@ export function DataTable<TData, TValue>({
     for (const [key, value] of Object.entries({ ..._pagination, ...ids, csrfToken })) {
       formData.append(key, value?.toString() || '')
     }
-    formData.append('columnFilters', JSON.stringify(columnFilters))
+    globalFilter && formData.append('globalFilter', JSON.stringify(globalFilter))
+    formData.append(
+      'columnFilters',
+      JSON.stringify(columnFilters.filter((c) => !customColumnTags.includes(c.id)))
+    )
+    const customColumnFilters = []
+    for (const filter of columnFilters) {
+      const field = customFields.find((cf) => cf.tag === filter.id)
+      field && customColumnFilters.push({ ...filter, id: field.id })
+    }
+    formData.append('customColumnFilters', JSON.stringify(customColumnFilters))
 
     formData.append(
       'sorting',
       JSON.stringify(sorting.filter((c) => !customColumnTags.includes(c.id)))
     )
-
     const customFieldsSorting = []
     for (const sort of sorting) {
       const field = customFields.find((cf) => cf.tag === sort.id)
@@ -155,11 +172,11 @@ export function DataTable<TData, TValue>({
     }
 
     doRequest()
-  }, [_pagination, sorting, columnFilters, reqFilter, ids, csrfToken, customFields])
+  }, [_pagination, globalFilter, sorting, columnFilters, reqFilter, ids, csrfToken, customFields])
 
   return (
     <div className={cn(className, 'space-y-4')}>
-      {children({ table })}
+      {children({ table, customFields, csrfToken })}
       <div className="rounded-md border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>

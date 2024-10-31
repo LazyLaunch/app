@@ -8,7 +8,9 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 
 import type { ContactCustomFields } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
+import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
 import type { Column, Row } from '@tanstack/react-table'
+import { format } from 'date-fns'
 
 export function contactDataTableColumns<TData>({
   csrfToken,
@@ -29,8 +31,19 @@ export function contactDataTableColumns<TData>({
         const parsed: ContactCustomFields[] = JSON.parse(
           fields as unknown as string
         ) as ContactCustomFields[]
-        const val = parsed.find((entry) => entry.tag === field.tag)?.value
-        return <div>{val}</div>
+        const entry = parsed.find((entry) => entry.tag === field.tag)
+        const { type, value } = entry || {}
+        if (!value) return
+
+        if (type === CustomFieldTypeEnum.DATE) {
+          return (
+            <div className="w-40">{format(new Date(Number.parseInt(value)), DATE_TEXT_FORMAT)}</div>
+          )
+        }
+        if (type === CustomFieldTypeEnum.NUMBER) {
+          return <div>{Number.parseInt(value)}</div>
+        }
+        return <div>{value}</div>
       },
       enableSorting: true,
       enableHiding: true,
@@ -113,7 +126,9 @@ export function contactDataTableColumns<TData>({
       header: ({ column }) => (
         <DataTableColumnHeader<TData, any> column={column} title="Updated At" />
       ),
-      cell: ({ row }) => <div>{row.getValue('updatedAt')}</div>,
+      cell: ({ row }) => (
+        <div className="w-40">{format(row.getValue('updatedAt'), DATE_TEXT_FORMAT)}</div>
+      ),
       enableSorting: true,
       enableHiding: true,
     },
@@ -122,7 +137,9 @@ export function contactDataTableColumns<TData>({
       header: ({ column }) => (
         <DataTableColumnHeader<TData, any> column={column} title="Created At" />
       ),
-      cell: ({ row }) => <div>{row.getValue('createdAt')}</div>,
+      cell: ({ row }) => (
+        <div className="w-40">{format(row.getValue('createdAt'), DATE_TEXT_FORMAT)}</div>
+      ),
       enableSorting: true,
       enableHiding: true,
     },

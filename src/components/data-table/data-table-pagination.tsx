@@ -19,8 +19,8 @@ export function DataTablePagination<TData>({ table }: DataTablePaginationProps<T
   return (
     <div className="flex items-center justify-between px-2">
       <div className="flex-1 text-sm text-muted-foreground">
-        {table.getFilteredSelectedRowModel().rows.length}-{table.getFilteredRowModel().rows.length}{' '}
-        of {table.getRowCount()} row(s) selected.
+        {table.getFilteredSelectedRowModel().rows.length} to{' '}
+        {table.getFilteredRowModel().rows.length} of {table.getRowCount()} row(s) selected.
       </div>
       <div className="flex items-center space-x-6 lg:space-x-8">
         <div className="flex items-center space-x-2">
