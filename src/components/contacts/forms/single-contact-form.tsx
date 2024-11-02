@@ -25,16 +25,17 @@ import { Input } from '@/components/ui/input'
 import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 import { actions, isInputError } from 'astro:actions'
 
+import { DateInput } from '@/components/contacts/forms/date-input'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
 function fieldInfo(
   fieldName: string,
   type: CustomFieldTypeEnum
-): { desc: string; placeholder: string | undefined } {
-  const info = {
+): { desc: string; placeholder?: string | undefined } {
+  const info: Record<CustomFieldTypeEnum, { desc: string; placeholder?: string | undefined }> = {
     [CustomFieldTypeEnum.STRING]: {
-      // desc: 'This field allows you to enter information specific to this contact, such as their ${name}',
-      desc: `Enter detailed information for ${fieldName.toLowerCase()} in text form.`,
+      desc: `This field allows you to enter information specific to this contact, such as their ${fieldName.toLowerCase()}`,
+      // desc: `Enter detailed information for ${fieldName.toLowerCase()} in text form.`,
       placeholder: 'Enter a text...',
     },
     [CustomFieldTypeEnum.NUMBER]: {
@@ -49,7 +50,7 @@ function fieldInfo(
       desc: `Choose a date that reflects the intended ${fieldName.toLowerCase()} context.`,
       placeholder: 'Choose a date...',
     },
-  }
+  } as Record<CustomFieldTypeEnum, { desc: string; placeholder?: string | undefined }>
 
   return info[type]
 }
@@ -82,7 +83,7 @@ interface Props extends Pick<FormValues, 'teamId' | 'projectId' | 'csrfToken'> {
 export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...rest }: Props) {
   const form = useForm<FormValues>({
     defaultValues: {
-      email: 'wq@wq.com',
+      email: '',
       firstName: '',
       lastName: '',
       csrfToken,
@@ -208,16 +209,29 @@ export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...r
                     rules={{
                       maxLength: { value: 256, message: 'Last name cannot exceed 256 characters.' },
                     }}
-                    render={({ field }) => (
-                      <FormItem className="space-y-1">
-                        <FormLabel>{entry.name}</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder={info.placeholder} />
-                        </FormControl>
-                        <FormDescription>{info.desc}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      if (entry.type === CustomFieldTypeEnum.DATE) {
+                        return (
+                          <DateInput
+                            placeholder={info.placeholder}
+                            field={field}
+                            label={entry.name}
+                            desc={info.desc}
+                          />
+                        )
+                      }
+
+                      return (
+                        <FormItem className="space-y-1">
+                          <FormLabel>{entry.name}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder={info.placeholder} />
+                          </FormControl>
+                          <FormDescription>{info.desc}</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )
+                    }}
                   />
                 )
               })}

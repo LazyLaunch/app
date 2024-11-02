@@ -56,7 +56,9 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       components={{
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
-        CaptionLabel: () => null,
+        ...(['dropdown-buttons', 'dropdown'].includes(props.captionLayout!) && {
+          CaptionLabel: () => null,
+        }),
         Dropdown: (props) => {
           const { value, caption, name, onChange, className, children, ...rest } = props
 
