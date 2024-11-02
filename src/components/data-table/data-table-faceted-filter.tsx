@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/separator'
 
 import { cn } from '@/lib/utils'
 import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
-import { addHours, format } from 'date-fns'
+import { endOfDay, format, startOfDay } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 
 interface DataTableFacetedFilterProps<TData, TValue> {
@@ -44,8 +44,8 @@ function CalendarFacet<TData, TValue>({
   )
   const fromDate = selectedDateFilter.get('from')
   const toDate = selectedDateFilter.get('to')
-  const dateStart = fromDate && addHours(fromDate, -fromDate.getTimezoneOffset() / 60)
-  const dateEnd = toDate && addHours(toDate, -toDate.getTimezoneOffset() / 60)
+  const dateStart = fromDate && new Date(fromDate)
+  const dateEnd = toDate && new Date(toDate)
 
   return (
     <Popover>
@@ -71,21 +71,18 @@ function CalendarFacet<TData, TValue>({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           initialFocus
-          captionLayout="dropdown"
+          captionLayout="dropdown-buttons"
+          ISOWeek
+          fromYear={1950}
+          toYear={new Date().getFullYear()}
           mode="range"
           disabled={{ after: new Date() }}
           defaultMonth={new Date()}
           selected={{ from: dateStart, to: dateEnd } as DateRange}
           onSelect={(date) => {
             if (date) {
-              selectedDateFilter.set(
-                'from',
-                date?.from ? addHours(date.from, -date.from.getTimezoneOffset() / 60) : undefined
-              )
-              selectedDateFilter.set(
-                'to',
-                date?.to ? addHours(date.to, -date.to.getTimezoneOffset() / 60) : undefined
-              )
+              selectedDateFilter.set('from', date?.from ? startOfDay(date.from) : undefined)
+              selectedDateFilter.set('to', date?.to ? endOfDay(date.to) : undefined)
             } else {
               selectedDateFilter.set('from', undefined)
               selectedDateFilter.set('to', undefined)

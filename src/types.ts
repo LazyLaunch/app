@@ -90,4 +90,5 @@ export const CUSTOM_FIELD_TYPE_LIST = [
   CustomFieldTypeEnum.BOOLEAN,
 ] as const
 
-export const DATE_TEXT_FORMAT: string = 'LLL dd, y kk:mm:ss' as const
+export const DATE_TEXT_FORMAT: string = 'LLL dd, y' as const
+export const TABLE_DATE_TEXT_FORMAT: string = 'LLL dd, y kk:mm:ss' as const

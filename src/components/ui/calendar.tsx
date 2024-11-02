@@ -1,11 +1,19 @@
-import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { ChangeEvent, ComponentProps } from 'react'
 import { DayPicker } from 'react-day-picker'
 
-import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+export type CalendarProps = ComponentProps<typeof DayPicker>
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
@@ -16,6 +24,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         months: 'flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0',
         month: 'space-y-4',
         caption: 'flex justify-center pt-1 relative items-center',
+        caption_dropdowns: 'flex space-x-0.5',
         caption_label: 'text-sm font-medium',
         nav: 'space-x-1 flex items-center',
         nav_button: cn(
@@ -45,8 +54,38 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
+        CaptionLabel: () => null,
+        Dropdown: (props) => {
+          const { value, caption, name, onChange, className, children, ...rest } = props
+
+          return (
+            <Select
+              name={name}
+              defaultValue={String(value)}
+              onValueChange={(value) =>
+                onChange?.({ target: { value } } as ChangeEvent<HTMLSelectElement>)
+              }
+            >
+              <SelectTrigger
+                aria-label={rest['aria-label']}
+                className={cn(
+                  buttonVariants({ size: 'xs', variant: 'ghost' }),
+                  'border-0 text-sm font-medium',
+                  className
+                )}
+              >
+                <SelectValue placeholder={rest['aria-label']}>{caption}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(children as any[])?.map((option) => (
+                  <SelectItem className="text-sm font-medium" key={option.key} {...option.props} />
+                ))}
+              </SelectContent>
+            </Select>
+          )
+        },
       }}
       {...props}
     />
