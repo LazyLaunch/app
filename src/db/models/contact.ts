@@ -134,6 +134,19 @@ export async function getContacts({
     const customFilterConditions = customColumnFilters
       .map((filter) => {
         if (Array.isArray(filter.value)) {
+          if (filter.value.includes(true) || filter.value.includes(false)) {
+            const values = filter.value.map((v) => String(v))
+
+            return sql<boolean>`
+              EXISTS (
+                SELECT 1
+                FROM ${contactCustomFieldsTable}
+                WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+                  AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
+                  AND ${contactCustomFieldsTable.value} IN (${sql.join(values, sql`, `)})
+              )
+            `
+          }
           if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
             const obj = new Map<'from' | 'to', 'any'>(
               filter.value as Iterable<['from' | 'to', 'any']>
