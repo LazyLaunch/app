@@ -13,14 +13,18 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
+import type { CustomFieldProps } from '@/db/models/custom-field'
+
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>
   className?: string
+  customFields: CustomFieldProps[]
 }
 
 export function DataTableViewOptions<TData>({
   table,
   className,
+  customFields,
 }: DataTableViewOptionsProps<TData>) {
   return (
     <DropdownMenu>
@@ -37,6 +41,7 @@ export function DataTableViewOptions<TData>({
           .getAllColumns()
           .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
           .map((column) => {
+            const field = customFields.find((f) => f.tag === column.id)
             return (
               <DropdownMenuCheckboxItem
                 key={column.id}
@@ -44,7 +49,7 @@ export function DataTableViewOptions<TData>({
                 checked={column.getIsVisible()}
                 onCheckedChange={(value) => column.toggleVisibility(!!value)}
               >
-                {column.id}
+                {field ? field.name : column.id}
               </DropdownMenuCheckboxItem>
             )
           })}

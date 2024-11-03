@@ -191,7 +191,11 @@ export function ContactDataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions<TData> className="w-40 self-start" table={table} />
+      <DataTableViewOptions<TData>
+        className="w-40 self-start"
+        table={table}
+        customFields={customFields}
+      />
     </div>
   )
 }

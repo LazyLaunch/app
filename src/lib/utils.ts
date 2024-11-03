@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getNestedValue<T>(obj: Record<string, any>, key: string): T {
-  return key.split('.').reduce((acc, part) => acc && acc[part], obj) as T
+  return key.split('.').reduce((acc, part) => acc?.[part], obj) as T
 }
 
 export function capitalizeFirstLetter(text: string | undefined | null): string | undefined | null {
@@ -22,7 +22,7 @@ export function handleNumberInput(value: string, options?: { min?: number; max?:
 
   const numValue = Number.parseInt(value, 10)
 
-  if (isNaN(numValue)) return 0
+  if (Number.isNaN(numValue)) return 0
 
   if (numValue < minNumber) return minNumber
   if (numValue > maxNumber) return maxNumber
@@ -52,7 +52,7 @@ export function handleFloatInput(
   if (floatRegex.test(value)) return value
 
   const numValue = Number.parseFloat(value)
-  if (isNaN(numValue)) return '0'
+  if (Number.isNaN(numValue)) return '0'
 
   if (numValue > maxNumber) return String(maxNumber)
   if (!isSkipMin && numValue < minNumber) return String(minNumber)

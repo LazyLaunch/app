@@ -39,14 +39,13 @@ const customFieldSortingSchema = z.array(
   })
 )
 
-const customFieldSchema = z.record(z.string().uuid(), z.string())
 const columnFiltersSchema = z.array(
   z.object({
     id: z.string(),
     value: z.union([
       z.array(z.boolean()),
       z.array(z.string()),
-      z.array(z.array(z.union([z.string(), z.date(), z.null()]))),
+      z.array(z.array(z.union([z.string(), z.number(), z.null()]))),
     ]),
   })
 )
@@ -252,8 +251,11 @@ export const contact = {
         lastName: z.string().max(256).optional(),
         customFields: z.string().transform((val, ctx) => {
           try {
-            const parsed: Record<string, string> = JSON.parse(val)
-            customFieldSchema.parse(parsed)
+            const parsed: Record<string, string | boolean | number> = JSON.parse(val)
+            z.record(
+              z.string().uuid(),
+              z.union([z.string(), z.date(), z.boolean(), z.number()])
+            ).parse(parsed)
             return parsed
           } catch (err) {
             ctx.addIssue({
@@ -282,7 +284,7 @@ export const contact = {
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      id: z.string().uuid(),
+      id: z.string(),
     }),
     handler: async ({ id }, context) => {
       const user = context.locals.user!

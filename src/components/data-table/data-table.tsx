@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({
   const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
   const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
     left: ['select', 'email'],
     right: ['actions'],

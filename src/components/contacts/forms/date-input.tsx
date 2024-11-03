@@ -1,4 +1,5 @@
-import { format } from 'date-fns'
+import { UTCDate } from '@date-fns/utc'
+import { format, getTime } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -40,20 +41,25 @@ export function DateInput({ field, label, desc, placeholder }: Props) {
                   !field.value && 'text-muted-foreground'
                 )}
               >
-                {field.value ? format(field.value, DATE_TEXT_FORMAT) : <span>{placeholder}</span>}
+                {field.value ? (
+                  format(new UTCDate(field.value), DATE_TEXT_FORMAT)
+                ) : (
+                  <span>{placeholder}</span>
+                )}
                 <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </FormControl>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
-              defaultMonth={new Date()}
+              defaultMonth={new UTCDate()}
               captionLayout="buttons"
               mode="single"
               selected={field.value}
-              onSelect={(e) => {
+              onSelect={(date) => {
                 setOpen(false)
-                field.onChange(e)
+                const value = date && getTime(new UTCDate(date))
+                field.onChange(value)
               }}
               initialFocus
             />

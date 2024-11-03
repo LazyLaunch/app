@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 
 import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 import { actions, isInputError } from 'astro:actions'
@@ -55,10 +56,10 @@ function fieldInfo(
   return info[type]
 }
 
-function getFields(data: CustomFieldProps[]): Record<string, string> {
-  const fields: Record<string, string> = {}
+function getFields(data: CustomFieldProps[]): Record<string, string | boolean> {
+  const fields: Record<string, string | boolean> = {}
   for (const field of data) {
-    fields[field.id] = ''
+    fields[field.id] = field.type === CustomFieldTypeEnum.BOOLEAN ? false : ''
   }
 
   return fields
@@ -71,7 +72,7 @@ interface FormValues {
   lastName: string
   teamId: string
   projectId: string
-  customFields: Record<string, string>
+  customFields: Record<string, string | boolean>
 }
 
 interface Props extends Pick<FormValues, 'teamId' | 'projectId' | 'csrfToken'> {
@@ -201,6 +202,9 @@ export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...r
               />
               {customFields.map((entry) => {
                 const info = fieldInfo(entry.name, entry.type)
+                const { desc, placeholder } = info
+                const label = entry.name
+
                 return (
                   <FormField
                     key={entry.id}
@@ -213,21 +217,65 @@ export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...r
                       if (entry.type === CustomFieldTypeEnum.DATE) {
                         return (
                           <DateInput
-                            placeholder={info.placeholder}
+                            placeholder={placeholder}
                             field={field}
-                            label={entry.name}
-                            desc={info.desc}
+                            label={label}
+                            desc={desc}
                           />
+                        )
+                      }
+
+                      if (entry.type === CustomFieldTypeEnum.BOOLEAN) {
+                        return (
+                          <FormItem className="flex flex-row items-center justify-between">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">{label}</FormLabel>
+                              <FormDescription>{desc}</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={[true, 'true', 1, '1'].includes(field.value)}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )
+                      }
+
+                      if (entry.type === CustomFieldTypeEnum.NUMBER) {
+                        return (
+                          <FormItem className="space-y-1">
+                            <FormLabel>{label}</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...field}
+                                value={String(field.value)}
+                                type="number"
+                                onChange={(e) => {
+                                  const targetVal = e.target.value
+                                  const value = Number.parseInt(targetVal)
+                                  field.onChange(Number.isNaN(value) ? '' : value)
+                                }}
+                                placeholder={placeholder}
+                              />
+                            </FormControl>
+                            <FormDescription>{desc}</FormDescription>
+                            <FormMessage />
+                          </FormItem>
                         )
                       }
 
                       return (
                         <FormItem className="space-y-1">
-                          <FormLabel>{entry.name}</FormLabel>
+                          <FormLabel>{label}</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder={info.placeholder} />
+                            <Input
+                              {...field}
+                              value={String(field.value)}
+                              placeholder={placeholder}
+                            />
                           </FormControl>
-                          <FormDescription>{info.desc}</FormDescription>
+                          <FormDescription>{desc}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )

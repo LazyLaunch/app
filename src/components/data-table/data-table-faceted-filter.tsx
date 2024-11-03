@@ -1,3 +1,4 @@
+import { UTCDate } from '@date-fns/utc'
 import type { Column } from '@tanstack/react-table'
 import { CalendarIcon, Check, CirclePlus } from 'lucide-react'
 
@@ -39,13 +40,13 @@ function CalendarFacet<TData, TValue>({
   className,
   column,
 }: Pick<DataTableFacetedFilterProps<TData, TValue>, 'title' | 'className' | 'column'>) {
-  const selectedDateFilter = new Map<'to' | 'from', Date | undefined>(
-    column?.getFilterValue() as Iterable<['from' | 'to', Date | undefined]>
+  const selectedDateFilter = new Map<'to' | 'from', number | undefined>(
+    column?.getFilterValue() as Iterable<['from' | 'to', number | undefined]>
   )
   const fromDate = selectedDateFilter.get('from')
   const toDate = selectedDateFilter.get('to')
-  const dateStart = fromDate && new Date(fromDate)
-  const dateEnd = toDate && new Date(toDate)
+  const dateStart = fromDate && startOfDay(new UTCDate(fromDate))
+  const dateEnd = toDate && endOfDay(new UTCDate(toDate))
 
   return (
     <Popover>
@@ -72,17 +73,15 @@ function CalendarFacet<TData, TValue>({
         <Calendar
           initialFocus
           captionLayout="dropdown-buttons"
-          ISOWeek
           fromYear={1950}
-          toYear={new Date().getFullYear()}
+          toYear={new UTCDate().getFullYear()}
           mode="range"
-          disabled={{ after: new Date() }}
-          defaultMonth={new Date()}
+          defaultMonth={new UTCDate()}
           selected={{ from: dateStart, to: dateEnd } as DateRange}
           onSelect={(date) => {
             if (date) {
-              selectedDateFilter.set('from', date?.from ? startOfDay(date.from) : undefined)
-              selectedDateFilter.set('to', date?.to ? endOfDay(date.to) : undefined)
+              selectedDateFilter.set('from', date.from && new UTCDate(date.from).getTime())
+              selectedDateFilter.set('to', date.to && new UTCDate(date.to).getTime())
             } else {
               selectedDateFilter.set('from', undefined)
               selectedDateFilter.set('to', undefined)

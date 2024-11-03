@@ -1,9 +1,10 @@
-import { endOfDay, parseISO, startOfDay } from 'date-fns'
+import { UTCDate } from '@date-fns/utc'
 
 import { db } from '@/db'
 import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
 import type { CustomFieldTypeEnum } from '@/types'
+import { endOfDay, getTime, startOfDay } from 'date-fns'
 import {
   and,
   asc,
@@ -112,10 +113,8 @@ export async function getContacts({
           const to = obj.get('to') as string | null
 
           if (from && to && dateColumnIds.includes(filter.id)) {
-            const fromDate = parseISO(from)
-            const toDate = parseISO(to)
-            const dayStart = startOfDay(fromDate)
-            const dayEnd = endOfDay(toDate)
+            const dayStart = startOfDay(new UTCDate(from))
+            const dayEnd = endOfDay(new UTCDate(to))
 
             return and(gte(column, dayStart), lte(column, dayEnd))
           }
@@ -155,10 +154,8 @@ export async function getContacts({
             const to = obj.get('to') as string | null
 
             if (from && to) {
-              const fromDate = parseISO(from)
-              const toDate = parseISO(to)
-              const dayStart = startOfDay(fromDate)
-              const dayEnd = endOfDay(toDate)
+              const dayStart = getTime(startOfDay(new UTCDate(from)))
+              const dayEnd = getTime(endOfDay(new UTCDate(to)))
 
               return sql<boolean>`
                 EXISTS (
@@ -166,7 +163,7 @@ export async function getContacts({
                   FROM ${contactCustomFieldsTable}
                   WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
                     AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
-                    AND ${contactCustomFieldsTable.value} BETWEEN ${dayStart} AND ${dayEnd}
+                    AND CAST(${contactCustomFieldsTable.value} AS INTEGER) BETWEEN ${dayStart} AND ${dayEnd}
                 )
               `
             }
@@ -316,7 +313,7 @@ export function getContactColumns(): ContactFields[] {
 
 export async function createContact(
   data: InsertContact,
-  customFields: Record<string, string>
+  customFields: Record<string, string | boolean | number>
 ): Promise<SelectContact> {
   const ids: string[] = Object.keys(customFields)
 
@@ -330,7 +327,7 @@ export async function createContact(
       return {
         customFieldId: id,
         contactId: contact.id,
-        value,
+        value: String(value),
       }
     })
 

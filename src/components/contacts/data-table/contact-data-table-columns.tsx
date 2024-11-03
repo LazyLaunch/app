@@ -1,3 +1,4 @@
+import { UTCDate } from '@date-fns/utc'
 import type { ColumnDef } from '@tanstack/react-table'
 
 import { Badge } from '@/components/ui/badge'
@@ -8,7 +9,7 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 
 import type { ContactCustomFields } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { CustomFieldTypeEnum, TABLE_DATE_TEXT_FORMAT } from '@/types'
+import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
 import type { Column, Row } from '@tanstack/react-table'
 import { format } from 'date-fns'
 
@@ -38,13 +39,21 @@ export function contactDataTableColumns<TData>({
         if (type === CustomFieldTypeEnum.DATE) {
           return (
             <div className="w-40">
-              {format(new Date(Number.parseInt(value)), TABLE_DATE_TEXT_FORMAT)}
+              {format(new UTCDate(Number.parseInt(value)), DATE_TEXT_FORMAT)}
             </div>
           )
         }
         if (type === CustomFieldTypeEnum.NUMBER) {
           return <div>{Number.parseInt(value)}</div>
         }
+
+        if (type === CustomFieldTypeEnum.BOOLEAN) {
+          const toBool = ['true', true].includes(value)
+          const label = toBool ? 'Yes' : 'No'
+
+          return <Badge variant={toBool ? 'default' : 'destructive'}>{label}</Badge>
+        }
+
         return <div>{value}</div>
       },
       enableSorting: true,
@@ -129,7 +138,9 @@ export function contactDataTableColumns<TData>({
         <DataTableColumnHeader<TData, any> column={column} title="Updated At" />
       ),
       cell: ({ row }) => (
-        <div className="w-40">{format(row.getValue('updatedAt'), TABLE_DATE_TEXT_FORMAT)}</div>
+        <div className="w-40">
+          {format(new UTCDate(row.getValue('updatedAt')), DATE_TEXT_FORMAT)}
+        </div>
       ),
       enableSorting: true,
       enableHiding: true,
@@ -140,7 +151,9 @@ export function contactDataTableColumns<TData>({
         <DataTableColumnHeader<TData, any> column={column} title="Created At" />
       ),
       cell: ({ row }) => (
-        <div className="w-40">{format(row.getValue('createdAt'), TABLE_DATE_TEXT_FORMAT)}</div>
+        <div className="w-40">
+          {format(new UTCDate(row.getValue('createdAt')), DATE_TEXT_FORMAT)}
+        </div>
       ),
       enableSorting: true,
       enableHiding: true,
