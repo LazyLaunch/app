@@ -73,21 +73,38 @@ export interface OnSubmitSingleContactFormProps {
 }
 
 interface Props {
+  title: string
+  desc: string
+  btnName?: string
   open: boolean
   setOpen: (open: boolean) => void
   defaultValues: FormValues
   customFields: CustomFieldProps[]
-  onSubmit: (data: OnSubmitSingleContactFormProps) => Promise<SafeResult<FormValues, boolean>>
+  onSubmit: (
+    data: OnSubmitSingleContactFormProps
+  ) => Promise<SafeResult<FormValues, boolean> | undefined>
 }
 
-export function SingleContactForm({ open, setOpen, defaultValues, customFields, onSubmit }: Props) {
+export function SingleContactForm({
+  open,
+  setOpen,
+  defaultValues,
+  customFields,
+  onSubmit,
+  title,
+  desc,
+  btnName = 'Add Contact',
+}: Props) {
   const form = useForm<FormValues>({
     defaultValues,
   })
   const dirtyFields: Partial<FormValues> = form.formState.dirtyFields as Partial<FormValues>
 
   async function handleSubmit(values: FormValues) {
-    const { error } = await onSubmit({ values, dirtyFields })
+    const resp = await onSubmit({ values, dirtyFields })
+    if (!resp) return
+
+    const { error } = resp
 
     if (isInputError(error)) {
       const { fields } = error
@@ -119,11 +136,8 @@ export function SingleContactForm({ open, setOpen, defaultValues, customFields, 
               value={defaultValues.csrfToken}
             />
             <DialogHeader>
-              <DialogTitle>Add Contact</DialogTitle>
-              <DialogDescription>
-                Add a new contact to your subscriber list for email notifications. Please provide
-                the contact's information.
-              </DialogDescription>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{desc}</DialogDescription>
             </DialogHeader>
             <div className="my-6 space-y-6">
               <FormField
@@ -237,7 +251,7 @@ export function SingleContactForm({ open, setOpen, defaultValues, customFields, 
                             <FormControl>
                               <Input
                                 {...field}
-                                value={String(field.value)}
+                                value={String(field.value ?? '')}
                                 type="number"
                                 onChange={(e) => {
                                   const targetVal = e.target.value
@@ -259,7 +273,7 @@ export function SingleContactForm({ open, setOpen, defaultValues, customFields, 
                           <FormControl>
                             <Input
                               {...field}
-                              value={String(field.value)}
+                              value={String(field.value ?? '')}
                               placeholder={placeholder}
                             />
                           </FormControl>
@@ -278,8 +292,12 @@ export function SingleContactForm({ open, setOpen, defaultValues, customFields, 
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" className="w-full">
-                Add contact
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={Object.keys(dirtyFields).length === 0}
+              >
+                {btnName}
               </Button>
             </DialogFooter>
           </form>

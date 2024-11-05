@@ -1,5 +1,5 @@
 import { actions } from 'astro:actions'
-import { Ellipsis, Trash2 } from 'lucide-react'
+import { Ellipsis, PencilLine, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
 import type { Row, Table } from '@tanstack/react-table'
@@ -35,6 +35,10 @@ import type { CustomFieldProps } from '@/db/models/custom-field'
 import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 import { useState } from 'react'
 
+const SINGLE_FORM_TITLE: string = 'Edit Contact Information' as const
+const SINGLE_FORM_DESC: string =
+  "Update the contact's information below. You can modify any field and save your changes to keep the contact details current." as const
+
 function getCustomFieldsForm(row: Row<ContactProps>): Record<string, string | boolean | number> {
   const data: (CustomFieldProps & { value: string | boolean | number })[] = JSON.parse(
     row.original.customFields as unknown as string
@@ -55,6 +59,9 @@ async function onSubmitSingleContactForm({ values, dirtyFields }: OnSubmitSingle
   const { customFields, id, projectId, teamId, csrfToken, ...rest } = values
   const dirtyFieldNames: string[] = Object.keys(dirtyFields)
   const dirtyCustomFieldNames: string[] = Object.keys(dirtyFields?.customFields || {})
+
+  if (dirtyFieldNames.length === 0 && dirtyCustomFieldNames.length === 0) return
+
   const customFieldData: Record<string, string | boolean | number> = {}
 
   for (const customFieldId of dirtyCustomFieldNames) {
@@ -139,9 +146,10 @@ export function ContactDataTableRowActions({
           <DropdownMenuContent align="end" className="w-[160px]">
             <DropdownMenuItem
               onClick={() => setOpenSingleContactForm((prevState) => !prevState)}
-              className="cursor-pointer"
+              className="cursor-pointer space-x-2"
             >
-              Edit
+              <PencilLine className="size-4" />
+              <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuItem>Make a copy</DropdownMenuItem>
             <DropdownMenuItem>Favorite</DropdownMenuItem>
@@ -181,6 +189,9 @@ export function ContactDataTableRowActions({
         </AlertDialogContent>
       </AlertDialog>
       <SingleContactForm
+        title={SINGLE_FORM_TITLE}
+        desc={SINGLE_FORM_DESC}
+        btnName="Update Contact"
         customFields={customFields}
         open={openSingleContactForm}
         setOpen={setOpenSingleContactForm}

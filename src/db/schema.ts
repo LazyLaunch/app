@@ -242,8 +242,7 @@ export const contactsTable = sqliteTable(
       .references(() => teamsTable.id, { onDelete: 'cascade' }),
     updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
       .notNull()
-      .default(sql`(strftime('%s', 'now') * 1000)`)
-      .$onUpdate(() => sql`(strftime('%s', 'now') * 1000)`),
+      .default(sql`(strftime('%s', 'now') * 1000)`),
     createdAt: integer('created_at', { mode: 'timestamp_ms' })
       .notNull()
       .default(sql`(strftime('%s', 'now') * 1000)`),

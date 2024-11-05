@@ -437,10 +437,25 @@ export async function updateContact({
   projectId: string
   customFields: Record<string, string | boolean | number> | undefined
 }): Promise<void> {
-  console.log(data, customFields, 'eeeeeee')
+  const timestampNow = getTime(new UTCDate())
 
-  await db
-    .update(contactsTable)
-    .set(data)
-    .where(and(eq(contactsTable.id, id), eq(contactsTable.projectId, projectId)))
+  return await db.transaction(async (tx) => {
+    await tx
+      .update(contactsTable)
+      .set({ ...data, updatedAt: sql`${timestampNow}` })
+      .where(and(eq(contactsTable.id, id), eq(contactsTable.projectId, projectId)))
+
+    if (customFields) {
+      const fieldIds = Object.keys(customFields)
+      for (const fieldId of fieldIds) {
+        await tx
+          .insert(contactCustomFieldsTable)
+          .values({ value: String(customFields[fieldId]), contactId: id, customFieldId: fieldId })
+          .onConflictDoUpdate({
+            target: [contactCustomFieldsTable.contactId, contactCustomFieldsTable.customFieldId],
+            set: { value: String(customFields[fieldId]) },
+          })
+      }
+    }
+  })
 }

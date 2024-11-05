@@ -19,6 +19,9 @@ import {
 import type { CustomFieldProps } from '@/db/models/custom-field'
 import { actions } from 'astro:actions'
 
+const FORM_TITLE: string = 'Add Contact' as const
+const FORM_DESC: string =
+  "Add a new contact to your subscriber list for email notifications. Please provide the contact's information." as const
 function getCustomFieldsForm(data: CustomFieldProps[]): Record<string, string | boolean | number> {
   const fields: Record<string, string | boolean | number> = {}
   for (const field of data) {
@@ -91,6 +94,8 @@ export function NewContactForm({ csrfToken, teamId, projectId, customFields }: P
         </DropdownMenuItem>
       </DropdownMenuContent>
       <SingleContactForm
+        title={FORM_TITLE}
+        desc={FORM_DESC}
         customFields={customFields}
         open={openSingleContactForm}
         setOpen={setOpenSingleContactForm}
