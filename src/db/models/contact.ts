@@ -24,7 +24,8 @@ import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
 const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 
-export interface ContactCustomFields extends Pick<SelectCustomField, 'name' | 'type' | 'tag'> {
+export interface ContactCustomFields
+  extends Pick<SelectCustomField, 'id' | 'name' | 'type' | 'tag'> {
   value: string | null
 }
 
@@ -235,6 +236,7 @@ export async function getContacts({
       customFields: sql<ContactCustomFields[]>`
         json_group_array(
           json_object(
+            'id', custom_fields.id,
             'name', custom_fields.name,
             'type', custom_fields.type,
             'tag', custom_fields.tag,
@@ -423,4 +425,22 @@ export async function bulkCreateContactEmails({
     return { email, teamId, projectId, userId }
   })
   await db.insert(contactsTable).values(data)
+}
+
+export async function updateContact({
+  id,
+  projectId,
+  customFields,
+  ...data
+}: Partial<InsertContact> & {
+  id: string
+  projectId: string
+  customFields: Record<string, string | boolean | number> | undefined
+}): Promise<void> {
+  console.log(data, customFields, 'eeeeeee')
+
+  await db
+    .update(contactsTable)
+    .set(data)
+    .where(and(eq(contactsTable.id, id), eq(contactsTable.projectId, projectId)))
 }

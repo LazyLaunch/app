@@ -62,16 +62,15 @@ interface UpdateCustomFieldData extends Pick<InsertCustomField, 'name' | 'projec
   id: string
 }
 
-export async function updateCustomField({ id, ...data }: UpdateCustomFieldData): Promise<void> {
+export async function updateCustomField({
+  id,
+  projectId,
+  ...data
+}: UpdateCustomFieldData): Promise<void> {
   await db
     .update(customFieldsTable)
     .set(data)
-    .where(
-      and(
-        eq(customFieldsTable.id, id),
-        eq(customFieldsTable.projectId, customFieldsTable.projectId)
-      )
-    )
+    .where(and(eq(customFieldsTable.id, id), eq(customFieldsTable.projectId, projectId)))
 }
 
 export async function hasCustomFieldsPermission({

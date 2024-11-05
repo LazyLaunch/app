@@ -6,14 +6,40 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { IndividualContactsForm } from '@/components/contacts/forms/individual-contacts-form'
-import { SingleContactForm } from '@/components/contacts/forms/single-contact-form'
+import {
+  SingleContactForm,
+  type OnSubmitSingleContactFormProps,
+} from '@/components/contacts/forms/single-contact-form'
 
 import type { CustomFieldProps } from '@/db/models/custom-field'
+import { actions } from 'astro:actions'
+
+function getCustomFieldsForm(data: CustomFieldProps[]): Record<string, string | boolean | number> {
+  const fields: Record<string, string | boolean | number> = {}
+  for (const field of data) {
+    if (field.type === CustomFieldTypeEnum.BOOLEAN) fields[field.id] = false
+    if (field.type === CustomFieldTypeEnum.DATE) fields[field.id] = ''
+    if (field.type === CustomFieldTypeEnum.NUMBER) fields[field.id] = ''
+    if (field.type === CustomFieldTypeEnum.STRING) fields[field.id] = ''
+  }
+
+  return fields
+}
+
+async function onSubmitSingleContactForm({ values }: OnSubmitSingleContactFormProps) {
+  const { customFields, ...data } = values
+  const formData = new FormData()
+  for (const [key, value] of Object.entries(data)) {
+    formData.append(key, value?.toString() || '')
+  }
+  formData.append('customFields', JSON.stringify(customFields))
+  return await actions.contact.create(formData)
+}
 
 interface FormValues {
   [CSRF_TOKEN]: string
@@ -31,6 +57,16 @@ interface Props extends Pick<FormValues, 'csrfToken' | 'teamId' | 'projectId'> {
 export function NewContactForm({ csrfToken, teamId, projectId, customFields }: Props) {
   const [openSingleContactForm, setOpenSingleContactForm] = useState<boolean>(false)
   const [openIndividualContactsForm, setOpenIndividualContactsForm] = useState<boolean>(false)
+
+  const singleFormDefaultValues = {
+    email: '',
+    firstName: '',
+    lastName: '',
+    csrfToken,
+    customFields: getCustomFieldsForm(customFields),
+    teamId,
+    projectId,
+  }
 
   return (
     <DropdownMenu>
@@ -58,9 +94,8 @@ export function NewContactForm({ csrfToken, teamId, projectId, customFields }: P
         customFields={customFields}
         open={openSingleContactForm}
         setOpen={setOpenSingleContactForm}
-        csrfToken={csrfToken}
-        teamId={teamId}
-        projectId={projectId}
+        defaultValues={singleFormDefaultValues}
+        onSubmit={onSubmitSingleContactForm}
       />
       <IndividualContactsForm
         teamId={teamId}

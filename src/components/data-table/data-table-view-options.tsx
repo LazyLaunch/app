@@ -13,19 +13,20 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 
+import type { ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>
+interface DataTableViewOptionsProps {
+  table: Table<ContactProps>
   className?: string
   customFields: CustomFieldProps[]
 }
 
-export function DataTableViewOptions<TData>({
+export function DataTableViewOptions({
   table,
   className,
   customFields,
-}: DataTableViewOptionsProps<TData>) {
+}: DataTableViewOptionsProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

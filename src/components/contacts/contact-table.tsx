@@ -22,14 +22,17 @@ export function ContactTable({
   className: string
   csrfToken: string
   total: number
-  ids?: Record<string, string>
+  ids: {
+    teamId: string
+    projectId: string
+  }
   pagination: TablePaginationState
   customFields: CustomFieldProps[]
 }) {
   return (
-    <DataTable<ContactProps, any>
+    <DataTable
       data={data}
-      columns={contactDataTableColumns<ContactProps>({ csrfToken, customFields })}
+      columns={contactDataTableColumns({ csrfToken, customFields, ids })}
       className={className}
       total={total}
       ids={ids}
@@ -38,7 +41,7 @@ export function ContactTable({
       reqFilter={actions.contact.filters}
       customFields={customFields}
     >
-      {({ table, customFields, csrfToken }: ContactDataTableToolbarProps<ContactProps>) => (
+      {({ table, customFields, csrfToken }: ContactDataTableToolbarProps) => (
         <ContactDataTableToolbar table={table} customFields={customFields} csrfToken={csrfToken} />
       )}
     </DataTable>

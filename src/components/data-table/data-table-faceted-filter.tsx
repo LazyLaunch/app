@@ -17,13 +17,14 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 
+import type { ContactProps } from '@/db/models/contact'
 import { cn } from '@/lib/utils'
 import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 
-interface DataTableFacetedFilterProps<TData, TValue> {
-  column?: Column<TData, TValue>
+interface DataTableFacetedFilterProps {
+  column?: Column<ContactProps, any>
   title?: string
   withSearchCommand?: boolean
   type: CustomFieldTypeEnum
@@ -35,11 +36,11 @@ interface DataTableFacetedFilterProps<TData, TValue> {
   className?: string
 }
 
-function CalendarFacet<TData, TValue>({
+function CalendarFacet({
   title,
   className,
   column,
-}: Pick<DataTableFacetedFilterProps<TData, TValue>, 'title' | 'className' | 'column'>) {
+}: Pick<DataTableFacetedFilterProps, 'title' | 'className' | 'column'>) {
   const selectedDateFilter = new Map<'to' | 'from', number | undefined>(
     column?.getFilterValue() as Iterable<['from' | 'to', number | undefined]>
   )
@@ -95,13 +96,13 @@ function CalendarFacet<TData, TValue>({
   )
 }
 
-function DefaultFacet<TData, TValue>({
+function DefaultFacet({
   column,
   title,
   options = [],
   withSearchCommand = false,
   className,
-}: Omit<DataTableFacetedFilterProps<TData, TValue>, 'type'>) {
+}: Omit<DataTableFacetedFilterProps, 'type'>) {
   const selectedValues = new Set<string | boolean>(column?.getFilterValue() as string[] | boolean[])
 
   return (
@@ -197,13 +198,10 @@ function DefaultFacet<TData, TValue>({
   )
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
-  type,
-  ...rest
-}: DataTableFacetedFilterProps<TData, TValue>) {
+export function DataTableFacetedFilter({ type, ...rest }: DataTableFacetedFilterProps) {
   if (type === CustomFieldTypeEnum.DATE) {
-    return <CalendarFacet<TData, TValue> {...rest} />
+    return <CalendarFacet {...rest} />
   }
 
-  return <DefaultFacet<TData, TValue> {...rest} />
+  return <DefaultFacet {...rest} />
 }

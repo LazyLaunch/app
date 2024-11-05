@@ -10,18 +10,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import type { ContactProps } from '@/db/models/contact'
 import { cn } from '@/lib/utils'
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<TData, TValue>
+interface DataTableColumnHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
+  column: Column<ContactProps, any>
   title: string
 }
 
-export function DataTableColumnHeader<TData, TValue>({
-  column,
-  title,
-  className,
-}: DataTableColumnHeaderProps<TData, TValue>) {
+export function DataTableColumnHeader({ column, title, className }: DataTableColumnHeaderProps) {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
   }

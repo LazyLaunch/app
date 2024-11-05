@@ -24,16 +24,16 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
-import type { GlobalContactColumnFilter } from '@/db/models/contact'
+import type { ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
-    onDelete: (fn: (params: { data: TData[]; setData: (data: TData[]) => void }) => void) => void
+    onDelete: (id: string) => void
   }
 }
 
-export function getCommonPinningStyles<TData>(column: Column<TData>): CSSProperties {
+export function getCommonPinningStyles(column: Column<ContactProps>): CSSProperties {
   const isPinned = column.getIsPinned()
 
   return {
@@ -51,12 +51,11 @@ export interface TablePaginationState {
   pageSize: number
 }
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+interface DataTableProps {
+  columns: ColumnDef<ContactProps, any>[]
+  data: ContactProps[]
   className: string
   children: any
-  onDelete?: (data: TData[], props: any) => void
   reqFilter: (data: FormData) => Promise<any>
   csrfToken: string
   ids?: Record<string, string>
@@ -65,21 +64,20 @@ interface DataTableProps<TData, TValue> {
   customFields: CustomFieldProps[]
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable({
   data,
   columns,
   className,
   children,
-  onDelete = (data, props) => {},
   reqFilter,
   total,
   csrfToken,
   pagination,
   ids = {},
   customFields = [],
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps) {
   const isDry = useRef<boolean>(true)
-  const [_data, setData] = useState<TData[]>(data)
+  const [_data, setData] = useState<ContactProps[]>(data)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -92,7 +90,7 @@ export function DataTable<TData, TValue>({
 
   const [_pagination, setPagination] = useState<TablePaginationState>(pagination)
 
-  const table = useReactTable<TData>({
+  const table = useReactTable<ContactProps>({
     data: _data,
     columns,
     rowCount: total,
@@ -119,7 +117,8 @@ export function DataTable<TData, TValue>({
     onColumnPinningChange: setColumnPinning,
     getCoreRowModel: getCoreRowModel(),
     meta: {
-      onDelete: (props) => onDelete(data, props),
+      onDelete: (id: string) =>
+        setData((prevState) => prevState.filter((d) => (d as unknown as { id: string }).id !== id)),
     },
     manualPagination: true,
     enableColumnPinning: true,
@@ -188,7 +187,7 @@ export function DataTable<TData, TValue>({
                       className="bg-background"
                       key={header.id}
                       colSpan={header.colSpan}
-                      style={{ ...getCommonPinningStyles<TData>(header.column) }}
+                      style={{ ...getCommonPinningStyles(header.column) }}
                     >
                       {header.isPlaceholder
                         ? null
@@ -207,7 +206,7 @@ export function DataTable<TData, TValue>({
                     <TableCell
                       className="bg-background"
                       key={cell.id}
-                      style={{ ...getCommonPinningStyles<TData>(cell.column) }}
+                      style={{ ...getCommonPinningStyles(cell.column) }}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
@@ -224,7 +223,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination<TData> table={table} />
+      <DataTablePagination table={table} />
     </div>
   )
 }

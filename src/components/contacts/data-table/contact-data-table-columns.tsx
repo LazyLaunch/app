@@ -7,24 +7,29 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ContactDataTableRowActions } from '@/components/contacts/data-table/contact-data-table-row-actions'
 import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
 
-import type { ContactCustomFields } from '@/db/models/contact'
+import type { ContactCustomFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
 import type { Column, Row } from '@tanstack/react-table'
 import { format } from 'date-fns'
 
-export function contactDataTableColumns<TData>({
+export function contactDataTableColumns({
   csrfToken,
   customFields,
+  ids,
 }: {
   csrfToken: string
   customFields: CustomFieldProps[]
-}): ColumnDef<TData>[] {
+  ids: {
+    teamId: string
+    projectId: string
+  }
+}): ColumnDef<ContactProps>[] {
   const newFields = customFields.map((field) => {
     return {
       accessorKey: field.tag,
-      header: ({ column }: { column: Column<TData> }) => (
-        <DataTableColumnHeader<TData, any> column={column} title={field.name} />
+      header: ({ column }: { column: Column<ContactProps> }) => (
+        <DataTableColumnHeader column={column} title={field.name} />
       ),
       cell: ({ row }: { row: Row<any> }) => {
         const fields = row.original.customFields
@@ -89,7 +94,7 @@ export function contactDataTableColumns<TData>({
     },
     {
       accessorKey: 'email',
-      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Email" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
       cell: ({ row }) => <div>{row.getValue('email')}</div>,
       enableSorting: true,
       enableHiding: false,
@@ -97,34 +102,28 @@ export function contactDataTableColumns<TData>({
     ...newFields,
     {
       accessorKey: 'firstName',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="First Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="First Name" />,
       cell: ({ row }) => <div>{row.getValue('firstName')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'lastName',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Last Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Last Name" />,
       cell: ({ row }) => <div>{row.getValue('lastName')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'source',
-      header: ({ column }) => <DataTableColumnHeader<TData, any> column={column} title="Source" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Source" />,
       cell: ({ row }) => <div>{row.getValue('source')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'subscribed',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Subscribed" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Subscribed" />,
       cell: ({ row }) => {
         const isSubscribed = row.getValue('subscribed')
         const label = isSubscribed ? 'Yes' : 'No'
@@ -134,9 +133,7 @@ export function contactDataTableColumns<TData>({
     },
     {
       accessorKey: 'updatedAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Updated At" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Updated At" />,
       cell: ({ row }) => (
         <div className="w-40">
           {format(new UTCDate(row.getValue('updatedAt')), DATE_TEXT_FORMAT)}
@@ -147,9 +144,7 @@ export function contactDataTableColumns<TData>({
     },
     {
       accessorKey: 'createdAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader<TData, any> column={column} title="Created At" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
       cell: ({ row }) => (
         <div className="w-40">
           {format(new UTCDate(row.getValue('createdAt')), DATE_TEXT_FORMAT)}
@@ -161,7 +156,13 @@ export function contactDataTableColumns<TData>({
     {
       id: 'actions',
       cell: ({ row, table }) => (
-        <ContactDataTableRowActions<TData> row={row} table={table} csrfToken={csrfToken} />
+        <ContactDataTableRowActions
+          customFields={customFields}
+          ids={ids}
+          row={row}
+          table={table}
+          csrfToken={csrfToken}
+        />
       ),
     },
   ]

@@ -9,6 +9,7 @@ import {
   getUniqueContactEmails,
   hasContactPermission,
   isUniqContactEmail,
+  updateContact,
   type ContactColumnFilters,
   type ContactCustomColumnFilters,
   type ContactCustomFieldSort,
@@ -277,6 +278,78 @@ export const contact = {
       const user = context.locals.user!
 
       await createContact({ ...input, userId: user.id }, customFields)
+      return true
+    },
+  }),
+  update: defineAction({
+    accept: 'form',
+    input: z
+      .object({
+        csrfToken: z.string(),
+        projectId: z.string().uuid(),
+        id: z.string(),
+        email: z.optional(
+          z
+            .string({
+              required_error: 'Email is required. Please enter your email address.',
+              invalid_type_error: 'Invalid email format. Please enter a valid email address.',
+            })
+            .max(256, { message: 'Email address is too long. It must be 256 characters or less.' })
+            .email({ message: 'Please enter a valid email address.' })
+        ),
+        firstName: z.string().max(256).optional(),
+        lastName: z.string().max(256).optional(),
+        customFields: z.optional(
+          z.string().transform((val, ctx) => {
+            try {
+              const parsed: Record<string, string | boolean | number> = JSON.parse(val)
+              z.record(
+                z.string().uuid(),
+                z.union([z.string(), z.date(), z.boolean(), z.number()])
+              ).parse(parsed)
+              return parsed
+            } catch (err) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Custom field is not valid JSON or does not match the expected structure.',
+              })
+              return z.NEVER
+            }
+          })
+        ),
+      })
+      .refine(
+        async ({ email, projectId }) => {
+          if (!email) return true
+          return await isUniqContactEmail(email, projectId)
+        },
+        () => ({
+          message: 'This email address is already in use. Please use a different email.',
+          path: ['email'],
+        })
+      ),
+    handler: async ({ csrfToken, customFields, ...input }, context) => {
+      const user = context.locals.user!
+      const hasPermission = await hasContactPermission({ id: input.id, userId: user.id })
+      if (!hasPermission) {
+        throw new ActionError({
+          code: ResponseStatusEnum.UNAUTHORIZED,
+          message: ResponseStatusMessageEnum.UNAUTHORIZED,
+        })
+      }
+
+      const formData = context.locals.formDataParsed!
+
+      const data: typeof input = {} as typeof input
+      for (const fieldName of Object.keys(input)) {
+        if (formData.has(fieldName)) {
+          const val = formData.get(fieldName)
+          data[fieldName as keyof typeof input] = val as string
+        }
+      }
+
+      await updateContact({ ...data, customFields })
+
       return true
     },
   }),

@@ -1,5 +1,6 @@
 import type { Table } from '@tanstack/react-table'
 import { FileText, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
@@ -17,11 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import type { ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { useMemo } from 'react'
 
-export interface ContactDataTableToolbarProps<TData> {
-  table: Table<TData>
+export interface ContactDataTableToolbarProps {
+  table: Table<ContactProps>
   customFields: CustomFieldProps[]
   csrfToken: string
 }
@@ -65,11 +66,11 @@ interface FormValues {
   q: string
 }
 
-export function ContactDataTableToolbar<TData>({
+export function ContactDataTableToolbar({
   table,
   customFields,
   csrfToken,
-}: ContactDataTableToolbarProps<TData>) {
+}: ContactDataTableToolbarProps) {
   const isFiltered = table.getState().columnFilters.length > 0
   const isGlobalFiltered = table.getState().globalFilter.length > 0
   const searchForm = useForm<FormValues>({
@@ -165,7 +166,7 @@ export function ContactDataTableToolbar<TData>({
         {filterColumns.map(({ tag, name, options, type }) => {
           if (table.getColumn(tag)) {
             return (
-              <DataTableFacetedFilter<TData, any>
+              <DataTableFacetedFilter
                 className="mt-2"
                 key={tag}
                 type={type}
@@ -191,11 +192,7 @@ export function ContactDataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions<TData>
-        className="w-40 self-start"
-        table={table}
-        customFields={customFields}
-      />
+      <DataTableViewOptions className="w-40 self-start" table={table} customFields={customFields} />
     </div>
   )
 }

@@ -24,7 +24,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 
 import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
-import { actions, isInputError } from 'astro:actions'
+import { isInputError, type SafeResult } from 'astro:actions'
 
 import { DateInput } from '@/components/contacts/forms/date-input'
 import type { CustomFieldProps } from '@/db/models/custom-field'
@@ -56,50 +56,38 @@ function fieldInfo(
   return info[type]
 }
 
-function getFields(data: CustomFieldProps[]): Record<string, string | boolean> {
-  const fields: Record<string, string | boolean> = {}
-  for (const field of data) {
-    fields[field.id] = field.type === CustomFieldTypeEnum.BOOLEAN ? false : ''
-  }
-
-  return fields
-}
-
 interface FormValues {
   [CSRF_TOKEN]: string
+  id?: string
   email: string
   firstName: string
   lastName: string
   teamId: string
   projectId: string
-  customFields: Record<string, string | boolean>
+  customFields: Record<string, string | boolean | number>
 }
 
-interface Props extends Pick<FormValues, 'teamId' | 'projectId' | 'csrfToken'> {
+export interface OnSubmitSingleContactFormProps {
+  values: FormValues
+  dirtyFields: Partial<FormValues>
+}
+
+interface Props {
   open: boolean
   setOpen: (open: boolean) => void
+  defaultValues: FormValues
   customFields: CustomFieldProps[]
+  onSubmit: (data: OnSubmitSingleContactFormProps) => Promise<SafeResult<FormValues, boolean>>
 }
 
-export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...rest }: Props) {
+export function SingleContactForm({ open, setOpen, defaultValues, customFields, onSubmit }: Props) {
   const form = useForm<FormValues>({
-    defaultValues: {
-      email: '',
-      firstName: '',
-      lastName: '',
-      csrfToken,
-      customFields: getFields(customFields),
-      ...rest,
-    },
+    defaultValues,
   })
+  const dirtyFields: Partial<FormValues> = form.formState.dirtyFields as Partial<FormValues>
 
-  async function onSubmit({ customFields, ...values }: FormValues) {
-    const formData = new FormData()
-    for (const [key, value] of Object.entries(values)) {
-      formData.append(key, value?.toString() || '')
-    }
-    formData.append('customFields', JSON.stringify(customFields))
-    const { error } = await actions.contact.create(formData)
+  async function handleSubmit(values: FormValues) {
+    const { error } = await onSubmit({ values, dirtyFields })
 
     if (isInputError(error)) {
       const { fields } = error
@@ -123,12 +111,12 @@ export function SingleContactForm({ open, setOpen, csrfToken, customFields, ...r
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent onCloseAutoFocus={onClose} className="sm:max-w-[425px]">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(handleSubmit)}>
             <input
               {...form.register(CSRF_TOKEN, { required: true })}
               type="hidden"
               name={CSRF_TOKEN}
-              value={csrfToken}
+              value={defaultValues.csrfToken}
             />
             <DialogHeader>
               <DialogTitle>Add Contact</DialogTitle>

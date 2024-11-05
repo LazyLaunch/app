@@ -55,7 +55,7 @@ export function DateInput({ field, label, desc, placeholder }: Props) {
               defaultMonth={new UTCDate()}
               captionLayout="buttons"
               mode="single"
-              selected={field.value}
+              selected={field.value || undefined}
               onSelect={(date) => {
                 setOpen(false)
                 const value = date && getTime(new UTCDate(date))
