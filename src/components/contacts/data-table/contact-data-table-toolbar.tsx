@@ -130,7 +130,7 @@ export function ContactDataTableToolbar({
               control={searchForm.control}
               name="q"
               render={({ field }) => (
-                <Input {...field} placeholder="Search..." className="h-8 w-96" />
+                <Input {...field} placeholder="Search by any text field..." className="h-8 w-96" />
               )}
             />
             <FormField

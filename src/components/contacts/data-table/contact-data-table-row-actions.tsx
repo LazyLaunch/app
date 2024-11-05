@@ -192,6 +192,7 @@ export function ContactDataTableRowActions({
         title={SINGLE_FORM_TITLE}
         desc={SINGLE_FORM_DESC}
         btnName="Update Contact"
+        withDisabledBtn
         customFields={customFields}
         open={openSingleContactForm}
         setOpen={setOpenSingleContactForm}

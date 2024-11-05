@@ -76,6 +76,7 @@ interface Props {
   title: string
   desc: string
   btnName?: string
+  withDisabledBtn?: boolean
   open: boolean
   setOpen: (open: boolean) => void
   defaultValues: FormValues
@@ -94,6 +95,7 @@ export function SingleContactForm({
   title,
   desc,
   btnName = 'Add Contact',
+  withDisabledBtn = false,
 }: Props) {
   const form = useForm<FormValues>({
     defaultValues,
@@ -295,7 +297,7 @@ export function SingleContactForm({
               <Button
                 type="submit"
                 className="w-full"
-                disabled={Object.keys(dirtyFields).length === 0}
+                disabled={withDisabledBtn && Object.keys(dirtyFields).length === 0}
               >
                 {btnName}
               </Button>
