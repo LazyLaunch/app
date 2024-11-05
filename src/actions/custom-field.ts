@@ -1,3 +1,4 @@
+import { isCuid } from '@paralleldrive/cuid2'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
@@ -10,7 +11,15 @@ import {
 } from '@/db/models/custom-field'
 import { CUSTOM_FIELD_TYPE_LIST, ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
-const customFieldIdsSchema = z.array(z.string().uuid())
+const customFieldIdsSchema = z.array(
+  z.string().refine(
+    (val) => isCuid(val),
+    () => ({
+      message: 'Custom field id is not valid.',
+      path: ['ids'],
+    })
+  )
+)
 
 export const customField = {
   update: defineAction({
@@ -18,8 +27,20 @@ export const customField = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().uuid(),
-        id: z.string().uuid(),
+        projectId: z.string().refine(
+          (val) => isCuid(val),
+          () => ({
+            message: 'Project ID is not valid.',
+            path: ['projectId'],
+          })
+        ),
+        id: z.string().refine(
+          (val) => isCuid(val),
+          () => ({
+            message: 'Id is not valid.',
+            path: ['id'],
+          })
+        ),
         name: z.string({
           required_error: 'Name is required.',
           invalid_type_error: 'Invalid name format. Please enter a valid name.',
@@ -49,8 +70,20 @@ export const customField = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().uuid(),
-        teamId: z.string().uuid(),
+        projectId: z.string().refine(
+          (val) => isCuid(val),
+          () => ({
+            message: 'Project ID is not valid.',
+            path: ['projectId'],
+          })
+        ),
+        teamId: z.string().refine(
+          (val) => isCuid(val),
+          () => ({
+            message: 'Team ID is not valid.',
+            path: ['teamId'],
+          })
+        ),
         name: z.string({
           required_error: 'Name is required.',
           invalid_type_error: 'Invalid name format. Please enter a valid name.',

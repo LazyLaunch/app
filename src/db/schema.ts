@@ -1,4 +1,8 @@
-import { createId } from '@paralleldrive/cuid2'
+import { init } from '@paralleldrive/cuid2'
+
+const createId = init({
+  length: 32,
+})
 
 import type { UserRoles } from '@/lib/rbac'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
@@ -17,7 +21,7 @@ export const usersTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     name: text('name', { length: 32 }).notNull(),
     username: text('username', { length: 50 }).notNull(),
     email: text('email', { length: 256 }).notNull(),
@@ -91,7 +95,7 @@ export const sessionsTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     userId: text('user_id', { length: 256 })
       .notNull()
       .references(() => usersTable.id, { onDelete: 'cascade' }),
@@ -112,7 +116,7 @@ export const teamsTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     name: text('name', { length: 50 }).notNull(),
     slug: text('slug', { length: 50 }).notNull(),
     address: text('address', { length: 256 }).notNull(),
@@ -139,7 +143,7 @@ export const projectsTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     name: text('name', { length: 50 }).notNull(),
     slug: text('slug', { length: 50 }).notNull(),
     teamId: text('team_id', { length: 256 })
@@ -183,7 +187,7 @@ export const emailTemplatesTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     name: text('name', { length: 50 }).notNull(),
     description: text('description', { length: 256 }),
     emoji: text('emoji', { mode: 'json' }).$type<EmojiProps>().notNull(),
@@ -270,7 +274,7 @@ export const customFieldsTable = sqliteTable(
     id: text('id', { length: 256 })
       .primaryKey()
       .notNull()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => createId()),
     name: text('name', { length: 50 }).notNull(),
     type: text('type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 })
       .notNull()
@@ -330,7 +334,7 @@ export const contactCustomFieldsTable = sqliteTable(
 //     id: text('id', { length: 256 })
 //       .primaryKey()
 //       .notNull()
-//       .$defaultFn(() => crypto.randomUUID()),
+//       .$defaultFn(() => createId()),
 //     name: text('name', { length: 256 }).notNull(),
 //     subject: text('subject', { length: 256 }).notNull(),
 //     from: text('from', { length: 256 }).notNull(),

@@ -1,3 +1,4 @@
+import { isCuid } from '@paralleldrive/cuid2'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
@@ -99,9 +100,21 @@ const contentSchema = z
   })
 
 const baseSchema = z.object({
-  teamId: z.string().uuid(),
+  teamId: z.string().refine(
+    (val) => isCuid(val),
+    () => ({
+      message: 'Team ID is not valid.',
+      path: ['teamId'],
+    })
+  ),
   csrfToken: z.string(),
-  projectId: z.string().uuid(),
+  projectId: z.string().refine(
+    (val) => isCuid(val),
+    () => ({
+      message: 'Project ID is not valid.',
+      path: ['projectId'],
+    })
+  ),
   name: z
     .string({
       required_error: 'Name cannot be empty.',
@@ -139,6 +152,7 @@ export const template = {
         settings,
         userId: user.id,
         projectId,
+        teamId,
       })
 
       return Boolean(emailTemplate.id)
@@ -147,7 +161,13 @@ export const template = {
   update: defineAction({
     accept: 'form',
     input: baseSchema.extend({
-      emailTemplateId: z.string().uuid(),
+      emailTemplateId: z.string().refine(
+        (val) => isCuid(val),
+        () => ({
+          message: 'Email template ID is not valid.',
+          path: ['emailTemplateId'],
+        })
+      ),
     }),
     handler: async (input, context) => {
       const { teamId, emailTemplateId, content, emoji, settings, name, description, projectId } =
