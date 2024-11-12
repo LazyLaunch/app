@@ -83,6 +83,31 @@ CREATE TABLE `emails` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE TABLE `filter_conditions` (
+	`id` text(256) PRIMARY KEY NOT NULL,
+	`filter_id` text(256) NOT NULL,
+	`column_name` text(256) NOT NULL,
+	`column_type` text(50),
+	`operator` integer NOT NULL,
+	`value` text(256),
+	`secondary_value` text(256),
+	`condition_type` integer DEFAULT 0,
+	`created_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`filter_id`) REFERENCES `filters`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE TABLE `filters` (
+	`id` text(256) PRIMARY KEY NOT NULL,
+	`name` text(50) NOT NULL,
+	`project_id` text(256) NOT NULL,
+	`team_id` text(256) NOT NULL,
+	`user_id` text(256) NOT NULL,
+	`created_at` text(50) DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+	FOREIGN KEY (`project_id`) REFERENCES `projects`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`team_id`) REFERENCES `teams`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `projects` (
 	`id` text(256) PRIMARY KEY NOT NULL,
 	`name` text(50) NOT NULL,
@@ -151,6 +176,9 @@ CREATE INDEX `email_templates_user_idx` ON `email_templates` (`user_id`);--> sta
 CREATE INDEX `email_templates_project_idx` ON `email_templates` (`project_id`);--> statement-breakpoint
 CREATE INDEX `email_templates_team_idx` ON `email_templates` (`team_id`);--> statement-breakpoint
 CREATE INDEX `emails_user_idx` ON `emails` (`user_id`);--> statement-breakpoint
+CREATE INDEX `filter_conditions_filter_idx` ON `filter_conditions` (`filter_id`);--> statement-breakpoint
+CREATE INDEX `filters_project_idx` ON `filters` (`project_id`);--> statement-breakpoint
+CREATE INDEX `filters_team_idx` ON `filters` (`team_id`);--> statement-breakpoint
 CREATE UNIQUE INDEX `projects_slug_idx` ON `projects` (`slug`);--> statement-breakpoint
 CREATE INDEX `projects_team_idx` ON `projects` (`team_id`);--> statement-breakpoint
 CREATE INDEX `sessions_user_idx` ON `user_sessions` (`user_id`);--> statement-breakpoint

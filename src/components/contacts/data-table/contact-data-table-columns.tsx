@@ -1,7 +1,6 @@
 import { UTCDate } from '@date-fns/utc'
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 
 import { ContactDataTableRowActions } from '@/components/contacts/data-table/contact-data-table-row-actions'
@@ -56,7 +55,11 @@ export function contactDataTableColumns({
           const toBool = ['true', true].includes(value)
           const label = toBool ? 'Yes' : 'No'
 
-          return <Badge variant={toBool ? 'default' : 'destructive'}>{label}</Badge>
+          return (
+            <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground">
+              {label}
+            </div>
+          )
         }
 
         return <div>{value}</div>
@@ -128,7 +131,11 @@ export function contactDataTableColumns({
         const isSubscribed = row.getValue('subscribed')
         const label = isSubscribed ? 'Yes' : 'No'
 
-        return <Badge variant={isSubscribed ? 'default' : 'destructive'}>{label}</Badge>
+        return (
+          <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground">
+            {label}
+          </div>
+        )
       },
     },
     {

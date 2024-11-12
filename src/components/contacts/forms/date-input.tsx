@@ -1,6 +1,7 @@
 import { UTCDate } from '@date-fns/utc'
 import { format, getTime } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -15,20 +16,20 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { cn } from '@/lib/utils'
 import { DATE_TEXT_FORMAT } from '@/types'
-import { useState } from 'react'
 
 interface Props {
-  label: string
-  desc: string
+  className?: string
+  label?: string
+  desc?: string
   field: any
   placeholder?: string
 }
 
-export function DateInput({ field, label, desc, placeholder }: Props) {
+export function DateInput({ className, field, label, desc, placeholder }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
-    <FormItem className="space-y-1">
+    <FormItem className={cn('space-y-1', className)}>
       <FormLabel>{label}</FormLabel>
       <FormControl>
         <Popover open={open} onOpenChange={setOpen}>
@@ -37,16 +38,16 @@ export function DateInput({ field, label, desc, placeholder }: Props) {
               <Button
                 variant="outline"
                 className={cn(
-                  'pl-3 text-left font-normal flex w-full',
+                  'pl-3 text-left font-normal flex w-full space-x-2 justify-between',
                   !field.value && 'text-muted-foreground'
                 )}
               >
                 {field.value ? (
-                  format(new UTCDate(field.value), DATE_TEXT_FORMAT)
+                  <span>{format(new UTCDate(field.value), DATE_TEXT_FORMAT)}</span>
                 ) : (
                   <span>{placeholder}</span>
                 )}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                <CalendarIcon className="ml-auto size-4 opacity-50" />
               </Button>
             </FormControl>
           </PopoverTrigger>

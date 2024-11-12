@@ -5,7 +5,7 @@ import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
 import { NewCustomFieldForm } from '@/components/custom-fields/new-custom-field-form'
 import { Badge } from '@/components/ui/badge'
 import { getCustomFields, type CustomFieldList } from '@/db/models/custom-field'
-import { getContactColumns } from '@/db/models/contact'
+import { getContactFields } from '@/db/models/contact'
 import { CustomFieldTable } from '@/components/custom-fields/custom-field-table'
 
 import { toTag } from '@/lib/to-tag'
@@ -23,7 +23,7 @@ let customFields = (await getCustomFields({
   teamId: team.id,
 })) as CustomFieldList[]
 customFields = customFields.map((col) => ({ ...col, isCustomField: true }))
-const contactColumns: CustomFieldList[] = getContactColumns().map((col) => {
+const contactColumns: CustomFieldList[] = getContactFields().map((col) => {
   return {
     id: Math.random().toString(36).slice(2, 7),
     name: col.name,

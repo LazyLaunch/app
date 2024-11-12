@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 
 import { ContactTable } from '@/components/contacts/contact-table'
 
-import { getContacts, getContactTotal } from '@/db/models/contact'
+import { getContacts, getContactTotal, getContactFields } from '@/db/models/contact'
 import { NewContactForm } from '@/components/contacts/new-contact-form'
 import { handleNumberInput } from '@/lib/utils'
 import {
@@ -50,8 +50,10 @@ const data = await getContacts({
   limit,
   offset,
   columnFilters: [],
+  customColumnFilters: [],
 })
 const total = await getContactTotal(ids)
+const contactFields = getContactFields()
 ---
 
 <ProjectLayout>
@@ -73,6 +75,7 @@ const total = await getContactTotal(ids)
         data={data}
         className="pt-6"
         customFields={customFields}
+        contactFields={contactFields}
         client:load
       />
     </ProjectContactNav>

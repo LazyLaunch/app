@@ -1,4 +1,6 @@
 import { init } from '@paralleldrive/cuid2'
+import { sql } from 'drizzle-orm'
+import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 const createId = init({
   length: 32,
@@ -12,8 +14,6 @@ import {
   CustomFieldTypeEnum,
   type ProviderType,
 } from '@/types'
-import { sql } from 'drizzle-orm'
-import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 export const usersTable = sqliteTable(
   'users',
@@ -328,6 +328,54 @@ export const contactCustomFieldsTable = sqliteTable(
   })
 )
 
+export const filtersTable = sqliteTable(
+  'filters',
+  {
+    id: text('id', { length: 256 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    name: text('name', { length: 50 }).notNull(),
+    projectId: text('project_id', { length: 256 })
+      .notNull()
+      .references(() => projectsTable.id, { onDelete: 'cascade' }),
+    teamId: text('team_id', { length: 256 })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
+    userId: text('user_id', { length: 256 })
+      .notNull()
+      .references(() => usersTable.id),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    filterProjectIdx: index('filters_project_idx').on(table.projectId),
+    filterTeamIdx: index('filters_team_idx').on(table.teamId),
+  })
+)
+
+export const filterConditionsTable = sqliteTable(
+  'filter_conditions',
+  {
+    id: text('id', { length: 256 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    filterId: text('filter_id', { length: 256 })
+      .notNull()
+      .references(() => filtersTable.id, { onDelete: 'cascade' }),
+    columnName: text('column_name', { length: 256 }).notNull(),
+    columnType: text('column_type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 }),
+    operator: integer('operator', { mode: 'number' }).notNull(),
+    value: text('value', { length: 256 }),
+    secondaryValue: text('secondary_value', { length: 256 }),
+    conditionType: integer('condition_type', { mode: 'number' }).default(0),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    filterConditionFilterIdx: index('filter_conditions_filter_idx').on(table.filterId),
+  })
+)
+
 // export const campaignsTable = sqliteTable(
 //   'campaigns',
 //   {
@@ -393,6 +441,12 @@ export type SelectCustomField = typeof customFieldsTable.$inferSelect
 
 export type InsertContactCustomField = typeof contactCustomFieldsTable.$inferInsert
 export type SelectContactCustomField = typeof contactCustomFieldsTable.$inferSelect
+
+export type InsertFilter = typeof filtersTable.$inferInsert
+export type SelectFilter = typeof filtersTable.$inferSelect
+
+export type InsertFilterCondition = typeof filterConditionsTable.$inferInsert
+export type SelectFilterCondition = typeof filterConditionsTable.$inferSelect
 
 // export type InsertCampaign = typeof campaignsTable.$inferInsert
 // export type SelectCampaign = typeof campaignsTable.$inferSelect

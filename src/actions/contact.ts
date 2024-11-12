@@ -1,4 +1,3 @@
-import { isCuid } from '@paralleldrive/cuid2'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
@@ -6,6 +5,7 @@ import {
   bulkCreateContactEmails,
   createContact,
   deleteContact,
+  getContactFields,
   getContacts,
   getUniqueContactEmails,
   hasContactPermission,
@@ -17,7 +17,7 @@ import {
   type ContactSortFields,
   type GlobalContactColumnFilter,
 } from '@/db/models/contact'
-import { handleNumberInput } from '@/lib/utils'
+import { handleNumberInput, snakeToCamel } from '@/lib/utils'
 import { validateEmails } from '@/lib/validate-emails'
 import {
   DEFAULT_MAX_PAGE_SIZE,
@@ -31,9 +31,14 @@ import {
 const sortingSchema = z.array(
   z.object({
     id: z.string().refine(
-      (val) => isCuid(val),
+      (val) => {
+        const contactFields = getContactFields()
+        const contactField = contactFields.find(({ name }) => snakeToCamel(name) === val)
+
+        return Boolean(contactField)
+      },
       () => ({
-        message: 'Id is not valid.',
+        message: 'Column name is not valid.',
         path: ['id'],
       })
     ),
@@ -42,13 +47,7 @@ const sortingSchema = z.array(
 )
 const customFieldSortingSchema = z.array(
   z.object({
-    id: z.string().refine(
-      (val) => isCuid(val),
-      () => ({
-        message: 'Id is not valid.',
-        path: ['id'],
-      })
-    ),
+    id: z.string().cuid2(),
     desc: z.boolean(),
   })
 )
@@ -56,9 +55,14 @@ const customFieldSortingSchema = z.array(
 const columnFiltersSchema = z.array(
   z.object({
     id: z.string().refine(
-      (val) => isCuid(val),
+      (val) => {
+        const contactFields = getContactFields()
+        const contactField = contactFields.find(({ name }) => snakeToCamel(name) === val)
+
+        return Boolean(contactField)
+      },
       () => ({
-        message: 'Id is not valid.',
+        message: 'Column name is not valid.',
         path: ['id'],
       })
     ),
@@ -75,20 +79,8 @@ export const contact = {
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      projectId: z.string().refine(
-        (val) => isCuid(val),
-        () => ({
-          message: 'Project ID is not valid.',
-          path: ['projectId'],
-        })
-      ),
-      teamId: z.string().refine(
-        (val) => isCuid(val),
-        () => ({
-          message: 'Team ID is not valid.',
-          path: ['teamId'],
-        })
-      ),
+      projectId: z.string().cuid2(),
+      teamId: z.string().cuid2(),
       pageIndex: z.optional(
         z.string().transform((val) => {
           return handleNumberInput(val, { min: DEFAULT_PAGE_INDEX })
@@ -112,11 +104,9 @@ export const contact = {
             customFieldSortingSchema.parse(parsed)
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message:
-                'Contact custom field sorting is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         })
@@ -128,11 +118,9 @@ export const contact = {
             sortingSchema.parse(parsed)
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message:
-                'Contact sorting is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         })
@@ -143,15 +131,7 @@ export const contact = {
             const parsed: GlobalContactColumnFilter[] = JSON.parse(val)
             z.array(
               z.object({
-                id: z.optional(
-                  z.string().refine(
-                    (val) => isCuid(val),
-                    () => ({
-                      message: 'Id is not valid.',
-                      path: ['id'],
-                    })
-                  )
-                ),
+                id: z.optional(z.string().cuid2()),
                 field: z.string(),
                 value: z.union([z.string(), z.number()]),
                 isCustomField: z.boolean(),
@@ -160,11 +140,9 @@ export const contact = {
 
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message:
-                'Global contact column filters is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         })
@@ -176,11 +154,9 @@ export const contact = {
             columnFiltersSchema.parse(parsed)
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message:
-                'Contact column filters is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         })
@@ -192,11 +168,9 @@ export const contact = {
             columnFiltersSchema.parse(parsed)
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message:
-                'Custom contact column filters is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         })
@@ -236,20 +210,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Project ID is not valid.',
-            path: ['projectId'],
-          })
-        ),
-        teamId: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Team ID is not valid.',
-            path: ['teamId'],
-          })
-        ),
+        projectId: z.string().cuid2(),
+        teamId: z.string().cuid2(),
         emails: z
           .string({
             required_error: 'Please enter at least one email address.',
@@ -290,20 +252,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Project ID is not valid.',
-            path: ['projectId'],
-          })
-        ),
-        teamId: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Team ID is not valid.',
-            path: ['teamId'],
-          })
-        ),
+        projectId: z.string().cuid2(),
+        teamId: z.string().cuid2(),
         email: z
           .string({
             required_error: 'Email is required. Please enter your email address.',
@@ -317,21 +267,14 @@ export const contact = {
           try {
             const parsed: Record<string, string | boolean | number> = JSON.parse(val)
             z.record(
-              z.string().refine(
-                (val) => isCuid(val),
-                () => ({
-                  message: 'Custom field ID is not valid.',
-                  path: ['customFields'],
-                })
-              ),
+              z.string().cuid2(),
               z.union([z.string(), z.date(), z.boolean(), z.number()])
             ).parse(parsed)
             return parsed
           } catch (err) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'Custom field is not valid JSON or does not match the expected structure.',
-            })
+            for (const e of err.errors) {
+              ctx.addIssue(e)
+            }
             return z.NEVER
           }
         }),
@@ -355,20 +298,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Project ID is not valid.',
-            path: ['projectId'],
-          })
-        ),
-        id: z.string().refine(
-          (val) => isCuid(val),
-          () => ({
-            message: 'Id is not valid.',
-            path: ['id'],
-          })
-        ),
+        projectId: z.string().cuid2(),
+        id: z.string().cuid2(),
         email: z.optional(
           z
             .string({
@@ -385,21 +316,14 @@ export const contact = {
             try {
               const parsed: Record<string, string | boolean | number> = JSON.parse(val)
               z.record(
-                z.string().refine(
-                  (val) => isCuid(val),
-                  () => ({
-                    message: 'Custom field ID is not valid.',
-                    path: ['customFields'],
-                  })
-                ),
+                z.string().cuid2(),
                 z.union([z.string(), z.date(), z.boolean(), z.number()])
               ).parse(parsed)
               return parsed
             } catch (err) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Custom field is not valid JSON or does not match the expected structure.',
-              })
+              for (const e of err.errors) {
+                ctx.addIssue(e)
+              }
               return z.NEVER
             }
           })
@@ -444,13 +368,7 @@ export const contact = {
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      id: z.string().refine(
-        (val) => isCuid(val),
-        () => ({
-          message: 'Id is not valid.',
-          path: ['id'],
-        })
-      ),
+      id: z.string().cuid2(),
     }),
     handler: async ({ id }, context) => {
       const user = context.locals.user!

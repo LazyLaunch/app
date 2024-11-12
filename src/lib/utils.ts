@@ -16,7 +16,10 @@ export function capitalizeFirstLetter(text: string | undefined | null): string |
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function handleNumberInput(value: string, options?: { min?: number; max?: number }): number {
+export function handleNumberInput(
+  value: string,
+  options?: { min?: number; max?: number; disableMax?: boolean }
+): number {
   const minNumber = options?.min ?? 0
   const maxNumber = options?.max ?? 100
 
@@ -25,7 +28,7 @@ export function handleNumberInput(value: string, options?: { min?: number; max?:
   if (Number.isNaN(numValue)) return 0
 
   if (numValue < minNumber) return minNumber
-  if (numValue > maxNumber) return maxNumber
+  if (!options?.disableMax && numValue > maxNumber) return maxNumber
 
   return numValue
 }
@@ -74,9 +77,15 @@ export function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
   if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) e.preventDefault()
 }
 
-export function formatFieldName(fieldName: string): string {
-  return fieldName
+export function formatFieldName(str: string | undefined | null): string {
+  if (!str) return ''
+  return str
     .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/(^\w|\s\w)/g, (match) => match.toUpperCase())
+}
+
+export function snakeToCamel(str: string | undefined | null): string {
+  if (!str) return ''
+  return str.replace(/_([a-z])/g, (_, char) => char.toUpperCase())
 }

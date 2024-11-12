@@ -1,16 +1,26 @@
 import type { Table } from '@tanstack/react-table'
-import { FileText, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
+import { FileText, ListFilter, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { DataTableAdvanceFilter } from '@/components/data-table/data-table-advance-filter'
 import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter'
-import { ContactSourceEnum, CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
 
 import { Form, FormField } from '@/components/ui/form'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -18,13 +28,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { ContactProps } from '@/db/models/contact'
+
+import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
+import { ContactSourceEnum, CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 
 export interface ContactDataTableToolbarProps {
   table: Table<ContactProps>
   customFields: CustomFieldProps[]
+  contactFields: ContactFields[]
   csrfToken: string
+  ids: {
+    projectId: string
+    teamId: string
+  }
 }
 
 const DEFAULT_SEARCH_FIELD: string = 'any' as const
@@ -70,6 +87,8 @@ export function ContactDataTableToolbar({
   table,
   customFields,
   csrfToken,
+  contactFields,
+  ids,
 }: ContactDataTableToolbarProps) {
   const isFiltered = table.getState().columnFilters.length > 0
   const isGlobalFiltered = table.getState().globalFilter.length > 0
@@ -113,86 +132,138 @@ export function ContactDataTableToolbar({
   }, [customFields])
 
   return (
-    <div className="flex items-center justify-between z-10 bg-muted/0">
-      <div className="flex flex-wrap items-center space-x-2 flex-1 -ml-2 -mt-2">
-        <Form {...searchForm}>
-          <form
-            onSubmit={searchForm.handleSubmit(onSearchSubmit)}
-            className="ml-2 flex relative mt-2"
-          >
-            <input
-              {...searchForm.register(CSRF_TOKEN, { required: true })}
-              type="hidden"
-              name={CSRF_TOKEN}
-              value={csrfToken}
-            />
-            <FormField
-              control={searchForm.control}
-              name="q"
-              render={({ field }) => (
-                <Input {...field} placeholder="Search by any text field..." className="h-8 w-96" />
-              )}
-            />
-            <FormField
-              control={searchForm.control}
-              name="field"
-              render={({ field }) => (
-                <Select
-                  defaultValue={DEFAULT_SEARCH_FIELD}
-                  value={field.value}
-                  name={field.name}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="hover:bg-accent h-8 absolute w-24 rounded-l-none focus:ring-0 right-0">
-                    <SelectValue placeholder="Select field" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={DEFAULT_SEARCH_FIELD}>Any</SelectItem>
-                    {customFields
-                      .filter((f) =>
-                        [CustomFieldTypeEnum.STRING, CustomFieldTypeEnum.NUMBER].includes(f.type)
-                      )
-                      .map((customField) => (
-                        <SelectItem key={customField.tag} value={customField.tag}>
-                          {customField.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </form>
-        </Form>
-        {filterColumns.map(({ tag, name, options, type }) => {
-          if (table.getColumn(tag)) {
-            return (
-              <DataTableFacetedFilter
-                className="mt-2"
-                key={tag}
-                type={type}
-                column={table.getColumn(tag)}
-                title={name}
-                options={options}
-              />
-            )
-          }
-        })}
-        {(isFiltered || isGlobalFiltered) && (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              searchForm.reset()
-              table.resetColumnFilters()
-              table.resetGlobalFilter()
-            }}
-            className="h-8 px-2 lg:px-3 mt-2"
-          >
-            Reset
-            <X className="ml-2 h-4 w-4" />
-          </Button>
-        )}
+    <Tabs defaultValue="advancedFilter">
+      <div className="flex justify-between w-full">
+        <div className="w-[400px]">
+          <TabsList className="h-9 p-0.5">
+            <TabsTrigger value="quickSearch">Quick Search</TabsTrigger>
+            <TabsTrigger value="advancedFilter">Advanced Filter</TabsTrigger>
+          </TabsList>
+        </div>
+        <div>
+          <DataTableViewOptions table={table} customFields={customFields} />
+        </div>
       </div>
-      <DataTableViewOptions className="w-40 self-start" table={table} customFields={customFields} />
-    </div>
+      <TabsContent value="quickSearch" className="mt-4">
+        <div className="flex items-center justify-between space-x-2 z-10 bg-muted/0">
+          <div className="flex flex-wrap space-x-2 flex-1 -ml-2 -mt-2">
+            <Form {...searchForm}>
+              <form
+                onSubmit={searchForm.handleSubmit(onSearchSubmit)}
+                className="ml-2 flex relative mt-2"
+              >
+                <input
+                  {...searchForm.register(CSRF_TOKEN, { required: true })}
+                  type="hidden"
+                  name={CSRF_TOKEN}
+                  value={csrfToken}
+                />
+                <FormField
+                  control={searchForm.control}
+                  name="q"
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      placeholder="Search by any text field..."
+                      className="h-8 w-96"
+                    />
+                  )}
+                />
+                <FormField
+                  control={searchForm.control}
+                  name="field"
+                  render={({ field }) => (
+                    <Select
+                      defaultValue={DEFAULT_SEARCH_FIELD}
+                      value={field.value}
+                      name={field.name}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="hover:bg-accent h-8 absolute w-24 rounded-l-none focus:ring-0 right-0">
+                        <SelectValue placeholder="Select field" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={DEFAULT_SEARCH_FIELD}>Any</SelectItem>
+                        {customFields
+                          .filter((f) =>
+                            [CustomFieldTypeEnum.STRING, CustomFieldTypeEnum.NUMBER].includes(
+                              f.type
+                            )
+                          )
+                          .map((customField) => (
+                            <SelectItem key={customField.tag} value={customField.tag}>
+                              {customField.name}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </form>
+            </Form>
+            {filterColumns.map(({ tag, name, options, type }) => {
+              if (table.getColumn(tag)) {
+                return (
+                  <DataTableFacetedFilter
+                    className="mt-2"
+                    key={tag}
+                    type={type}
+                    column={table.getColumn(tag)}
+                    title={name}
+                    options={options}
+                  />
+                )
+              }
+            })}
+            {(isFiltered || isGlobalFiltered) && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  searchForm.reset()
+                  table.resetColumnFilters()
+                  table.resetGlobalFilter()
+                }}
+                className="h-8 px-2 lg:px-3 mt-2"
+              >
+                Reset
+                <X className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </TabsContent>
+      <TabsContent value="advancedFilter" className="mt-4">
+        <div className="flex space-x-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <ListFilter />
+                Filters
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search a filter..." />
+                <CommandList>
+                  <CommandEmpty>No results found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem>Profile</CommandItem>
+                    <CommandItem>Billing</CommandItem>
+                    <CommandItem>Settings</CommandItem>
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <DataTableAdvanceFilter
+            table={table}
+            ids={ids}
+            csrfToken={csrfToken}
+            contactFields={contactFields}
+            customFields={customFields}
+          />
+        </div>
+      </TabsContent>
+    </Tabs>
   )
 }

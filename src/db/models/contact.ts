@@ -1,9 +1,4 @@
 import { UTCDate } from '@date-fns/utc'
-
-import { db } from '@/db'
-import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
-import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
-import type { CustomFieldTypeEnum } from '@/types'
 import { endOfDay, getTime, startOfDay } from 'date-fns'
 import {
   and,
@@ -11,6 +6,7 @@ import {
   count,
   desc,
   eq,
+  exists,
   gte,
   inArray,
   isNull,
@@ -19,8 +15,13 @@ import {
   or,
   sql,
   type InferSelectModel,
+  type SQL,
 } from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
+
+import { db } from '@/db'
+import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
+import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
 
 const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 
@@ -36,7 +37,7 @@ interface ExtendedContact extends SelectContact {
 export interface ContactProps
   extends Omit<ExtendedContact, 'updatedAt' | 'createdAt' | 'projectId' | 'teamId' | 'userId'> {}
 
-type ContactColumn = keyof InferSelectModel<typeof contactsTable>
+export type ContactColumn = keyof InferSelectModel<typeof contactsTable>
 export type ContactSortFields = Array<{ id: ContactColumn; desc: boolean }>
 export type ContactColumnFilters = Array<{
   id: ContactColumn
@@ -54,6 +55,153 @@ export interface GlobalContactColumnFilter {
   isCustomField: boolean
 }
 export type ContactCustomFieldSort = { id: string; desc: boolean }
+
+const DATE_COLUMN_IDS: Array<keyof typeof contactsTable> = ['createdAt', 'updatedAt'] as const
+const CUSTOM_FIELDS = sql<ContactCustomFields[]>`
+  json_group_array(
+    json_object(
+      'id', custom_fields.id,
+      'name', custom_fields.name,
+      'type', custom_fields.type,
+      'tag', custom_fields.tag,
+      'value', COALESCE(contact_custom_fields.value, '')
+    )
+  )`.as('custom_fields')
+
+function buildGlobalFilters(globalFilter: GlobalContactColumnFilter[]) {
+  return globalFilter.map((filter) => {
+    if (filter.field === 'any') {
+      const contactFields = or(
+        like(contactsTable.email, `%${filter.value}%`),
+        like(contactsTable.firstName, `%${filter.value}%`),
+        like(contactsTable.lastName, `%${filter.value}%`)
+      )
+
+      // TODO: Needs to ignore date value
+      const customFields = exists(
+        db
+          .select({ results: sql`1` })
+          .from(contactCustomFieldsTable)
+          .where(
+            and(
+              eq(contactCustomFieldsTable.contactId, contactsTable.id),
+              like(contactCustomFieldsTable.value, `%${filter.value}%`)
+            )
+          )
+      )
+      return or(contactFields, customFields)
+    }
+
+    if (filter.isCustomField) {
+      return exists(
+        db
+          .select({ results: sql`1` })
+          .from(contactCustomFieldsTable)
+          .where(
+            and(
+              eq(contactCustomFieldsTable.contactId, contactsTable.id),
+              eq(contactCustomFieldsTable.customFieldId, filter.id as string),
+              like(contactCustomFieldsTable.value, `%${filter.value}%`)
+            )
+          )
+      )
+    }
+    return like(contactsTable[filter.field], `%${filter.value}%`)
+  })
+}
+
+function buildDateRange(value: (string | number | null)[][]): {
+  start: UTCDate | null
+  end: UTCDate | null
+} {
+  const obj = new Map<'from' | 'to', number | null>(
+    value as Iterable<['from' | 'to', number | null]>
+  )
+  const from = obj.get('from') as number | null
+  const to = obj.get('to') as number | null
+
+  const start = from ? startOfDay(new UTCDate(from)) : null
+  const end = to ? endOfDay(new UTCDate(to)) : null
+  return { start, end }
+}
+
+function buildColumnFilters(columnFilters: ContactColumnFilters): (SQL<any> | undefined)[] {
+  return columnFilters.map((filter) => {
+    const column = contactsTable[filter.id]
+    if (Array.isArray(filter.value)) {
+      if (['string', 'boolean'].includes(typeof filter.value[0])) {
+        return inArray(column, filter.value as string[] | boolean[])
+      }
+
+      if (typeof filter.value[0] === 'number') {
+        return inArray(column as any, filter.value as number[])
+      }
+
+      if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
+        const value: (string | number | null)[][] = filter.value as unknown as (
+          | string
+          | number
+          | null
+        )[][]
+        const { start, end } = buildDateRange(value)
+
+        if (start && end && DATE_COLUMN_IDS.includes(filter.id)) {
+          return and(gte(column, start), lte(column, end))
+        }
+      }
+    }
+  })
+}
+
+const buildCustomFilters = (customColumnFilters: ContactCustomColumnFilters) => {
+  return customColumnFilters.map((filter) => {
+    if (Array.isArray(filter.value)) {
+      if (filter.value.includes(true) || filter.value.includes(false)) {
+        const values = filter.value.map((v) => String(v))
+
+        return exists(
+          db
+            .select({ results: sql`1` })
+            .from(contactCustomFieldsTable)
+            .where(
+              and(
+                eq(contactCustomFieldsTable.contactId, contactsTable.id),
+                eq(contactCustomFieldsTable.customFieldId, filter.id),
+                inArray(contactCustomFieldsTable.value, values)
+              )
+            )
+        )
+      }
+
+      if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
+        const value: (string | number | null)[][] = filter.value as unknown as (
+          | string
+          | number
+          | null
+        )[][]
+        const { start, end } = buildDateRange(value)
+
+        if (start && end) {
+          const dayStart = getTime(start)
+          const dayEnd = getTime(end)
+
+          return exists(
+            db
+              .select({ results: sql`1` })
+              .from(contactCustomFieldsTable)
+              .where(
+                and(
+                  eq(contactCustomFieldsTable.contactId, contactsTable.id),
+                  eq(contactCustomFieldsTable.customFieldId, filter.id),
+                  sql`CAST(${contactCustomFieldsTable.value} AS INTEGER) BETWEEN ${dayStart} AND ${dayEnd}`
+                )
+              )
+          )
+        }
+      }
+    }
+  })
+}
 
 export async function getContacts({
   projectId,
@@ -76,152 +224,31 @@ export async function getContacts({
   customFieldsSorting?: ContactCustomFieldSort[]
   globalFilter?: GlobalContactColumnFilter[]
 }): Promise<ContactProps[]> {
-  const dateColumnIds: Array<keyof typeof contactsTable> = ['createdAt', 'updatedAt']
-
-  const sortBy = sortFields.map((field) =>
-    field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
-  )
-
-  for (const customFieldSort of customFieldsSorting) {
-    const customSortCondition = sql`
-      (SELECT value
-       FROM ${contactCustomFieldsTable}
-       WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-       AND ${contactCustomFieldsTable.customFieldId} = ${customFieldSort.id})
-    `
-
-    const sort = customFieldSort.desc ? desc(customSortCondition) : asc(customSortCondition)
-    sortBy.push(sort)
-  }
-
-  const filters = columnFilters
-    .map((filter) => {
-      const column = contactsTable[filter.id]
-
-      if (Array.isArray(filter.value)) {
-        if (['string', 'boolean'].includes(typeof filter.value[0])) {
-          return inArray(column, filter.value as string[] | boolean[])
-        }
-        if (typeof filter.value[0] === 'number') {
-          return or(...(filter.value as number[]).map((val) => eq(column as any, val)))
-        }
-
-        if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
-          const obj = new Map<'type' | 'from' | 'to', CustomFieldTypeEnum | 'any'>(
-            filter.value as Iterable<['type' | 'from' | 'to', CustomFieldTypeEnum | 'any']>
+  const sortBy = [
+    ...sortFields.map((field) =>
+      field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
+    ),
+    ...customFieldsSorting.map((field) => {
+      const customSort = db
+        .select({ value: contactCustomFieldsTable.value })
+        .from(contactCustomFieldsTable)
+        .where(
+          and(
+            eq(contactCustomFieldsTable.contactId, contactsTable.id),
+            eq(contactCustomFieldsTable.customFieldId, field.id)
           )
-          const from = obj.get('from') as string | null
-          const to = obj.get('to') as string | null
+        )
+      return field.desc ? desc(customSort) : asc(customSort)
+    }),
+  ]
 
-          if (from && to && dateColumnIds.includes(filter.id)) {
-            const dayStart = startOfDay(new UTCDate(from))
-            const dayEnd = endOfDay(new UTCDate(to))
-
-            return and(gte(column, dayStart), lte(column, dayEnd))
-          }
-        }
-      }
-
-      if (typeof filter.value === 'string') {
-        return like(column, `%${filter.value}%`)
-      }
-
-      // return eq(column as any, filter.value)
-    })
-    .filter(Boolean)
-
-  if (customColumnFilters?.length > 0) {
-    const customFilterConditions = customColumnFilters
-      .map((filter) => {
-        if (Array.isArray(filter.value)) {
-          if (filter.value.includes(true) || filter.value.includes(false)) {
-            const values = filter.value.map((v) => String(v))
-
-            return sql<boolean>`
-              EXISTS (
-                SELECT 1
-                FROM ${contactCustomFieldsTable}
-                WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-                  AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
-                  AND ${contactCustomFieldsTable.value} IN (${sql.join(values, sql`, `)})
-              )
-            `
-          }
-          if (Array.isArray(filter.value[0]) && Array.isArray(filter.value[1])) {
-            const obj = new Map<'from' | 'to', 'any'>(
-              filter.value as Iterable<['from' | 'to', 'any']>
-            )
-            const from = obj.get('from') as string | null
-            const to = obj.get('to') as string | null
-
-            if (from && to) {
-              const dayStart = getTime(startOfDay(new UTCDate(from)))
-              const dayEnd = getTime(endOfDay(new UTCDate(to)))
-
-              return sql<boolean>`
-                EXISTS (
-                  SELECT 1
-                  FROM ${contactCustomFieldsTable}
-                  WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-                    AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
-                    AND CAST(${contactCustomFieldsTable.value} AS INTEGER) BETWEEN ${dayStart} AND ${dayEnd}
-                )
-              `
-            }
-          }
-        }
-      })
-      .filter(Boolean)
-
-    filters.push(...customFilterConditions)
-  }
-
-  if (globalFilter?.length > 0) {
-    const globalConditions = globalFilter
-      .map((filter) => {
-        if (filter.field === 'any') {
-          const contactFieldsCondition = or(
-            like(contactsTable.email, `%${filter.value}%`),
-            like(contactsTable.firstName, `%${filter.value}%`),
-            like(contactsTable.lastName, `%${filter.value}%`)
-          )
-
-          const customFieldsCondition = sql<boolean>`
-          EXISTS (
-            SELECT 1
-            FROM ${contactCustomFieldsTable}
-            WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-            AND ${contactCustomFieldsTable.value} LIKE '%' || ${filter.value} || '%'
-          )
-        `
-
-          return or(contactFieldsCondition, customFieldsCondition)
-        }
-
-        if (filter.isCustomField) {
-          return sql<boolean>`
-                EXISTS (
-                  SELECT 1
-                  FROM ${contactCustomFieldsTable}
-                  WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-                  AND ${contactCustomFieldsTable.customFieldId} = ${filter.id}
-                  AND ${contactCustomFieldsTable.value} LIKE '%' || ${filter.value} || '%'
-                )
-              `
-        }
-
-        return like(contactsTable[filter.field], `%${filter.value}%`)
-      })
-      .filter(Boolean)
-
-    filters.push(...globalConditions)
-  }
-
-  const whereConditions = and(
+  const whereConditions = [
     eq(contactsTable.projectId, projectId),
     eq(contactsTable.teamId, teamId),
-    ...filters
-  )
+    ...buildColumnFilters(columnFilters),
+    ...buildCustomFilters(customColumnFilters),
+    ...buildGlobalFilters(globalFilter),
+  ]
 
   const results = await db
     .select({
@@ -233,17 +260,7 @@ export async function getContacts({
       source: contactsTable.source,
       updatedAt: contactsTable.updatedAt,
       createdAt: contactsTable.createdAt,
-      customFields: sql<ContactCustomFields[]>`
-        json_group_array(
-          json_object(
-            'id', custom_fields.id,
-            'name', custom_fields.name,
-            'type', custom_fields.type,
-            'tag', custom_fields.tag,
-            'value', COALESCE(contact_custom_fields.value, '')
-          )
-        )
-      `.as('custom_fields'),
+      customFields: CUSTOM_FIELDS,
     })
     .from(contactsTable)
     .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
@@ -254,7 +271,7 @@ export async function getContacts({
         eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
       )
     )
-    .where(whereConditions)
+    .where(and(...whereConditions))
     .groupBy(contactsTable.id)
     .orderBy(...sortBy)
     .limit(limit)
@@ -280,7 +297,7 @@ export async function getContactTotal({
   return total
 }
 
-interface ContactFields {
+export interface ContactFields {
   name: string
   type: string
   default: any | undefined
@@ -294,7 +311,7 @@ interface ContactFields {
     | undefined
 }
 
-export function getContactColumns(): ContactFields[] {
+export function getContactFields(): ContactFields[] {
   const { columns } = getTableConfig(contactsTable)
   return columns
     .filter((col) => !SKIP_CONTACT_COLUMNS.includes(col.name))
@@ -458,4 +475,40 @@ export async function updateContact({
       }
     }
   })
+}
+
+export async function testContacts({ conditions, projectId, teamId }) {
+  const whereConditions = and(
+    eq(contactsTable.projectId, projectId),
+    eq(contactsTable.teamId, teamId),
+    conditions
+  )
+
+  const results = await db
+    .select({
+      id: contactsTable.id,
+      email: contactsTable.email,
+      firstName: contactsTable.firstName,
+      lastName: contactsTable.lastName,
+      subscribed: contactsTable.subscribed,
+      source: contactsTable.source,
+      updatedAt: contactsTable.updatedAt,
+      createdAt: contactsTable.createdAt,
+      customFields: CUSTOM_FIELDS,
+    })
+    .from(contactsTable)
+    .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
+    .leftJoin(
+      customFieldsTable,
+      or(
+        isNull(contactCustomFieldsTable.customFieldId),
+        eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
+      )
+    )
+    .where(whereConditions)
+    .orderBy(desc(contactsTable.createdAt))
+    .groupBy(contactsTable.id)
+    .limit(10)
+
+  return results
 }

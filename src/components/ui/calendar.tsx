@@ -74,7 +74,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
                 aria-label={rest['aria-label']}
                 className={cn(
                   buttonVariants({ size: 'xs', variant: 'ghost' }),
-                  'border-0 text-sm font-medium',
+                  'border-0 text-sm font-medium focus:ring-0',
                   className
                 )}
               >

@@ -24,12 +24,13 @@ import {
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 
-import type { ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
+import type { ContactFields, ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
     onDelete: (id: string) => void
+    onApplyAdvancedFilter: (filteredData: ContactProps[]) => void
   }
 }
 
@@ -62,6 +63,7 @@ interface DataTableProps {
   pagination: TablePaginationState
   total: number
   customFields: CustomFieldProps[]
+  contactFields: ContactFields[]
 }
 
 export function DataTable({
@@ -75,6 +77,7 @@ export function DataTable({
   pagination,
   ids = {},
   customFields = [],
+  contactFields = [],
 }: DataTableProps) {
   const isDry = useRef<boolean>(true)
   const [_data, setData] = useState<ContactProps[]>(data)
@@ -119,6 +122,7 @@ export function DataTable({
     meta: {
       onDelete: (id: string) =>
         setData((prevState) => prevState.filter((d) => (d as unknown as { id: string }).id !== id)),
+      onApplyAdvancedFilter: (filteredData: ContactProps[]) => setData(filteredData),
     },
     manualPagination: true,
     enableColumnPinning: true,
@@ -175,7 +179,7 @@ export function DataTable({
 
   return (
     <div className={cn(className, 'space-y-4')}>
-      {children({ table, customFields, csrfToken })}
+      {children({ table, customFields, csrfToken, ids, contactFields })}
       <div className="rounded-md border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>
