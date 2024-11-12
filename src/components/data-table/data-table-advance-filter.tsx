@@ -107,6 +107,7 @@ export function DataTableAdvanceFilter({
   })
 
   async function handleSubmit({ filterConditions, ...values }: FormValues) {
+    console.log(filterConditions)
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
@@ -161,43 +162,44 @@ export function DataTableAdvanceFilter({
 
               return (
                 <div key={f.id} className="flex space-x-2">
-                  {index > 0 && (
-                    <Controller
-                      control={form.control}
-                      name={`filterConditions.${index}.conditionType`}
-                      rules={{
-                        required: index > 0,
-                      }}
-                      shouldUnregister={index === 0}
-                      render={({ field }) => (
-                        <Select
-                          name={field.name}
-                          value={String(field.value ?? '')}
-                          onValueChange={(val) =>
-                            update(index, { ..._field, conditionType: Number(val) })
-                          }
-                        >
-                          <SelectTrigger className="w-24 flex-none">
-                            <SelectValue placeholder="Condition">
-                              {CONDITION_TYPES[Number(field.value) as ConditionType]}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.keys(CONDITION_TYPES).map((index) => (
-                              <SelectItem key={index} value={index}>
-                                {CONDITION_TYPES[Number(index) as ConditionType]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  )}
-                  {index === 0 && (
-                    <div className="w-24 flex-none flex items-center flex-col self-center">
-                      Where
-                    </div>
-                  )}
+                  <Controller
+                    control={form.control}
+                    name={`filterConditions.${index}.conditionType`}
+                    rules={{
+                      required: index > 0,
+                    }}
+                    render={({ field }) => {
+                      if (index > 0)
+                        return (
+                          <Select
+                            name={field.name}
+                            value={String(field.value ?? '')}
+                            onValueChange={(val) =>
+                              update(index, { ..._field, conditionType: Number(val) })
+                            }
+                          >
+                            <SelectTrigger className="w-24 flex-none">
+                              <SelectValue placeholder="Condition">
+                                {CONDITION_TYPES[Number(field.value) as ConditionType]}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(CONDITION_TYPES).map((index) => (
+                                <SelectItem key={index} value={index}>
+                                  {CONDITION_TYPES[Number(index) as ConditionType]}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )
+
+                      return (
+                        <div className="w-24 flex-none flex items-center flex-col self-center">
+                          Where
+                        </div>
+                      )
+                    }}
+                  />
                   <Controller
                     control={form.control}
                     name={`filterConditions.${index}.columnName`}
@@ -228,7 +230,7 @@ export function DataTableAdvanceFilter({
                           })
                         }}
                       >
-                        <SelectTrigger className="w-32 flex-none">
+                        <SelectTrigger autoFocus className="w-32 flex-none">
                           <SelectValue placeholder="Field name" />
                         </SelectTrigger>
                         <SelectContent>
@@ -321,8 +323,8 @@ export function DataTableAdvanceFilter({
                     size="icon"
                     disabled={fields.length <= 1}
                     onClick={() => {
-                      fields.length === 1 &&
-                        form.unregister(`filterConditions.${index}.conditionType`)
+                      form.unregister(`filterConditions.${index}.value`)
+                      form.unregister(`filterConditions.${index}.secondaryValue`)
                       fields.length > 1 && remove(index)
                     }}
                   >
@@ -335,7 +337,7 @@ export function DataTableAdvanceFilter({
               variant="outline"
               type="button"
               className="gap-2 w-24"
-              onClick={() =>
+              onClick={() => {
                 append(
                   {
                     columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)!
@@ -346,11 +348,9 @@ export function DataTableAdvanceFilter({
                     secondaryValue: '',
                     conditionType: ConditionType.AND,
                   },
-                  {
-                    focusName: `filterConditions.${fields.length - 1}.conditionType`,
-                  }
+                  { shouldFocus: false }
                 )
-              }
+              }}
             >
               <PlusIcon />
               Add

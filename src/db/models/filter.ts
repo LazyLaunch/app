@@ -86,6 +86,7 @@ export const DEFAULT_FILTER: Record<CustomFieldTypeEnum, Operator> = {
   [CustomFieldTypeEnum.BOOLEAN]: Operator.IS_TRUE,
   [CustomFieldTypeEnum.DATE]: Operator.IS_AFTER,
   [CustomFieldTypeEnum.NUMBER]: Operator.EQUALS,
+  [CustomFieldTypeEnum.ENUM]: Operator.EQUALS,
 }
 
 export const CONDITION_TYPES: Record<ConditionType, string> = {
@@ -135,63 +136,91 @@ const buildEmptyQuery = ({
     END
   `
 
-export function buildDynamicFilter({
+function buildGroupConditions({
   filterConditions,
-  teamId,
+  conditions,
+}: {
+  filterConditions: FilterCondition[]
+  conditions: SQL<any>[]
+}): SQL<any> | undefined {
+  let combinedCondition: SQL<any> | undefined
+  let currentAndGroup: SQL<any>[] = []
+
+  for (let i = 0; i < filterConditions.length; i++) {
+    const condition = conditions[i]
+    const conditionType = filterConditions[i].conditionType
+
+    if (conditionType === ConditionType.AND) {
+      currentAndGroup.push(condition)
+    } else if (conditionType === ConditionType.OR) {
+      const andGroup = currentAndGroup.length > 1 ? and(...currentAndGroup) : currentAndGroup[0]
+      combinedCondition = combinedCondition ? or(combinedCondition, andGroup) : andGroup
+      currentAndGroup = [condition]
+    }
+  }
+
+  if (currentAndGroup.length) {
+    const finalAndGroup = currentAndGroup.length > 1 ? and(...currentAndGroup) : currentAndGroup[0]
+    combinedCondition = combinedCondition ? or(combinedCondition, finalAndGroup) : finalAndGroup
+  }
+
+  return combinedCondition
+}
+
+function buildColumn({
+  filterCondition,
+  contactFields,
+}: {
+  filterCondition: FilterCondition
+  contactFields: ContactFields[]
+}) {
+  const isCustomField = !contactFields.find((f) => f.name === filterCondition.columnName)
+  const colId = isCustomField
+    ? filterCondition.columnName
+    : snakeToCamel(filterCondition.columnName)
+  const column = isCustomField
+    ? contactCustomFieldsTable.value
+    : contactsTable[colId as ContactColumn]
+  if (!column) throw new Error(`Column '${colId}' not found in table schema.`)
+  return { isCustomField, colId, column }
+}
+
+function buildConditions({
+  filterConditions,
   projectId,
+  teamId,
   contactFields,
 }: {
   filterConditions: FilterCondition[]
-  teamId: string
   projectId: string
+  teamId: string
   contactFields: ContactFields[]
-}): SQL<any> | undefined {
-  if (!filterConditions.length) return undefined
-
-  const buildColumn = (param: FilterCondition) => {
-    const isCustomField = !contactFields.find((f) => f.name === param.columnName)
-    const colId = isCustomField ? param.columnName : snakeToCamel(param.columnName)
-    const column = isCustomField
-      ? contactCustomFieldsTable.value
-      : contactsTable[colId as ContactColumn]
-    if (!column) throw new Error(`Column '${colId}' not found in table schema.`)
-    return { isCustomField, colId, column }
-  }
-
-  const conditions = filterConditions
-    .map((param) => {
-      const { isCustomField, colId, column } = buildColumn(param)
+}): SQL<any>[] {
+  return filterConditions
+    .map((filterCondition) => {
+      const { isCustomField, colId, column } = buildColumn({ filterCondition, contactFields })
       const condition = buildCondition({
-        filterCondition: param,
+        filterCondition,
         column,
         isCustomField: true,
-        columnType: param.columnType,
+        columnType: filterCondition.columnType,
       })
 
       if (isCustomField && condition) {
-        return param.operator === Operator.IS_EMPTY
+        return filterCondition.operator === Operator.IS_EMPTY
           ? buildEmptyQuery({ projectId, teamId, condition, colId })
           : createExistsQuery(sql`
-            SELECT 1
-            FROM ${contactCustomFieldsTable}
-            WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
-            AND ${contactCustomFieldsTable.customFieldId} = ${colId}
-            AND ${condition}
-          `)
+          SELECT 1
+          FROM ${contactCustomFieldsTable}
+          WHERE ${contactCustomFieldsTable.contactId} = ${contactsTable.id}
+          AND ${contactCustomFieldsTable.customFieldId} = ${colId}
+          AND ${condition}
+        `)
       }
 
-      return buildCondition({ filterCondition: param, column, columnType: param.columnType })
+      return buildCondition({ filterCondition, column, columnType: filterCondition.columnType })
     })
-    .filter(Boolean)
-
-  return conditions.reduce<SQL<any> | undefined>(
-    (combined, condition, index) => {
-      if (!index) return condition
-      const type = filterConditions[index].conditionType
-      return type === ConditionType.AND ? and(combined, condition) : or(combined, condition)
-    },
-    undefined as unknown as SQL<any>
-  )
+    .filter(Boolean) as SQL<any>[]
 }
 
 function buildCondition({
@@ -285,4 +314,21 @@ function buildCondition({
     default:
       throw new Error(`Unsupported operator: ${operator}`)
   }
+}
+
+export function buildDynamicFilter({
+  filterConditions,
+  teamId,
+  projectId,
+  contactFields,
+}: {
+  filterConditions: FilterCondition[]
+  teamId: string
+  projectId: string
+  contactFields: ContactFields[]
+}): SQL<any> | undefined {
+  if (!filterConditions.length) return undefined
+
+  const conditions = buildConditions({ filterConditions, contactFields, teamId, projectId })
+  return buildGroupConditions({ conditions, filterConditions })
 }

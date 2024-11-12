@@ -364,11 +364,11 @@ export const filterConditionsTable = sqliteTable(
       .notNull()
       .references(() => filtersTable.id, { onDelete: 'cascade' }),
     columnName: text('column_name', { length: 256 }).notNull(),
-    columnType: text('column_type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 }),
+    columnType: text('column_type', { enum: CUSTOM_FIELD_TYPE_LIST, length: 50 }).notNull(),
     operator: integer('operator', { mode: 'number' }).notNull(),
     value: text('value', { length: 256 }),
     secondaryValue: text('secondary_value', { length: 256 }),
-    conditionType: integer('condition_type', { mode: 'number' }).default(0),
+    conditionType: integer('condition_type', { mode: 'number' }).notNull().default(0),
     createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => ({
