@@ -2,10 +2,11 @@ import { actions, isInputError } from 'astro:actions'
 import { Plus, PlusIcon, Trash2, X } from 'lucide-react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 
-import { BooleanField } from '@/components/data-table/advance-filter/boolean-field'
-import { DateField } from '@/components/data-table/advance-filter/date-field'
-import { NumberField } from '@/components/data-table/advance-filter/number-field'
-import { TextField } from '@/components/data-table/advance-filter/text-field'
+import { BooleanField } from '@/components/data-table/advanced-filter/boolean-field'
+import { DateField } from '@/components/data-table/advanced-filter/date-field'
+import { NumberField } from '@/components/data-table/advanced-filter/number-field'
+import { SubmitForm } from '@/components/data-table/advanced-filter/submit-form'
+import { TextField } from '@/components/data-table/advanced-filter/text-field'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Select,
@@ -77,7 +78,7 @@ function getColumn({
   return contactField || customField
 }
 
-export function DataTableAdvanceFilter({
+export function DataTableAdvancedFilter({
   csrfToken,
   contactFields,
   customFields,
@@ -104,10 +105,22 @@ export function DataTableAdvanceFilter({
     control: form.control,
     name: 'filterConditions',
     shouldUnregister: true,
+    rules: {
+      minLength: {
+        value: 1,
+        message: 'At least one filter is required. Please add a filter to proceed.',
+      },
+      maxLength: {
+        value: 50,
+        message: 'Maximum of 50 filters allowed. Please remove some filters to add new ones.',
+      },
+    },
   })
+  const errors = new Map<string, any | undefined>(
+    Object.entries(form.formState.errors?.filterConditions ?? {})
+  )
 
   async function handleSubmit({ filterConditions, ...values }: FormValues) {
-    console.log(filterConditions)
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
@@ -139,11 +152,11 @@ export function DataTableAdvanceFilter({
         <SheetHeader>
           <SheetTitle>Advanced Filter Options</SheetTitle>
           <SheetDescription>
-            Refine your search by applying advanced filters. Select a field, specify conditions, and
-            enter values to customize your query.
+            Apply advanced filters to refine your search. To customize your query, select a field,
+            specify conditions, and enter values.
           </SheetDescription>
         </SheetHeader>
-        <form className="space-y-2" onSubmit={form.handleSubmit(handleSubmit)}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
           <input
             {...form.register(CSRF_TOKEN, { required: true })}
             type="hidden"
@@ -333,28 +346,31 @@ export function DataTableAdvanceFilter({
                 </div>
               )
             })}
-            <Button
-              variant="outline"
-              type="button"
-              className="gap-2 w-24"
-              onClick={() => {
-                append(
-                  {
-                    columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)!
-                      .name,
-                    columnType: CustomFieldTypeEnum.STRING,
-                    operator: Operator.CONTAINS,
-                    value: '',
-                    secondaryValue: '',
-                    conditionType: ConditionType.AND,
-                  },
-                  { shouldFocus: false }
-                )
-              }}
-            >
-              <PlusIcon />
-              Add
-            </Button>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                type="button"
+                className="gap-2 w-24"
+                onClick={() => {
+                  append(
+                    {
+                      columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)!
+                        .name,
+                      columnType: CustomFieldTypeEnum.STRING,
+                      operator: Operator.CONTAINS,
+                      value: '',
+                      secondaryValue: '',
+                      conditionType: ConditionType.AND,
+                    },
+                    { shouldFocus: false }
+                  )
+                }}
+              >
+                <PlusIcon />
+                Add
+              </Button>
+              <p className="text-destructive text-sm">{errors.get('root')?.message}</p>
+            </div>
           </div>
           <SheetFooter>
             {form.formState.isDirty && (
@@ -377,11 +393,21 @@ export function DataTableAdvanceFilter({
             <SheetClose asChild>
               <Button variant="secondary">Close</Button>
             </SheetClose>
-            <Button disabled={!form.formState.isDirty} type="submit">
-              Apply {form.formState.isDirty && fields.length} filter(s)
-            </Button>
+            <Button type="submit">Apply {form.formState.isDirty && fields.length} filter(s)</Button>
           </SheetFooter>
         </form>
+        <div className="flex items-center">
+          <div className="h-px bg-muted-foreground w-full" />
+          <div className="px-2 text-muted-foreground flex w-64 place-content-center">
+            Segment It
+          </div>
+          <div className="h-px bg-muted-foreground w-full" />
+        </div>
+        <SubmitForm
+          defaultValues={form.getValues()}
+          isSubmitFilter={form.formState.isSubmitSuccessful}
+          isValid={form.formState.isValid}
+        />
       </SheetContent>
     </Sheet>
   )

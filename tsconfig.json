@@ -6,7 +6,7 @@
     "jsxImportSource": "react",
     "types": ["astro/client"],
     "baseUrl": ".",
-    "lib": ["es6", "dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "esnext"],
     "paths": {
       "@/*": ["./src/*"],
       "@/actions/*": ["./src/actions/*"],

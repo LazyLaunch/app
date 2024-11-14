@@ -2,13 +2,21 @@ import { UTCDate } from '@date-fns/utc'
 import { endOfDay, startOfDay } from 'date-fns'
 import { and, eq, isNotNull, isNull, like, ne, notLike, or, sql, type SQL } from 'drizzle-orm'
 
-import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
+import {
+  contactCustomFieldsTable,
+  contactsTable,
+  customFieldsTable,
+  filterConditionsTable,
+  filtersTable,
+} from '@/db/schema'
 
+import { db } from '@/db'
 import { snakeToCamel } from '@/lib/utils'
 import { CustomFieldTypeEnum } from '@/types'
 
 import type { ContactColumn, ContactFields } from '@/db/models/contact'
-import type { SelectFilterCondition } from '@/db/schema'
+import type { InsertFilterCondition, SelectFilterCondition } from '@/db/schema'
+import type { CustomFieldTypeEnum as TypeCustomFieldTypeEnum } from '@/types'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
 export enum Operator {
@@ -96,7 +104,8 @@ export const CONDITION_TYPES: Record<ConditionType, string> = {
 
 export interface FilterCondition
   extends Omit<SelectFilterCondition, 'id' | 'createdAt' | 'filterId' | 'columnType'> {
-  columnType: CustomFieldTypeEnum
+  filterId?: string
+  columnType: TypeCustomFieldTypeEnum
 }
 
 const createExistsQuery = (subquery: SQL<any>) => sql<boolean>`EXISTS (${subquery})`
@@ -185,7 +194,7 @@ function buildColumn({
   return { isCustomField, colId, column }
 }
 
-function buildConditions({
+function getConditions({
   filterConditions,
   projectId,
   teamId,
@@ -329,6 +338,57 @@ export function buildDynamicFilter({
 }): SQL<any> | undefined {
   if (!filterConditions.length) return undefined
 
-  const conditions = buildConditions({ filterConditions, contactFields, teamId, projectId })
+  const conditions = getConditions({ filterConditions, contactFields, teamId, projectId })
   return buildGroupConditions({ conditions, filterConditions })
+}
+
+export async function saveFilters({
+  filterConditions,
+  teamId,
+  projectId,
+  userId,
+  filterId,
+  filterName,
+}: {
+  filterConditions: InsertFilterCondition[]
+  teamId: string
+  projectId: string
+  userId: string
+  filterId?: string | undefined
+  filterName: string
+}) {
+  return await db.transaction(async (tx) => {
+    const filter = await tx
+      .insert(filtersTable)
+      .values({
+        teamId,
+        projectId,
+        userId,
+        name: filterName,
+        id: filterId,
+      })
+      .onConflictDoUpdate({
+        target: filtersTable.id,
+        set: { name: filterName },
+        setWhere: sql`projectId = ${projectId} AND teamId = ${teamId}`,
+      })
+      .returning()
+      .get()
+
+    const conditions = filterConditions.map(async (condition) => {
+      const { id, ...rest } = condition
+      await tx
+        .insert(filterConditionsTable)
+        .values(condition)
+        .onConflictDoUpdate({
+          target: filterConditionsTable.id,
+          set: { ...rest, filterId: filter.id },
+          setWhere: sql`projectId = ${projectId} AND teamId = ${teamId} AND filterId = ${filter.id}`,
+        })
+        .returning()
+        .get()
+    })
+
+    return { filter, conditions }
+  })
 }

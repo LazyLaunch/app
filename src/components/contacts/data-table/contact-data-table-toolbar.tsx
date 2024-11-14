@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { DataTableAdvanceFilter } from '@/components/data-table/data-table-advance-filter'
+import { DataTableAdvancedFilter } from '@/components/data-table/data-table-advanced-filter'
 import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter'
 import {
   Command,
@@ -255,7 +255,7 @@ export function ContactDataTableToolbar({
               </Command>
             </PopoverContent>
           </Popover>
-          <DataTableAdvanceFilter
+          <DataTableAdvancedFilter
             table={table}
             ids={ids}
             csrfToken={csrfToken}

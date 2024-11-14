@@ -335,7 +335,7 @@ export const filtersTable = sqliteTable(
       .primaryKey()
       .notNull()
       .$defaultFn(() => createId()),
-    name: text('name', { length: 50 }).notNull(),
+    name: text('name', { length: 25 }).notNull(),
     projectId: text('project_id', { length: 256 })
       .notNull()
       .references(() => projectsTable.id, { onDelete: 'cascade' }),
@@ -350,6 +350,7 @@ export const filtersTable = sqliteTable(
   (table) => ({
     filterProjectIdx: index('filters_project_idx').on(table.projectId),
     filterTeamIdx: index('filters_team_idx').on(table.teamId),
+    filterName: uniqueIndex('filters_name').on(table.name, table.projectId),
   })
 )
 
