@@ -14,7 +14,7 @@ import { AvatarComponent } from '@/components/avatar-component'
 
 import type { UserProps } from '@/components/avatar-component'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN } from '@/constants'
 
 interface Props {
   csrfToken: string

@@ -5,8 +5,8 @@ import { createJWT, validateJWT } from 'oslo/jwt'
 import { getUserTeam } from '@/db/models/userTeam'
 import { hasPermission, type UserPermissionsEnum } from '@/lib/rbac'
 
+import { JWT_ALGORITHM, SHA_HASH } from '@/constants'
 import type { SelectUserTeam } from '@/db/schema'
-import { JWT_ALGORITHM, SHA_HASH } from '@/types'
 import type { ActionAPIContext } from 'astro:actions'
 
 const secret = await new HMAC(SHA_HASH).generateKey()

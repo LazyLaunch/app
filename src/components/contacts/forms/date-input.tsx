@@ -14,8 +14,8 @@ import {
 } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
+import { DATE_TEXT_FORMAT } from '@/constants'
 import { cn } from '@/lib/utils'
-import { DATE_TEXT_FORMAT } from '@/types'
 
 interface Props {
   className?: string

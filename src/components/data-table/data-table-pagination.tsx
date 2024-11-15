@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DEFAULT_PAGE_SIZES } from '@/constants'
 import type { ContactProps } from '@/db/models/contact'
-import { DEFAULT_PAGE_SIZES } from '@/types'
 
 interface DataTablePaginationProps {
   table: Table<ContactProps>

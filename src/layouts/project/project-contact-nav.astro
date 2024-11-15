@@ -1,5 +1,7 @@
 ---
-import { ContactNavLink, type ContactNavLinkId } from '@/components/contacts/contact-nav-link'
+import { ContactNavLink } from '@/components/contacts/contact-nav-link'
+
+import type { ContactNavLinkId } from '@/types'
 
 const { teamSlug, projectSlug } = Astro.params
 const url = `/${teamSlug}/${projectSlug}/contacts`

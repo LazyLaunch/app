@@ -8,7 +8,7 @@ import { toast } from 'sonner'
 
 import type { Resolver } from 'react-hook-form'
 
-import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/types'
+import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/constants'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'

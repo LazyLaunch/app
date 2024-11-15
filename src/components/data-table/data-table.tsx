@@ -13,6 +13,7 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 
+import { ContactDataTableToolbar } from '@/components/contacts/data-table/contact-data-table-toolbar'
 import { DataTablePagination } from '@/components/data-table/data-table-pagination'
 import {
   Table,
@@ -179,7 +180,7 @@ export function DataTable({
 
   return (
     <div className={cn(className, 'space-y-4')}>
-      {children({ table, customFields, csrfToken, ids, contactFields })}
+      <ContactDataTableToolbar {...{ table, customFields, csrfToken, ids, contactFields }} />
       <div className="rounded-md border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>

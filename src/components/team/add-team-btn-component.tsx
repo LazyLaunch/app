@@ -2,7 +2,7 @@ import { actions, isInputError } from 'astro:actions'
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN } from '@/constants'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import {

@@ -14,6 +14,8 @@
       "@/svg/*": ["./src/assets/svg/*"],
       "@/db/*": ["./src/db/*"],
       "@/types": ["./src/types.ts"],
+      "@/constants": ["./src/constants.ts"],
+      "@/enums": ["./src/enums.ts"],
       "@/lib/*": ["./src/lib/*"],
       "@/middleware/*": ["./src/middleware/*"]
     }

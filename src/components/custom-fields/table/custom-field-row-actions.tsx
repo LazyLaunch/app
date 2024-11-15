@@ -24,7 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Form } from '@/components/ui/form'
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN } from '@/constants'
 
 import { EditCustomFieldForm } from '@/components/custom-fields/edit-custom-field-form'
 import type { CustomFieldList } from '@/db/models/custom-field'

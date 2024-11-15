@@ -7,9 +7,12 @@ import { parseJWT } from 'oslo/jwt'
 
 import { getAccountByProvider, linkAccount } from '@/db/models/account'
 import { createEmail, existsPrimaryEmail } from '@/db/models/email'
+
+import { SLUG_RANDOM_STRING_SIZE } from '@/constants'
 import { createUser } from '@/db/models/user'
+import { UserErrorFlowEnum, UserFlowEnum } from '@/enums'
+
 import type { SelectAccount, SelectSession } from '@/db/schema'
-import { SLUG_RANDOM_STRING_SIZE, UserErrorFlowEnum, UserFlowEnum } from '@/types'
 import type { APIContext, AstroCookies } from 'astro'
 
 const DEFAULT_TYPE = 'oauth'

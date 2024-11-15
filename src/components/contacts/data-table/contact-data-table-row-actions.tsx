@@ -1,5 +1,6 @@
 import { actions } from 'astro:actions'
 import { Ellipsis, PencilLine, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import type { Row, Table } from '@tanstack/react-table'
@@ -32,8 +33,9 @@ import {
 
 import type { ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
-import { useState } from 'react'
+
+import { CSRF_TOKEN } from '@/constants'
+import { CustomFieldTypeEnum } from '@/enums'
 
 const SINGLE_FORM_TITLE: string = 'Edit Contact Information' as const
 const SINGLE_FORM_DESC: string =

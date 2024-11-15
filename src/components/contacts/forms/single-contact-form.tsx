@@ -1,3 +1,4 @@
+import { isInputError, type SafeResult } from 'astro:actions'
 import { navigate } from 'astro:transitions/client'
 import { useForm } from 'react-hook-form'
 
@@ -23,8 +24,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 
-import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
-import { isInputError, type SafeResult } from 'astro:actions'
+import { CSRF_TOKEN } from '@/constants'
+import { CustomFieldTypeEnum } from '@/enums'
 
 import { DateInput } from '@/components/contacts/forms/date-input'
 import type { CustomFieldProps } from '@/db/models/custom-field'

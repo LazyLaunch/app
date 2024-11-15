@@ -3,7 +3,7 @@ import { Database, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-export type ContactNavLinkId = 'contacts' | 'fields'
+import type { ContactNavLinkId } from '@/types'
 
 const ICONS: Record<ContactNavLinkId, any> = {
   contacts: Users,

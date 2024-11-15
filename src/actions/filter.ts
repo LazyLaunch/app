@@ -2,15 +2,10 @@ import { isCuid } from '@paralleldrive/cuid2'
 import { defineAction } from 'astro:actions'
 import { z, type ZodError } from 'astro:schema'
 
+import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { getContactFields, testContacts } from '@/db/models/contact'
-import {
-  buildDynamicFilter,
-  ConditionType,
-  Operator,
-  saveFilters,
-  type FilterCondition,
-} from '@/db/models/filter'
-import { CUSTOM_FIELD_TYPE_LIST } from '@/types'
+import { buildDynamicFilter, saveFilters, type FilterCondition } from '@/db/models/filter'
+import { ConditionType, Operator } from '@/enums'
 
 const filterConditionsSchema = z
   .array(

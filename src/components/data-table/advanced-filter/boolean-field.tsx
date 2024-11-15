@@ -1,4 +1,4 @@
-import { CustomFieldTypeEnum } from '@/types'
+import { CustomFieldTypeEnum } from '@/enums'
 
 export function BooleanField({ className, type }: { className?: string; type?: string }) {
   const isBooleanType = type === CustomFieldTypeEnum.BOOLEAN

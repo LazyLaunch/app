@@ -4,7 +4,8 @@ import { generateCodeVerifier, generateState } from 'arctic'
 import type { GoogleOAuthScope, OauthKeyName } from '@/types'
 import type { APIContext, AstroCookies } from 'astro'
 
-import { GOOGLE_SCOPES, OauthKeyNameEnum, UserFlowEnum } from '@/types'
+import { GOOGLE_SCOPES } from '@/constants'
+import { OauthKeyNameEnum, UserFlowEnum } from '@/enums'
 
 export async function GET({ cookies, redirect, locals }: APIContext): Promise<Response> {
   if (locals.user) return redirect('/')

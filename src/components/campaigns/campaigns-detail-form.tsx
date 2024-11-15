@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+import { CSRF_TOKEN } from '@/constants'
 import type { CampaignDetails } from '@/stores/campaign-store'
-import { CSRF_TOKEN } from '@/types'
 
 import { $campaign } from '@/stores/campaign-store'
 

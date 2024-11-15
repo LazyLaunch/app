@@ -26,8 +26,8 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { CSRF_TOKEN } from '@/constants'
 import { cn } from '@/lib/utils'
-import { CSRF_TOKEN } from '@/types'
 import { useRef, useState } from 'react'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 

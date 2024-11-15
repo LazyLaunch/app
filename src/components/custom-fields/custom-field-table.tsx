@@ -26,7 +26,7 @@ import { tagWithPlaceholder } from '@/lib/to-tag'
 import { cn, formatFieldName } from '@/lib/utils'
 
 import { Checkbox } from '@/components/ui/checkbox'
-import { CustomFieldTypeEnum } from '@/types'
+import { CustomFieldTypeEnum } from '@/enums'
 
 const ICONS: Record<CustomFieldTypeEnum, any> = {
   [CustomFieldTypeEnum.STRING]: AlignLeft,

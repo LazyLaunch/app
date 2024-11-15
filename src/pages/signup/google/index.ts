@@ -1,10 +1,11 @@
-import { generateState, generateCodeVerifier } from 'arctic'
 import { googleAuth } from '@/lib/auth'
+import { generateCodeVerifier, generateState } from 'arctic'
 
+import type { GoogleOAuthScope, OauthKeyName } from '@/types'
 import type { APIContext, AstroCookies } from 'astro'
-import type { OauthKeyName, GoogleOAuthScope } from '@/types'
 
-import { OauthKeyNameEnum, GOOGLE_SCOPES, UserFlowEnum } from '@/types'
+import { GOOGLE_SCOPES } from '@/constants'
+import { OauthKeyNameEnum, UserFlowEnum } from '@/enums'
 
 export async function GET({ cookies, redirect }: APIContext): Promise<Response> {
   const state = generateState()

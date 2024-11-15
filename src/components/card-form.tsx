@@ -1,8 +1,8 @@
 import { actions, isInputError } from 'astro:actions'
 import * as React from 'react'
 
+import { CSRF_TOKEN, TOAST_SUCCESS_TIME } from '@/constants'
 import { cn, getNestedValue } from '@/lib/utils'
-import { CSRF_TOKEN, TOAST_SUCCESS_TIME } from '@/types'
 import { Loader2 } from 'lucide-react'
 import type {
   ControllerRenderProps,

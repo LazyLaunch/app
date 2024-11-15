@@ -4,8 +4,8 @@ import { z } from 'astro:schema'
 import { setPrimaryEmail } from '@/db/models/email'
 import { existsUsername, updateUser } from '@/db/models/user'
 import type { InsertUser } from '@/db/schema'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
 import { lucia } from '@/lib/auth'
-import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 interface UserProps extends Omit<InsertUser, 'name' | 'email' | 'username'> {
   name: string

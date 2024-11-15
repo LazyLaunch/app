@@ -1,6 +1,9 @@
 import { actions, isInputError } from 'astro:actions'
+import { navigate } from 'astro:transitions/client'
+import { Info } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -21,12 +24,10 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Textarea } from '@/components/ui/textarea'
-import { CSRF_TOKEN } from '@/types'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { CSRF_TOKEN } from '@/constants'
+
 import { validateEmails } from '@/lib/validate-emails'
-import { navigate } from 'astro:transitions/client'
-import { Info } from 'lucide-react'
 
 interface FormValues {
   csrfToken: string

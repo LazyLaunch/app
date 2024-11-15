@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-import { Operator } from '@/db/models/filter'
 import { cn } from '@/lib/utils'
 
-import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
+import { DATE_TEXT_FORMAT } from '@/constants'
+import { CustomFieldTypeEnum, Operator } from '@/enums'
 
 function DatePicker({
   field,

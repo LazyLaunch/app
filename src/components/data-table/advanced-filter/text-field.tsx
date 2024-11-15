@@ -1,8 +1,7 @@
 import { Input } from '@/components/ui/input'
 
-import { Operator } from '@/db/models/filter'
+import { CustomFieldTypeEnum, Operator } from '@/enums'
 import { cn } from '@/lib/utils'
-import { CustomFieldTypeEnum } from '@/types'
 import { useEffect } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 

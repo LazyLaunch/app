@@ -3,7 +3,7 @@ import type { APIContext } from 'astro'
 
 import { verifyRequestOrigin } from 'oslo/request'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN } from '@/constants'
 
 export async function validateCsrfToken(context: APIContext, next: Function) {
   if (isSafeMethod(context.request.method)) {

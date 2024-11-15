@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import type { FilterCondition } from '@/db/models/filter'
-import type { CustomFieldTypeEnum } from '@/types'
+import type { CustomFieldTypeEnum } from '@/enums'
 
 interface FormValues {
   csrfToken: string

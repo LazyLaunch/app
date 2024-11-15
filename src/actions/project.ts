@@ -2,9 +2,9 @@ import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
 import { createProject, deleteProject, existsSlug } from '@/db/models/project'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
 import { UserPermissionsEnum } from '@/lib/rbac'
 import { checkPermission } from '@/middleware/check-permission'
-import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 export const project = {
   create: defineAction({

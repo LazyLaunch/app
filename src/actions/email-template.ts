@@ -8,10 +8,10 @@ import {
   type UpdateEmailTemplateProps,
 } from '@/db/models/email-template'
 import { getTeamByIds } from '@/db/models/team'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
 import { UserPermissionsEnum } from '@/lib/rbac'
 import { checkPermission } from '@/middleware/check-permission'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
-import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
 
 const slateNodeSchema = z.array(
   z.object({

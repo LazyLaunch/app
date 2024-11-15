@@ -2,6 +2,7 @@ import { isCuid } from '@paralleldrive/cuid2'
 import { ActionError, defineAction } from 'astro:actions'
 import { z } from 'astro:schema'
 
+import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import {
   bulkDeleteCustomField,
   createCustomField,
@@ -9,7 +10,7 @@ import {
   isUniqCustomFieldName,
   updateCustomField,
 } from '@/db/models/custom-field'
-import { CUSTOM_FIELD_TYPE_LIST, ResponseStatusEnum, ResponseStatusMessageEnum } from '@/types'
+import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
 
 const customFieldIdsSchema = z.array(
   z.string().refine(

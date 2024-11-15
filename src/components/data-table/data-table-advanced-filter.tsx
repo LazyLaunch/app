@@ -27,20 +27,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+
 import {
   CONDITION_TYPES,
-  ConditionType,
+  CSRF_TOKEN,
   DEFAULT_FILTER,
   OPERATOR_NAMES,
   OPERATORS_BY_COL_TYPE,
-} from '@/db/models/filter'
+} from '@/constants'
 
+import { ConditionType, CustomFieldTypeEnum, Operator } from '@/enums'
 import { cn, formatFieldName } from '@/lib/utils'
-import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { Operator, type FilterCondition } from '@/db/models/filter'
+import type { FilterCondition } from '@/db/models/filter'
 import type { Table } from '@tanstack/react-table'
 
 interface FormValues {

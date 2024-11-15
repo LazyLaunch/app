@@ -31,7 +31,9 @@ import {
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { ContactSourceEnum, CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
+
+import { CSRF_TOKEN } from '@/constants'
+import { ContactSourceEnum, CustomFieldTypeEnum } from '@/enums'
 
 export interface ContactDataTableToolbarProps {
   table: Table<ContactProps>

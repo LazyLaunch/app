@@ -2,8 +2,8 @@ import type { APIContext } from 'astro'
 import { HMAC } from 'oslo/crypto'
 import { createJWT, validateJWT } from 'oslo/jwt'
 
+import { JWT_ALGORITHM, SHA_HASH } from '@/constants'
 import { getProjectBySlugAndUser } from '@/db/models/project'
-import { JWT_ALGORITHM, SHA_HASH } from '@/types'
 
 const secret = await new HMAC(SHA_HASH).generateKey()
 const COOKIES_NAME = 'projectSession'

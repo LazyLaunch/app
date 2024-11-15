@@ -18,8 +18,8 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
+import { CSRF_TOKEN } from '@/constants'
 import type { CustomFieldList } from '@/db/models/custom-field'
-import { CSRF_TOKEN } from '@/types'
 
 interface Props {
   csrfToken: string

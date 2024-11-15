@@ -6,7 +6,8 @@ import type { InsertProject, SelectProject } from '@/db/schema'
 
 import { db } from '@/db'
 import { projectsTable, teamsTable, userTeamsTable } from '@/db/schema'
-import { SLUG_RANDOM_STRING_SIZE } from '@/types'
+
+import { SLUG_RANDOM_STRING_SIZE } from '@/constants'
 
 export async function getProjectBySlugAndUser({
   slug,

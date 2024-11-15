@@ -1,3 +1,7 @@
+import { actions } from 'astro:actions'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -6,9 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { CSRF_TOKEN, CustomFieldTypeEnum } from '@/types'
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
+import { CSRF_TOKEN } from '@/constants'
+import { CustomFieldTypeEnum } from '@/enums'
 
 import { IndividualContactsForm } from '@/components/contacts/forms/individual-contacts-form'
 import {
@@ -17,7 +20,6 @@ import {
 } from '@/components/contacts/forms/single-contact-form'
 
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { actions } from 'astro:actions'
 
 const FORM_TITLE: string = 'Add Contact' as const
 const FORM_DESC: string =

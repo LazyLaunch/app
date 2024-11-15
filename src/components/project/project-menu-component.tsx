@@ -3,7 +3,7 @@ import { EllipsisVertical } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/types'
+import { CSRF_TOKEN, TOAST_ERROR_TIME, TOAST_SUCCESS_TIME } from '@/constants'
 
 import type { SelectProject } from '@/db/schema'
 

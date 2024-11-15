@@ -1,4 +1,5 @@
 import { actions, isInputError } from 'astro:actions'
+import { navigate } from 'astro:transitions/client'
 import { Plus } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
@@ -31,8 +32,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import { CSRF_TOKEN, CUSTOM_FIELD_TYPE_LIST, type CustomFieldTypeEnum } from '@/types'
-import { navigate } from 'astro:transitions/client'
+import { CSRF_TOKEN, CUSTOM_FIELD_TYPE_LIST } from '@/constants'
+import type { CustomFieldTypeEnum } from '@/enums'
 
 interface FormValues {
   csrfToken: string

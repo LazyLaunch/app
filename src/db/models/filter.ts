@@ -12,100 +12,17 @@ import {
 
 import { db } from '@/db'
 import { snakeToCamel } from '@/lib/utils'
-import { CustomFieldTypeEnum } from '@/types'
+
+import { ConditionType, CustomFieldTypeEnum, Operator } from '@/enums'
 
 import type { ContactColumn, ContactFields } from '@/db/models/contact'
 import type { InsertFilterCondition, SelectFilterCondition } from '@/db/schema'
-import type { CustomFieldTypeEnum as TypeCustomFieldTypeEnum } from '@/types'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
-
-export enum Operator {
-  EQUALS = 0,
-  NOT_EQUAL = 1,
-  CONTAINS = 2,
-  NOT_CONTAIN = 3,
-  IS_EMPTY = 4,
-  IS_NOT_EMPTY = 5,
-  IS_TRUE = 6,
-  IS_FALSE = 7,
-  IS_AFTER = 8,
-  IS_BEFORE = 9,
-  BETWEEN = 10,
-  GREATER_THAN = 11,
-  LESS_THAN = 12,
-}
-
-export enum ConditionType {
-  AND = 0,
-  OR = 1,
-}
-
-export const OPERATOR_NAMES: Record<Operator, string> = {
-  [Operator.EQUALS]: 'Equals',
-  [Operator.NOT_EQUAL]: 'Does not equal',
-  [Operator.CONTAINS]: 'Contains',
-  [Operator.NOT_CONTAIN]: 'Does not contain',
-  [Operator.IS_EMPTY]: 'Is empty',
-  [Operator.IS_NOT_EMPTY]: 'Is not empty',
-  [Operator.IS_TRUE]: 'Is true',
-  [Operator.IS_FALSE]: 'Is false',
-  [Operator.IS_AFTER]: 'Is after',
-  [Operator.IS_BEFORE]: 'Is before',
-  [Operator.BETWEEN]: 'Between',
-  [Operator.GREATER_THAN]: 'Greater than',
-  [Operator.LESS_THAN]: 'Less than',
-} as const
-
-export const OPERATORS_BY_COL_TYPE: Record<CustomFieldTypeEnum, Operator[]> = {
-  [CustomFieldTypeEnum.STRING]: [
-    Operator.EQUALS,
-    Operator.NOT_EQUAL,
-    Operator.CONTAINS,
-    Operator.NOT_CONTAIN,
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-  ],
-  [CustomFieldTypeEnum.BOOLEAN]: [
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.IS_TRUE,
-    Operator.IS_FALSE,
-  ],
-  [CustomFieldTypeEnum.DATE]: [
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.IS_AFTER,
-    Operator.IS_BEFORE,
-    Operator.BETWEEN,
-  ],
-  [CustomFieldTypeEnum.NUMBER]: [
-    Operator.EQUALS,
-    Operator.NOT_EQUAL,
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.GREATER_THAN,
-    Operator.LESS_THAN,
-  ],
-  [CustomFieldTypeEnum.ENUM]: [Operator.EQUALS, Operator.NOT_EQUAL],
-}
-
-export const DEFAULT_FILTER: Record<CustomFieldTypeEnum, Operator> = {
-  [CustomFieldTypeEnum.STRING]: Operator.CONTAINS,
-  [CustomFieldTypeEnum.BOOLEAN]: Operator.IS_TRUE,
-  [CustomFieldTypeEnum.DATE]: Operator.IS_AFTER,
-  [CustomFieldTypeEnum.NUMBER]: Operator.EQUALS,
-  [CustomFieldTypeEnum.ENUM]: Operator.EQUALS,
-}
-
-export const CONDITION_TYPES: Record<ConditionType, string> = {
-  [ConditionType.AND]: 'and',
-  [ConditionType.OR]: 'or',
-} as const
 
 export interface FilterCondition
   extends Omit<SelectFilterCondition, 'id' | 'createdAt' | 'filterId' | 'columnType'> {
   filterId?: string
-  columnType: TypeCustomFieldTypeEnum
+  columnType: CustomFieldTypeEnum
 }
 
 const createExistsQuery = (subquery: SQL<any>) => sql<boolean>`EXISTS (${subquery})`

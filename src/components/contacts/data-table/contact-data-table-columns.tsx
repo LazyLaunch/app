@@ -1,5 +1,6 @@
 import { UTCDate } from '@date-fns/utc'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { Column, Row } from '@tanstack/react-table'
+import { format } from 'date-fns'
 
 import { Checkbox } from '@/components/ui/checkbox'
 
@@ -8,9 +9,10 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 
 import type { ContactCustomFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
-import type { Column, Row } from '@tanstack/react-table'
-import { format } from 'date-fns'
+import type { ColumnDef } from '@tanstack/react-table'
+
+import { DATE_TEXT_FORMAT } from '@/constants'
+import { CustomFieldTypeEnum } from '@/enums'
 
 export function contactDataTableColumns({
   csrfToken,

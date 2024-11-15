@@ -1,5 +1,6 @@
 import { UTCDate } from '@date-fns/utc'
 import type { Column } from '@tanstack/react-table'
+import { endOfDay, format, startOfDay } from 'date-fns'
 import { CalendarIcon, Check, CirclePlus } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -17,10 +18,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 
+import { DATE_TEXT_FORMAT } from '@/constants'
 import type { ContactProps } from '@/db/models/contact'
+import { CustomFieldTypeEnum } from '@/enums'
 import { cn } from '@/lib/utils'
-import { CustomFieldTypeEnum, DATE_TEXT_FORMAT } from '@/types'
-import { endOfDay, format, startOfDay } from 'date-fns'
+
 import type { DateRange } from 'react-day-picker'
 
 interface DataTableFacetedFilterProps {

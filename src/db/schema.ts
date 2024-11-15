@@ -6,14 +6,11 @@ const createId = init({
   length: 32,
 })
 
+import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
+import { ContactSourceEnum, CustomFieldTypeEnum } from '@/enums'
 import type { UserRoles } from '@/lib/rbac'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
-import {
-  ContactSourceEnum,
-  CUSTOM_FIELD_TYPE_LIST,
-  CustomFieldTypeEnum,
-  type ProviderType,
-} from '@/types'
+import type { ProviderType } from '@/types'
 
 export const usersTable = sqliteTable(
   'users',

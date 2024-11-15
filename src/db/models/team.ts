@@ -2,10 +2,10 @@ import { and, eq, sql } from 'drizzle-orm'
 import { alphabet, generateRandomString } from 'oslo/crypto'
 import slug from 'slug'
 
+import { SLUG_RANDOM_STRING_SIZE } from '@/constants'
 import { db } from '@/db'
 import { projectsTable, teamsTable, userTeamsTable } from '@/db/schema'
 import { UserRolesEnum } from '@/lib/rbac'
-import { SLUG_RANDOM_STRING_SIZE } from '@/types'
 
 import type { InsertTeam, SelectTeam } from '@/db/schema'
 

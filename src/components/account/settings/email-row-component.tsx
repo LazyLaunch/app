@@ -3,7 +3,7 @@ import { actions } from 'astro:actions'
 import { cn } from '@/lib/utils'
 import { MoreHorizontal } from 'lucide-react'
 
-import { CSRF_TOKEN } from '@/types'
+import { CSRF_TOKEN } from '@/constants'
 import { useForm } from 'react-hook-form'
 
 import { Badge } from '@/components/ui/badge'
