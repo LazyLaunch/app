@@ -55,7 +55,7 @@ export enum CustomFieldTypeEnum {
   ENUM = 'enum',
 }
 
-export enum Operator {
+export enum OperatorEnum {
   EQUALS = 0,
   NOT_EQUAL = 1,
   CONTAINS = 2,
@@ -71,7 +71,7 @@ export enum Operator {
   LESS_THAN = 12,
 }
 
-export enum ConditionType {
+export enum ConditionTypeEnum {
   AND = 0,
   OR = 1,
 }

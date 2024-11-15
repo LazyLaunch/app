@@ -5,7 +5,7 @@ import { z, type ZodError } from 'astro:schema'
 import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { getContactFields, testContacts } from '@/db/models/contact'
 import { buildDynamicFilter, saveFilters, type FilterCondition } from '@/db/models/filter'
-import { ConditionType, Operator } from '@/enums'
+import { ConditionTypeEnum, OperatorEnum } from '@/enums'
 
 const filterConditionsSchema = z
   .array(
@@ -45,7 +45,7 @@ const filterConditionsSchema = z
           })
           .refine(
             (val) => {
-              const conditionTypes = Object.values(ConditionType).filter(
+              const conditionTypes = Object.values(ConditionTypeEnum).filter(
                 (value) => typeof value === 'number'
               )
               return conditionTypes.includes(val)
@@ -62,7 +62,9 @@ const filterConditionsSchema = z
           })
           .refine(
             (val) => {
-              const operators = Object.values(Operator).filter((value) => typeof value === 'number')
+              const operators = Object.values(OperatorEnum).filter(
+                (value) => typeof value === 'number'
+              )
               return operators.includes(val)
             },
             () => ({
@@ -76,10 +78,10 @@ const filterConditionsSchema = z
       .refine(
         ({ operator, value }) => {
           const allowEmpty = [
-            Operator.IS_EMPTY,
-            Operator.IS_NOT_EMPTY,
-            Operator.IS_TRUE,
-            Operator.IS_FALSE,
+            OperatorEnum.IS_EMPTY,
+            OperatorEnum.IS_NOT_EMPTY,
+            OperatorEnum.IS_TRUE,
+            OperatorEnum.IS_FALSE,
           ].includes(Number(operator))
           if (allowEmpty) return true
           return Boolean(value)
@@ -91,7 +93,7 @@ const filterConditionsSchema = z
       )
       .refine(
         ({ operator, secondaryValue }) => {
-          const isBetween = Operator.BETWEEN === Number(operator)
+          const isBetween = OperatorEnum.BETWEEN === Number(operator)
           if (!isBetween) return true
           return Boolean(secondaryValue)
         },

@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 import { Input } from '@/components/ui/input'
 
-import { CustomFieldTypeEnum, Operator } from '@/enums'
+import { CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 import { cn, handleNumberInput } from '@/lib/utils'
 
 import type { UseFormReturn } from 'react-hook-form'
@@ -27,12 +27,12 @@ export function NumberField({
   const showInputs =
     isNumberType &&
     [
-      Operator.EQUALS,
-      Operator.NOT_EQUAL,
-      Operator.CONTAINS,
-      Operator.NOT_CONTAIN,
-      Operator.GREATER_THAN,
-      Operator.LESS_THAN,
+      OperatorEnum.EQUALS,
+      OperatorEnum.NOT_EQUAL,
+      OperatorEnum.CONTAINS,
+      OperatorEnum.NOT_CONTAIN,
+      OperatorEnum.GREATER_THAN,
+      OperatorEnum.LESS_THAN,
     ].includes(Number(watchOperator))
   const error = (errors.filterConditions as any)?.[index]?.value
 

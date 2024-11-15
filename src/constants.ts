@@ -1,7 +1,7 @@
 import type { SHAHash } from 'oslo/crypto'
 import type { JWTAlgorithm } from 'oslo/jwt'
 
-import { ConditionType, CustomFieldTypeEnum, Operator } from '@/enums'
+import { ConditionTypeEnum, CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 
 export const JWT_ALGORITHM: JWTAlgorithm = 'HS256' as const
 export const SHA_HASH: SHAHash = 'SHA-256' as const
@@ -32,64 +32,64 @@ export const CUSTOM_FIELD_TYPE_LIST = [
 
 export const DATE_TEXT_FORMAT: string = 'LLL dd, y HH:mm:ss' as const
 
-export const OPERATOR_NAMES: Record<Operator, string> = {
-  [Operator.EQUALS]: 'Equals',
-  [Operator.NOT_EQUAL]: 'Does not equal',
-  [Operator.CONTAINS]: 'Contains',
-  [Operator.NOT_CONTAIN]: 'Does not contain',
-  [Operator.IS_EMPTY]: 'Is empty',
-  [Operator.IS_NOT_EMPTY]: 'Is not empty',
-  [Operator.IS_TRUE]: 'Is true',
-  [Operator.IS_FALSE]: 'Is false',
-  [Operator.IS_AFTER]: 'Is after',
-  [Operator.IS_BEFORE]: 'Is before',
-  [Operator.BETWEEN]: 'Between',
-  [Operator.GREATER_THAN]: 'Greater than',
-  [Operator.LESS_THAN]: 'Less than',
+export const OPERATOR_NAMES: Record<OperatorEnum, string> = {
+  [OperatorEnum.EQUALS]: 'Equals',
+  [OperatorEnum.NOT_EQUAL]: 'Does not equal',
+  [OperatorEnum.CONTAINS]: 'Contains',
+  [OperatorEnum.NOT_CONTAIN]: 'Does not contain',
+  [OperatorEnum.IS_EMPTY]: 'Is empty',
+  [OperatorEnum.IS_NOT_EMPTY]: 'Is not empty',
+  [OperatorEnum.IS_TRUE]: 'Is true',
+  [OperatorEnum.IS_FALSE]: 'Is false',
+  [OperatorEnum.IS_AFTER]: 'Is after',
+  [OperatorEnum.IS_BEFORE]: 'Is before',
+  [OperatorEnum.BETWEEN]: 'Between',
+  [OperatorEnum.GREATER_THAN]: 'Greater than',
+  [OperatorEnum.LESS_THAN]: 'Less than',
 } as const
 
-export const OPERATORS_BY_COL_TYPE: Record<CustomFieldTypeEnum, Operator[]> = {
+export const OPERATORS_BY_COL_TYPE: Record<CustomFieldTypeEnum, OperatorEnum[]> = {
   [CustomFieldTypeEnum.STRING]: [
-    Operator.EQUALS,
-    Operator.NOT_EQUAL,
-    Operator.CONTAINS,
-    Operator.NOT_CONTAIN,
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
+    OperatorEnum.EQUALS,
+    OperatorEnum.NOT_EQUAL,
+    OperatorEnum.CONTAINS,
+    OperatorEnum.NOT_CONTAIN,
+    OperatorEnum.IS_EMPTY,
+    OperatorEnum.IS_NOT_EMPTY,
   ],
   [CustomFieldTypeEnum.BOOLEAN]: [
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.IS_TRUE,
-    Operator.IS_FALSE,
+    OperatorEnum.IS_EMPTY,
+    OperatorEnum.IS_NOT_EMPTY,
+    OperatorEnum.IS_TRUE,
+    OperatorEnum.IS_FALSE,
   ],
   [CustomFieldTypeEnum.DATE]: [
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.IS_AFTER,
-    Operator.IS_BEFORE,
-    Operator.BETWEEN,
+    OperatorEnum.IS_EMPTY,
+    OperatorEnum.IS_NOT_EMPTY,
+    OperatorEnum.IS_AFTER,
+    OperatorEnum.IS_BEFORE,
+    OperatorEnum.BETWEEN,
   ],
   [CustomFieldTypeEnum.NUMBER]: [
-    Operator.EQUALS,
-    Operator.NOT_EQUAL,
-    Operator.IS_EMPTY,
-    Operator.IS_NOT_EMPTY,
-    Operator.GREATER_THAN,
-    Operator.LESS_THAN,
+    OperatorEnum.EQUALS,
+    OperatorEnum.NOT_EQUAL,
+    OperatorEnum.IS_EMPTY,
+    OperatorEnum.IS_NOT_EMPTY,
+    OperatorEnum.GREATER_THAN,
+    OperatorEnum.LESS_THAN,
   ],
-  [CustomFieldTypeEnum.ENUM]: [Operator.EQUALS, Operator.NOT_EQUAL],
+  [CustomFieldTypeEnum.ENUM]: [OperatorEnum.EQUALS, OperatorEnum.NOT_EQUAL],
 }
 
-export const DEFAULT_FILTER: Record<CustomFieldTypeEnum, Operator> = {
-  [CustomFieldTypeEnum.STRING]: Operator.CONTAINS,
-  [CustomFieldTypeEnum.BOOLEAN]: Operator.IS_TRUE,
-  [CustomFieldTypeEnum.DATE]: Operator.IS_AFTER,
-  [CustomFieldTypeEnum.NUMBER]: Operator.EQUALS,
-  [CustomFieldTypeEnum.ENUM]: Operator.EQUALS,
+export const DEFAULT_FILTER: Record<CustomFieldTypeEnum, OperatorEnum> = {
+  [CustomFieldTypeEnum.STRING]: OperatorEnum.CONTAINS,
+  [CustomFieldTypeEnum.BOOLEAN]: OperatorEnum.IS_TRUE,
+  [CustomFieldTypeEnum.DATE]: OperatorEnum.IS_AFTER,
+  [CustomFieldTypeEnum.NUMBER]: OperatorEnum.EQUALS,
+  [CustomFieldTypeEnum.ENUM]: OperatorEnum.EQUALS,
 }
 
-export const CONDITION_TYPES: Record<ConditionType, string> = {
-  [ConditionType.AND]: 'and',
-  [ConditionType.OR]: 'or',
+export const CONDITION_TYPES: Record<ConditionTypeEnum, string> = {
+  [ConditionTypeEnum.AND]: 'and',
+  [ConditionTypeEnum.OR]: 'or',
 } as const

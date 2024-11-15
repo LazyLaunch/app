@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils'
 
 import { DATE_TEXT_FORMAT } from '@/constants'
-import { CustomFieldTypeEnum, Operator } from '@/enums'
+import { CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 
 function DatePicker({
   field,
@@ -76,11 +76,13 @@ export function DateField({
   const errors = form.formState.errors
 
   const isDateType = type === CustomFieldTypeEnum.DATE
-  const isBetweenOperator = Number(watchOperator) === Operator.BETWEEN
+  const isBetweenOperator = Number(watchOperator) === OperatorEnum.BETWEEN
   const label = isBetweenOperator ? 'Select start date...' : placeholder
   const showInputs =
     isDateType &&
-    [Operator.IS_AFTER, Operator.IS_BEFORE, Operator.BETWEEN].includes(Number(watchOperator))
+    [OperatorEnum.IS_AFTER, OperatorEnum.IS_BEFORE, OperatorEnum.BETWEEN].includes(
+      Number(watchOperator)
+    )
   const error = (errors.filterConditions as any)?.[index]
 
   useEffect(() => {

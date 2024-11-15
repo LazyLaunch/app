@@ -13,7 +13,7 @@ import {
 import { db } from '@/db'
 import { snakeToCamel } from '@/lib/utils'
 
-import { ConditionType, CustomFieldTypeEnum, Operator } from '@/enums'
+import { ConditionTypeEnum, CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 
 import type { ContactColumn, ContactFields } from '@/db/models/contact'
 import type { InsertFilterCondition, SelectFilterCondition } from '@/db/schema'
@@ -76,9 +76,9 @@ function buildGroupConditions({
     const condition = conditions[i]
     const conditionType = filterConditions[i].conditionType
 
-    if (conditionType === ConditionType.AND) {
+    if (conditionType === ConditionTypeEnum.AND) {
       currentAndGroup.push(condition)
-    } else if (conditionType === ConditionType.OR) {
+    } else if (conditionType === ConditionTypeEnum.OR) {
       const andGroup = currentAndGroup.length > 1 ? and(...currentAndGroup) : currentAndGroup[0]
       combinedCondition = combinedCondition ? or(combinedCondition, andGroup) : andGroup
       currentAndGroup = [condition]
@@ -133,7 +133,7 @@ function getConditions({
       })
 
       if (isCustomField && condition) {
-        return filterCondition.operator === Operator.IS_EMPTY
+        return filterCondition.operator === OperatorEnum.IS_EMPTY
           ? buildEmptyQuery({ projectId, teamId, condition, colId })
           : createExistsQuery(sql`
           SELECT 1
@@ -163,20 +163,20 @@ function buildCondition({
   const { operator, value, secondaryValue } = filterCondition
 
   switch (operator) {
-    case Operator.EQUALS:
+    case OperatorEnum.EQUALS:
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return and(isNotNull(column), ne(column, ''), eq(column, String(value)))
-    case Operator.NOT_EQUAL: {
+    case OperatorEnum.NOT_EQUAL: {
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return and(isNotNull(column), ne(column, ''), ne(column, String(value)))
     }
-    case Operator.CONTAINS:
+    case OperatorEnum.CONTAINS:
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return like(column, `%${value}%`)
-    case Operator.NOT_CONTAIN:
+    case OperatorEnum.NOT_CONTAIN:
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return and(notLike(column, `%${value}%`), ne(column, ''), isNotNull(column))
-    case Operator.IS_EMPTY:
+    case OperatorEnum.IS_EMPTY:
       if (
         !isCustomField &&
         [
@@ -188,7 +188,7 @@ function buildCondition({
         return sql`CAST(${column} AS INTEGER) IS NULL OR CAST(${column} AS INTEGER) == ''`
       }
       return or(eq(column, ''), isNull(column)) as SQL
-    case Operator.IS_NOT_EMPTY:
+    case OperatorEnum.IS_NOT_EMPTY:
       if (
         !isCustomField &&
         [
@@ -200,25 +200,25 @@ function buildCondition({
         return sql`CAST(${column} AS INTEGER) IS NOT NULL AND CAST(${column} AS INTEGER) != ''`
       }
       return and(ne(column, ''), isNotNull(column)) as SQL
-    case Operator.IS_TRUE:
+    case OperatorEnum.IS_TRUE:
       if (isCustomField && columnType === CustomFieldTypeEnum.BOOLEAN) return eq(column, 'true')
       return eq(column, true)
-    case Operator.IS_FALSE:
+    case OperatorEnum.IS_FALSE:
       if (isCustomField && columnType === CustomFieldTypeEnum.BOOLEAN) return eq(column, 'false')
       return eq(column, false)
-    case Operator.IS_AFTER: {
+    case OperatorEnum.IS_AFTER: {
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       const dayEnd = endOfDay(new UTCDate(Number(value)))
 
       return sql`CAST(${column} AS INTEGER) > ${dayEnd} AND ${column} IS NOT NULL AND ${column} != ''`
     }
-    case Operator.IS_BEFORE: {
+    case OperatorEnum.IS_BEFORE: {
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       const dayStart = startOfDay(new UTCDate(Number(value)))
 
       return sql`CAST(${column} AS INTEGER) < ${dayStart} AND ${column} IS NOT NULL AND ${column} != ''`
     }
-    case Operator.BETWEEN: {
+    case OperatorEnum.BETWEEN: {
       if (
         ['null', 'undefiend', ''].includes(String(value)) ||
         ['null', 'undefiend', ''].includes(String(secondaryValue))
@@ -231,10 +231,10 @@ function buildCondition({
 
       return sql`CAST(${column} AS INTEGER) BETWEEN ${dayStart} AND ${dayEnd} AND ${column} IS NOT NULL AND ${column} != ''`
     }
-    case Operator.GREATER_THAN:
+    case OperatorEnum.GREATER_THAN:
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return sql`CAST(${column} AS INTEGER) > ${Number(value)} AND ${column} IS NOT NULL AND ${column} != ''`
-    case Operator.LESS_THAN:
+    case OperatorEnum.LESS_THAN:
       if (['null', 'undefiend', ''].includes(String(value))) return undefined
       return sql`CAST(${column} AS INTEGER) < ${Number(value)} AND ${column} IS NOT NULL AND ${column} != ''`
     default:

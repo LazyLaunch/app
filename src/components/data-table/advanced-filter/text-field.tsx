@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input'
 
-import { CustomFieldTypeEnum, Operator } from '@/enums'
+import { CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 import { cn } from '@/lib/utils'
 import { useEffect } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
@@ -24,9 +24,12 @@ export function TextField({
   const isStringType = type === CustomFieldTypeEnum.STRING
   const showInputs =
     isStringType &&
-    [Operator.EQUALS, Operator.NOT_EQUAL, Operator.CONTAINS, Operator.NOT_CONTAIN].includes(
-      Number(watchOperator)
-    )
+    [
+      OperatorEnum.EQUALS,
+      OperatorEnum.NOT_EQUAL,
+      OperatorEnum.CONTAINS,
+      OperatorEnum.NOT_CONTAIN,
+    ].includes(Number(watchOperator))
   const error = (errors.filterConditions as any)?.[index]?.value
 
   useEffect(() => {

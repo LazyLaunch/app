@@ -36,7 +36,7 @@ import {
   OPERATORS_BY_COL_TYPE,
 } from '@/constants'
 
-import { ConditionType, CustomFieldTypeEnum, Operator } from '@/enums'
+import { ConditionTypeEnum, CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 import { cn, formatFieldName } from '@/lib/utils'
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
@@ -94,10 +94,10 @@ export function DataTableAdvancedFilter({
         {
           columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)?.name,
           columnType: CustomFieldTypeEnum.STRING,
-          operator: Operator.CONTAINS,
+          operator: OperatorEnum.CONTAINS,
           value: '',
           secondaryValue: '',
-          conditionType: ConditionType.AND,
+          conditionType: ConditionTypeEnum.AND,
         },
       ],
     },
@@ -194,13 +194,13 @@ export function DataTableAdvancedFilter({
                           >
                             <SelectTrigger className="w-24 flex-none">
                               <SelectValue placeholder="Condition">
-                                {CONDITION_TYPES[Number(field.value) as ConditionType]}
+                                {CONDITION_TYPES[Number(field.value) as ConditionTypeEnum]}
                               </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
                               {Object.keys(CONDITION_TYPES).map((index) => (
                                 <SelectItem key={index} value={index}>
-                                  {CONDITION_TYPES[Number(index) as ConditionType]}
+                                  {CONDITION_TYPES[Number(index) as ConditionTypeEnum]}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -291,7 +291,7 @@ export function DataTableAdvancedFilter({
                         >
                           <SelectTrigger className="w-32 flex-none">
                             <SelectValue placeholder="Operator">
-                              {OPERATOR_NAMES[Number(field.value) as Operator]}
+                              {OPERATOR_NAMES[Number(field.value) as OperatorEnum]}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -299,7 +299,7 @@ export function DataTableAdvancedFilter({
                               OPERATORS_BY_COL_TYPE[column.type as CustomFieldTypeEnum].map(
                                 (index) => (
                                   <SelectItem key={index} value={String(index)}>
-                                    {OPERATOR_NAMES[Number(index) as Operator]}
+                                    {OPERATOR_NAMES[Number(index) as OperatorEnum]}
                                   </SelectItem>
                                 )
                               )}
@@ -358,10 +358,10 @@ export function DataTableAdvancedFilter({
                       columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)!
                         .name,
                       columnType: CustomFieldTypeEnum.STRING,
-                      operator: Operator.CONTAINS,
+                      operator: OperatorEnum.CONTAINS,
                       value: '',
                       secondaryValue: '',
-                      conditionType: ConditionType.AND,
+                      conditionType: ConditionTypeEnum.AND,
                     },
                     { shouldFocus: false }
                   )
