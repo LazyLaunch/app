@@ -20,7 +20,7 @@ interface FormValues {
 }
 
 interface ExtendedFormValues extends FormValues {
-  filterName: string
+  name: string
 }
 
 interface Props {
@@ -34,12 +34,12 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
   const form = useForm<ExtendedFormValues>({
     defaultValues: {
       ...defaultValues,
-      filterName: '',
+      name: '',
     },
   })
 
   useEffect(() => {
-    form.reset({ ...defaultValues, filterName: form.getValues().filterName })
+    form.reset({ ...defaultValues, name: form.getValues().name })
   }, [defaultValues, form.reset, form.getValues])
 
   async function handleSubmit({ filterConditions, ...values }: ExtendedFormValues) {
@@ -60,7 +60,6 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
       }
       return
     }
-    console.log(data)
   }
 
   return (
@@ -76,7 +75,7 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
         <div className="flex space-x-2">
           <FormField
             control={form.control}
-            name="filterName"
+            name="name"
             rules={{
               required: 'Segment name cannot be empty. Please provide a name to save the filter.',
               maxLength: {
@@ -98,8 +97,8 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
                       variant="ghost"
                       className="gap-0.5 rounded-l-none absolute right-0"
                       onClick={() => {
-                        form.setFocus('filterName')
-                        form.resetField('filterName')
+                        form.setFocus('name')
+                        form.resetField('name')
                       }}
                     >
                       Clear

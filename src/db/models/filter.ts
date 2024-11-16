@@ -16,13 +16,19 @@ import { snakeToCamel } from '@/lib/utils'
 import { ConditionTypeEnum, CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 
 import type { ContactColumn, ContactFields } from '@/db/models/contact'
-import type { InsertFilterCondition, SelectFilterCondition } from '@/db/schema'
+import type {
+  InsertFilter,
+  InsertFilterCondition,
+  SelectFilter,
+  SelectFilterCondition,
+} from '@/db/schema'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
 
+export type FilterConditionColumnType = Exclude<CustomFieldTypeEnum, CustomFieldTypeEnum.ENUM>
 export interface FilterCondition
   extends Omit<SelectFilterCondition, 'id' | 'createdAt' | 'filterId' | 'columnType'> {
-  filterId?: string
-  columnType: CustomFieldTypeEnum
+  filterId?: string | undefined
+  columnType: FilterConditionColumnType
 }
 
 const createExistsQuery = (subquery: SQL<any>) => sql<boolean>`EXISTS (${subquery})`
@@ -259,21 +265,25 @@ export function buildDynamicFilter({
   return buildGroupConditions({ conditions, filterConditions })
 }
 
+export interface ExtendedFilterCondition extends Omit<InsertFilterCondition, 'filterId'> {
+  filterId: string | SQL<undefined>
+  columnType: FilterConditionColumnType
+}
+
+interface ExtendedFilter extends InsertFilter {
+  filterConditions: ExtendedFilterCondition[]
+  filterId: string | SQL<undefined>
+  name: string
+}
+
 export async function saveFilters({
   filterConditions,
   teamId,
   projectId,
   userId,
   filterId,
-  filterName,
-}: {
-  filterConditions: InsertFilterCondition[]
-  teamId: string
-  projectId: string
-  userId: string
-  filterId?: string | undefined
-  filterName: string
-}) {
+  name,
+}: ExtendedFilter): Promise<{ filter: SelectFilter; conditions: SelectFilterCondition[] }> {
   return await db.transaction(async (tx) => {
     const filter = await tx
       .insert(filtersTable)
@@ -281,31 +291,60 @@ export async function saveFilters({
         teamId,
         projectId,
         userId,
-        name: filterName,
+        name,
         id: filterId,
       })
       .onConflictDoUpdate({
         target: filtersTable.id,
-        set: { name: filterName },
-        setWhere: sql`projectId = ${projectId} AND teamId = ${teamId}`,
+        set: { name },
+        setWhere: sql`project_id = ${projectId} AND team_id = ${teamId}`,
       })
       .returning()
       .get()
 
-    const conditions = filterConditions.map(async (condition) => {
+    const conditions = []
+    for (const condition of filterConditions) {
       const { id, ...rest } = condition
-      await tx
+      const newCondition = await tx
         .insert(filterConditionsTable)
-        .values(condition)
+        .values({ ...condition, filterId: filter.id })
         .onConflictDoUpdate({
           target: filterConditionsTable.id,
           set: { ...rest, filterId: filter.id },
-          setWhere: sql`projectId = ${projectId} AND teamId = ${teamId} AND filterId = ${filter.id}`,
+          setWhere: sql`filter_id = ${filter.id}`,
         })
         .returning()
         .get()
-    })
+
+      conditions.push(newCondition)
+    }
 
     return { filter, conditions }
   })
+}
+
+export async function isUniqFilterName({
+  name,
+  projectId,
+  teamId,
+}: {
+  name: string
+  projectId: string
+  teamId: string
+}): Promise<boolean> {
+  const obj = await db
+    .select({
+      exists: sql`exists(select 1)`,
+    })
+    .from(filtersTable)
+    .where(
+      and(
+        eq(filtersTable.name, name),
+        eq(filtersTable.projectId, projectId),
+        eq(filtersTable.teamId, teamId)
+      )
+    )
+    .get()
+
+  return Number((obj ?? { exists: 0 }).exists) === 0
 }

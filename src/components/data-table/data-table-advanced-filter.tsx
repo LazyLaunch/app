@@ -41,7 +41,7 @@ import { cn, formatFieldName } from '@/lib/utils'
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import type { FilterCondition } from '@/db/models/filter'
+import type { FilterCondition, FilterConditionColumnType } from '@/db/models/filter'
 import type { Table } from '@tanstack/react-table'
 
 interface FormValues {
@@ -49,7 +49,7 @@ interface FormValues {
   projectId: string
   teamId: string
   filterConditions: (Omit<FilterCondition, 'operator'> & {
-    columnType?: CustomFieldTypeEnum
+    columnType?: FilterConditionColumnType
     operator?: number | undefined
   })[]
 }
@@ -230,9 +230,10 @@ export function DataTableAdvancedFilter({
                             customFields,
                             id: val,
                           })
-                          const defaultOperator = DEFAULT_FILTER[col?.type as CustomFieldTypeEnum]
+                          const defaultOperator =
+                            DEFAULT_FILTER[col?.type as FilterConditionColumnType]
                           const columnType =
-                            (col?.type as CustomFieldTypeEnum) ?? CustomFieldTypeEnum.STRING
+                            (col?.type as FilterConditionColumnType) ?? CustomFieldTypeEnum.STRING
 
                           update(index, {
                             ..._field,

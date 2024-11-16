@@ -4,8 +4,15 @@ import { z, type ZodError } from 'astro:schema'
 
 import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { getContactFields, testContacts } from '@/db/models/contact'
-import { buildDynamicFilter, saveFilters, type FilterCondition } from '@/db/models/filter'
+import {
+  buildDynamicFilter,
+  isUniqFilterName,
+  saveFilters,
+  type ExtendedFilterCondition,
+  type FilterCondition,
+} from '@/db/models/filter'
 import { ConditionTypeEnum, OperatorEnum } from '@/enums'
+import type { SQL } from 'drizzle-orm'
 
 const filterConditionsSchema = z
   .array(
@@ -109,45 +116,47 @@ const filterConditionsSchema = z
 export const filter = {
   save: defineAction({
     accept: 'form',
-    input: z.object({
-      csrfToken: z.string(),
-      projectId: z.string().cuid2(),
-      teamId: z.string().cuid2(),
-      filterId: z.string().cuid2().optional(),
-      filterName: z
-        .string({
-          required_error: 'Segment name cannot be empty. Please provide a name to save the filter.',
-        })
-        .max(25, {
-          message: 'Segment name cannot exceed 25 characters. Please use a shorter name.',
-        })
-        .superRefine((name, ctx) => {
-          // const { isValid, invalidEmails } = validateEmails(emails)
-
-          // if (!isValid) {
-          //   ctx.addIssue({
-          //     code: z.ZodIssueCode.custom,
-          //     message: `One or more email addresses are invalid. Please check and try again.\n ${invalidEmails.join(',')}`,
-          //   })
-          // }
-          return true
+    input: z
+      .object({
+        csrfToken: z.string(),
+        projectId: z.string().cuid2(),
+        teamId: z.string().cuid2(),
+        filterId: z.string().cuid2().optional(),
+        name: z
+          .string({
+            required_error:
+              'Segment name cannot be empty. Please provide a name to save the filter.',
+          })
+          .max(25, {
+            message: 'Segment name cannot exceed 25 characters. Please use a shorter name.',
+          }),
+        filterConditions: z.string().transform((val, ctx) => {
+          try {
+            const parsed: ExtendedFilterCondition[] = JSON.parse(val)
+            filterConditionsSchema.parse(parsed)
+            return parsed
+          } catch (err) {
+            const { errors } = err as ZodError
+            for (const e of errors) ctx.addIssue(e)
+            return z.NEVER
+          }
         }),
-      filterConditions: z.string().transform((val, ctx) => {
-        try {
-          const parsed: FilterCondition[] = JSON.parse(val)
-          filterConditionsSchema.parse(parsed)
-          return parsed
-        } catch (err) {
-          const { errors } = err as ZodError
-          for (const e of errors) ctx.addIssue(e)
-          return z.NEVER
+      })
+      .superRefine(async ({ name, projectId, teamId }, ctx) => {
+        const isUniq = await isUniqFilterName({ name, projectId, teamId })
+
+        if (!isUniq) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'This name is already in use. Please use a different name.',
+            path: ['name'],
+          })
         }
       }),
-    }),
     handler: async ({ csrfToken, ...input }, context) => {
       const user = context.locals.user!
-      await saveFilters({ ...input, userId: user.id })
-      return input
+      const filterId = input.filterId as string | SQL<undefined>
+      return await saveFilters({ ...input, filterId, userId: user.id })
     },
   }),
   contacts: defineAction({
