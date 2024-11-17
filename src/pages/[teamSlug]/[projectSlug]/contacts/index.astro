@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 
 import { ContactTable } from '@/components/contacts/contact-table'
 
-import { getContacts, getContactTotal, getContactFields } from '@/db/models/contact'
+import { getContactFields, batchContactResponse, buildContactConditions } from '@/db/models/contact'
 import { NewContactForm } from '@/components/contacts/new-contact-form'
 import { handleNumberInput } from '@/lib/utils'
 import {
@@ -15,7 +15,6 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZES,
 } from '@/constants'
-import { getCustomFields } from '@/db/models/custom-field'
 
 const searchParams = Astro.url.searchParams
 
@@ -41,19 +40,18 @@ const ids = {
   projectId: project.id,
 }
 
-const customFields = await getCustomFields({
-  projectId: project.id,
-  teamId: team.id,
-})
-const data = await getContacts({
-  ...ids,
-  limit,
-  offset,
+const contactFields = getContactFields()
+const { sortBy, whereConditions } = buildContactConditions({
   columnFilters: [],
   customColumnFilters: [],
 })
-const total = await getContactTotal(ids)
-const contactFields = getContactFields()
+const { contacts, customFields, contactsTotal } = await batchContactResponse({
+  ...ids,
+  contactsLimit: limit,
+  contactsOffset: offset,
+  contactsSortBy: sortBy,
+  conditions: whereConditions,
+})
 ---
 
 <ProjectLayout>
@@ -61,7 +59,7 @@ const contactFields = getContactFields()
     <div class="flex items-center justify-between">
       <div class="inline-flex items-center space-x-2">
         <h2 class="text-2xl font-bold tracking-tight">Contacts</h2>
-        <Badge className="mt-0.5">{total}</Badge>
+        <Badge className="mt-0.5">{contactsTotal}</Badge>
       </div>
       <NewContactForm customFields={customFields} csrfToken={csrfToken} teamId={team.id} projectId={project.id} client:load />
     </div>
@@ -69,10 +67,10 @@ const contactFields = getContactFields()
       <ContactTable
         ids={ids}
         csrfToken={csrfToken}
-        total={total}
+        total={contactsTotal}
         pagination={pagination}
         csrfToken={csrfToken}
-        data={data}
+        data={contacts}
         className="pt-6"
         customFields={customFields}
         contactFields={contactFields}

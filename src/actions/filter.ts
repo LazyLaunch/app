@@ -3,7 +3,7 @@ import { defineAction } from 'astro:actions'
 import { z, type ZodError } from 'astro:schema'
 
 import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
-import { getContactFields, testContacts } from '@/db/models/contact'
+import { batchContactResponse, getContactFields } from '@/db/models/contact'
 import {
   buildDynamicFilter,
   isUniqFilterName,
@@ -180,9 +180,19 @@ export const filter = {
     handler: async ({ filterConditions, teamId, projectId }, context) => {
       const user = context.locals.user!
       const contactFields = getContactFields()
-      const conditions = buildDynamicFilter({ filterConditions, teamId, projectId, contactFields })
-      const result = await testContacts({ conditions, teamId, projectId })
-      return result
+      const whereConditions = buildDynamicFilter({
+        filterConditions,
+        teamId,
+        projectId,
+        contactFields,
+      })
+
+      return await batchContactResponse({
+        teamId,
+        projectId,
+        conditions: [whereConditions],
+        skipData: ['customFields'],
+      })
     },
   }),
 }

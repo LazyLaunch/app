@@ -19,9 +19,11 @@ import {
 } from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
+import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
 import { db } from '@/db'
 import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
+import type { BatchItem } from 'drizzle-orm/batch'
 
 const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 
@@ -203,28 +205,20 @@ const buildCustomFilters = (customColumnFilters: ContactCustomColumnFilters) => 
   })
 }
 
-export async function getContacts({
-  projectId,
-  teamId,
-  limit,
-  offset,
+export function buildContactConditions({
   sortFields = [{ id: 'createdAt', desc: true }],
   columnFilters = [],
   customFieldsSorting = [],
   globalFilter = [],
   customColumnFilters = [],
 }: {
-  projectId: string
-  teamId: string
-  limit: number
-  offset: number
   sortFields?: ContactSortFields
   columnFilters: ContactColumnFilters
   customColumnFilters: ContactCustomColumnFilters
   customFieldsSorting?: ContactCustomFieldSort[]
   globalFilter?: GlobalContactColumnFilter[]
-}): Promise<ContactProps[]> {
-  const sortBy = [
+}): { sortBy: SQL[]; whereConditions: (SQL<any> | undefined)[] } {
+  const sortBy: SQL[] = [
     ...sortFields.map((field) =>
       field.desc ? desc(contactsTable[field.id]) : asc(contactsTable[field.id])
     ),
@@ -243,58 +237,12 @@ export async function getContacts({
   ]
 
   const whereConditions = [
-    eq(contactsTable.projectId, projectId),
-    eq(contactsTable.teamId, teamId),
     ...buildColumnFilters(columnFilters),
     ...buildCustomFilters(customColumnFilters),
     ...buildGlobalFilters(globalFilter),
   ]
 
-  const results = await db
-    .select({
-      id: contactsTable.id,
-      email: contactsTable.email,
-      firstName: contactsTable.firstName,
-      lastName: contactsTable.lastName,
-      subscribed: contactsTable.subscribed,
-      source: contactsTable.source,
-      updatedAt: contactsTable.updatedAt,
-      createdAt: contactsTable.createdAt,
-      customFields: CUSTOM_FIELDS,
-    })
-    .from(contactsTable)
-    .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
-    .leftJoin(
-      customFieldsTable,
-      or(
-        isNull(contactCustomFieldsTable.customFieldId),
-        eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
-      )
-    )
-    .where(and(...whereConditions))
-    .groupBy(contactsTable.id)
-    .orderBy(...sortBy)
-    .limit(limit)
-    .offset(offset)
-
-  return results
-}
-
-export async function getContactTotal({
-  projectId,
-  teamId,
-}: {
-  projectId: string
-  teamId: string
-}): Promise<number> {
-  const [{ total }] = await db
-    .select({
-      total: count(contactsTable.id),
-    })
-    .from(contactsTable)
-    .where(and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId)))
-
-  return total
+  return { sortBy, whereConditions }
 }
 
 export interface ContactFields {
@@ -477,38 +425,94 @@ export async function updateContact({
   })
 }
 
-export async function testContacts({ conditions, projectId, teamId }) {
-  const whereConditions = and(
-    eq(contactsTable.projectId, projectId),
-    eq(contactsTable.teamId, teamId),
-    conditions
-  )
+type ContactBatchSkipQuery = 'contacts' | 'customFields' | 'contactsTotal'
 
-  const results = await db
-    .select({
-      id: contactsTable.id,
-      email: contactsTable.email,
-      firstName: contactsTable.firstName,
-      lastName: contactsTable.lastName,
-      subscribed: contactsTable.subscribed,
-      source: contactsTable.source,
-      updatedAt: contactsTable.updatedAt,
-      createdAt: contactsTable.createdAt,
-      customFields: CUSTOM_FIELDS,
-    })
-    .from(contactsTable)
-    .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
-    .leftJoin(
-      customFieldsTable,
-      or(
-        isNull(contactCustomFieldsTable.customFieldId),
-        eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
+interface ContactBatchProps {
+  projectId: string
+  teamId: string
+  conditions: (SQL<any> | undefined)[]
+  contactsLimit?: number
+  contactsOffset?: number
+  contactsSortBy?: SQL<any>[]
+  skipData?: ContactBatchSkipQuery[]
+}
+
+export async function batchContactResponse({
+  conditions,
+  projectId,
+  teamId,
+  contactsLimit = DEFAULT_PAGE_SIZE,
+  contactsOffset = DEFAULT_PAGE_INDEX,
+  contactsSortBy = [desc(contactsTable.createdAt)],
+  skipData = [],
+}: ContactBatchProps) {
+  const queries: Record<ContactBatchSkipQuery, BatchItem<'sqlite'>> = {
+    contacts: db
+      .select({
+        id: contactsTable.id,
+        email: contactsTable.email,
+        firstName: contactsTable.firstName,
+        lastName: contactsTable.lastName,
+        subscribed: contactsTable.subscribed,
+        source: contactsTable.source,
+        updatedAt: contactsTable.updatedAt,
+        createdAt: contactsTable.createdAt,
+        customFields: CUSTOM_FIELDS,
+      })
+      .from(contactsTable)
+      .leftJoin(contactCustomFieldsTable, eq(contactsTable.id, contactCustomFieldsTable.contactId))
+      .leftJoin(
+        customFieldsTable,
+        or(
+          isNull(contactCustomFieldsTable.customFieldId),
+          eq(customFieldsTable.id, contactCustomFieldsTable.customFieldId)
+        )
       )
-    )
-    .where(whereConditions)
-    .orderBy(desc(contactsTable.createdAt))
-    .groupBy(contactsTable.id)
-    .limit(10)
+      .where(
+        and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId), ...conditions)
+      )
+      .orderBy(...contactsSortBy)
+      .groupBy(contactsTable.id)
+      .offset(contactsOffset)
+      .limit(contactsLimit),
 
-  return results
+    customFields: db
+      .select({
+        id: customFieldsTable.id,
+        name: customFieldsTable.name,
+        tag: customFieldsTable.tag,
+        type: customFieldsTable.type,
+        createdAt: customFieldsTable.createdAt,
+        updatedAt: customFieldsTable.updatedAt,
+      })
+      .from(customFieldsTable)
+      .where(and(eq(customFieldsTable.projectId, projectId), eq(customFieldsTable.teamId, teamId))),
+
+    contactsTotal: db
+      .select({
+        total: count(contactsTable.id),
+      })
+      .from(contactsTable)
+      .where(
+        and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId), ...conditions)
+      ),
+  }
+
+  const batchRequests = Object.keys(queries)
+    .filter((key) => !skipData.includes(key as ContactBatchSkipQuery))
+    .map((key) => queries[key as ContactBatchSkipQuery])
+
+  if (batchRequests.length === 0) {
+    throw new Error('Contacts: no batch requests to process')
+  }
+
+  const results = await db.batch(batchRequests as [BatchItem<'sqlite'>, ...BatchItem<'sqlite'>[]])
+
+  const response = {
+    contacts: skipData.includes('contacts') ? [] : results.shift(),
+    customFields: skipData.includes('customFields') ? [] : results.shift(),
+    contactsTotal: skipData.includes('contactsTotal') ? 0 : (results.shift()?.[0]?.total ?? 0),
+  }
+
+  return response
 }

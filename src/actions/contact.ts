@@ -8,11 +8,12 @@ import {
   DEFAULT_PAGE_SIZES,
 } from '@/constants'
 import {
+  batchContactResponse,
+  buildContactConditions,
   bulkCreateContactEmails,
   createContact,
   deleteContact,
   getContactFields,
-  getContacts,
   getUniqueContactEmails,
   hasContactPermission,
   isUniqContactEmail,
@@ -189,11 +190,7 @@ export const contact = {
       },
       context
     ) => {
-      const data = await getContacts({
-        teamId,
-        projectId,
-        limit: pageSize,
-        offset: pageIndex * pageSize,
+      const { sortBy, whereConditions } = buildContactConditions({
         sortFields: sorting,
         columnFilters,
         customFieldsSorting,
@@ -201,7 +198,15 @@ export const contact = {
         customColumnFilters,
       })
 
-      return data
+      return await batchContactResponse({
+        teamId,
+        projectId,
+        contactsLimit: pageSize,
+        contactsOffset: pageIndex * pageSize,
+        contactsSortBy: sortBy,
+        conditions: whereConditions,
+        skipData: ['customFields'],
+      })
     },
   }),
   createBulk: defineAction({

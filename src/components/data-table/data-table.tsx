@@ -32,6 +32,7 @@ declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
     onDelete: (id: string) => void
     onApplyAdvancedFilter: (filteredData: ContactProps[]) => void
+    setTotal: (count: number) => void
   }
 }
 
@@ -57,10 +58,12 @@ interface DataTableProps {
   columns: ColumnDef<ContactProps, any>[]
   data: ContactProps[]
   className: string
-  children: any
   reqFilter: (data: FormData) => Promise<any>
   csrfToken: string
-  ids?: Record<string, string>
+  ids: {
+    projectId: string
+    teamId: string
+  }
   pagination: TablePaginationState
   total: number
   customFields: CustomFieldProps[]
@@ -71,17 +74,17 @@ export function DataTable({
   data,
   columns,
   className,
-  children,
   reqFilter,
   total,
   csrfToken,
   pagination,
-  ids = {},
+  ids,
   customFields = [],
   contactFields = [],
 }: DataTableProps) {
   const isDry = useRef<boolean>(true)
   const [_data, setData] = useState<ContactProps[]>(data)
+  const [_total, setTotal] = useState<number>(total)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -97,7 +100,7 @@ export function DataTable({
   const table = useReactTable<ContactProps>({
     data: _data,
     columns,
-    rowCount: total,
+    rowCount: _total,
     initialState: {
       globalFilter: [],
       columnFilters: [],
@@ -124,6 +127,7 @@ export function DataTable({
       onDelete: (id: string) =>
         setData((prevState) => prevState.filter((d) => (d as unknown as { id: string }).id !== id)),
       onApplyAdvancedFilter: (filteredData: ContactProps[]) => setData(filteredData),
+      setTotal: (count: number) => setTotal(count),
     },
     manualPagination: true,
     enableColumnPinning: true,
@@ -172,7 +176,8 @@ export function DataTable({
 
     const doRequest = async () => {
       const { data } = await reqFilter(formData)
-      setData(data)
+      setData(data.contacts)
+      setTotal(data.contactsTotal)
     }
 
     doRequest()
@@ -181,7 +186,7 @@ export function DataTable({
   return (
     <div className={cn(className, 'space-y-4')}>
       <ContactDataTableToolbar {...{ table, customFields, csrfToken, ids, contactFields }} />
-      <div className="rounded-md border bg-background">
+      <div className="rounded-md overflow-hidden border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

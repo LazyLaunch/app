@@ -240,7 +240,7 @@ export function ContactDataTableToolbar({
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <ListFilter />
-                Filters
+                Segments
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">

@@ -137,7 +137,8 @@ export function DataTableAdvancedFilter({
       }
       return
     }
-    table.options.meta!.onApplyAdvancedFilter?.(data as ContactProps[])
+    table.options.meta!.onApplyAdvancedFilter?.(data!.contacts as ContactProps[])
+    table.options.meta!.setTotal?.(data!.contactsTotal as number)
   }
 
   return (
