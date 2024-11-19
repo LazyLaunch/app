@@ -1,3 +1,5 @@
+import { NuqsAdapter } from 'nuqs/adapters/react'
+
 import {
   flexRender,
   getCoreRowModel,
@@ -190,49 +192,51 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
   })
 
   return (
-    <div className={cn(className, 'space-y-4')}>
-      <CustomFieldTableToolbar
-        table={table}
-        csrfToken={csrfToken}
-        ids={Object.keys(rowSelection)}
-        setRowSelection={setRowSelection}
-      />
-      <div className="rounded-md border bg-background">
-        <Table className="overflow-x-scroll">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead className="bg-background" key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell className="bg-background" key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      <div className="flex items-center justify-between px-2">
-        <div className="flex-1 text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} of{' '}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+    <NuqsAdapter>
+      <div className={cn(className, 'space-y-4')}>
+        <CustomFieldTableToolbar
+          table={table}
+          csrfToken={csrfToken}
+          ids={Object.keys(rowSelection)}
+          setRowSelection={setRowSelection}
+        />
+        <div className="rounded-md border bg-background">
+          <Table className="overflow-x-scroll">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead className="bg-background" key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    )
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell className="bg-background" key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex-1 text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} of{' '}
+            {table.getFilteredRowModel().rows.length} row(s) selected.
+          </div>
         </div>
       </div>
-    </div>
+    </NuqsAdapter>
   )
 }

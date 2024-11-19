@@ -3,6 +3,8 @@ import type { JWTAlgorithm } from 'oslo/jwt'
 
 import { ConditionTypeEnum, CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 
+export const CUID_LENGTH: number = 32 as const
+
 export const JWT_ALGORITHM: JWTAlgorithm = 'HS256' as const
 export const SHA_HASH: SHAHash = 'SHA-256' as const
 
@@ -93,3 +95,6 @@ export const CONDITION_TYPES: Record<ConditionTypeEnum, string> = {
   [ConditionTypeEnum.AND]: 'and',
   [ConditionTypeEnum.OR]: 'or',
 } as const
+
+export const CONTACT_DEFAULT_SEARCH_FIELD: string = 'any' as const
+export const CONTACT_GLOBAL_SEARCH_FIELDS: string[] = ['email', 'firstName', 'lastName'] as const

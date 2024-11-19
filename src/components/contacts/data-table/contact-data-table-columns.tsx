@@ -28,7 +28,7 @@ export function contactDataTableColumns({
 }): ColumnDef<ContactProps>[] {
   const newFields = customFields.map((field) => {
     return {
-      accessorKey: field.tag,
+      accessorKey: field.id,
       header: ({ column }: { column: Column<ContactProps> }) => (
         <DataTableColumnHeader column={column} title={field.name} />
       ),

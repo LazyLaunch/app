@@ -1,7 +1,8 @@
 import { ActionError, defineAction } from 'astro:actions'
-import { z } from 'astro:schema'
+import { z, type ZodError } from 'astro:schema'
 
 import {
+  CUID_LENGTH,
   DEFAULT_MAX_PAGE_SIZE,
   DEFAULT_PAGE_INDEX,
   DEFAULT_PAGE_SIZE,
@@ -25,62 +26,17 @@ import {
   type GlobalContactColumnFilter,
 } from '@/db/models/contact'
 import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
-import { handleNumberInput, snakeToCamel } from '@/lib/utils'
+import { handleNumberInput } from '@/lib/utils'
 import { validateEmails } from '@/lib/validate-emails'
-
-const sortingSchema = z.array(
-  z.object({
-    id: z.string().refine(
-      (val) => {
-        const contactFields = getContactFields()
-        const contactField = contactFields.find(({ name }) => snakeToCamel(name) === val)
-
-        return Boolean(contactField)
-      },
-      () => ({
-        message: 'Column name is not valid.',
-        path: ['id'],
-      })
-    ),
-    desc: z.boolean(),
-  })
-)
-const customFieldSortingSchema = z.array(
-  z.object({
-    id: z.string().cuid2(),
-    desc: z.boolean(),
-  })
-)
-
-const columnFiltersSchema = z.array(
-  z.object({
-    id: z.string().refine(
-      (val) => {
-        const contactFields = getContactFields()
-        const contactField = contactFields.find(({ name }) => snakeToCamel(name) === val)
-
-        return Boolean(contactField)
-      },
-      () => ({
-        message: 'Column name is not valid.',
-        path: ['id'],
-      })
-    ),
-    value: z.union([
-      z.array(z.boolean()),
-      z.array(z.string()),
-      z.array(z.array(z.union([z.string(), z.number(), z.null()]))),
-    ]),
-  })
-)
+import { columnFiltersSchema, customFieldSortingSchema, sortingSchema } from '@/validations'
 
 export const contact = {
   filters: defineAction({
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      projectId: z.string().cuid2(),
-      teamId: z.string().cuid2(),
+      projectId: z.string().length(CUID_LENGTH),
+      teamId: z.string().length(CUID_LENGTH),
       pageIndex: z.optional(
         z.string().transform((val) => {
           return handleNumberInput(val, { min: DEFAULT_PAGE_INDEX })
@@ -97,52 +53,43 @@ export const contact = {
           })
         })
       ),
-      customFieldsSorting: z.optional(
-        z.string().transform((val, ctx) => {
-          try {
-            const parsed: ContactCustomFieldSort[] = JSON.parse(val)
-            customFieldSortingSchema.parse(parsed)
-            return parsed
-          } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
-            return z.NEVER
-          }
-        })
-      ),
-      sorting: z.optional(
-        z.string().transform((val, ctx) => {
-          try {
-            const parsed: ContactSortFields = JSON.parse(val)
-            sortingSchema.parse(parsed)
-            return parsed
-          } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
-            return z.NEVER
-          }
-        })
-      ),
+      customFieldsSorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactCustomFieldSort[] = JSON.parse(val)
+          customFieldSortingSchema(z).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
+      sorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactSortFields = JSON.parse(val)
+          sortingSchema({ z, contactFields: getContactFields() }).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
       globalFilter: z.optional(
         z.string().transform((val, ctx) => {
           try {
             const parsed: GlobalContactColumnFilter[] = JSON.parse(val)
             z.array(
               z.object({
-                id: z.optional(z.string().cuid2()),
-                field: z.string(),
+                id: z.union([z.string(), z.string().length(CUID_LENGTH)]),
                 value: z.union([z.string(), z.number()]),
-                isCustomField: z.boolean(),
               })
             ).parse(parsed)
 
             return parsed
           } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
+            const { errors } = err as ZodError
+            for (const e of errors) ctx.addIssue(e)
             return z.NEVER
           }
         })
@@ -151,12 +98,11 @@ export const contact = {
         z.string().transform((val, ctx) => {
           try {
             const parsed: ContactColumnFilters = JSON.parse(val)
-            columnFiltersSchema.parse(parsed)
+            columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
             return parsed
           } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
+            const { errors } = err as ZodError
+            for (const e of errors) ctx.addIssue(e)
             return z.NEVER
           }
         })
@@ -165,12 +111,11 @@ export const contact = {
         z.string().transform((val, ctx) => {
           try {
             const parsed: ContactCustomColumnFilters = JSON.parse(val)
-            columnFiltersSchema.parse(parsed)
+            columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
             return parsed
           } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
+            const { errors } = err as ZodError
+            for (const e of errors) ctx.addIssue(e)
             return z.NEVER
           }
         })
@@ -214,8 +159,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().cuid2(),
-        teamId: z.string().cuid2(),
+        projectId: z.string().length(CUID_LENGTH),
+        teamId: z.string().length(CUID_LENGTH),
         emails: z
           .string({
             required_error: 'Please enter at least one email address.',
@@ -256,8 +201,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().cuid2(),
-        teamId: z.string().cuid2(),
+        projectId: z.string().length(CUID_LENGTH),
+        teamId: z.string().length(CUID_LENGTH),
         email: z
           .string({
             required_error: 'Email is required. Please enter your email address.',
@@ -271,14 +216,13 @@ export const contact = {
           try {
             const parsed: Record<string, string | boolean | number> = JSON.parse(val)
             z.record(
-              z.string().cuid2(),
+              z.string().length(CUID_LENGTH),
               z.union([z.string(), z.date(), z.boolean(), z.number()])
             ).parse(parsed)
             return parsed
           } catch (err) {
-            for (const e of err.errors) {
-              ctx.addIssue(e)
-            }
+            const { errors } = err as ZodError
+            for (const e of errors) ctx.addIssue(e)
             return z.NEVER
           }
         }),
@@ -302,8 +246,8 @@ export const contact = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().cuid2(),
-        id: z.string().cuid2(),
+        projectId: z.string().length(CUID_LENGTH),
+        id: z.string().length(CUID_LENGTH),
         email: z.optional(
           z
             .string({
@@ -320,14 +264,13 @@ export const contact = {
             try {
               const parsed: Record<string, string | boolean | number> = JSON.parse(val)
               z.record(
-                z.string().cuid2(),
+                z.string().length(CUID_LENGTH),
                 z.union([z.string(), z.date(), z.boolean(), z.number()])
               ).parse(parsed)
               return parsed
             } catch (err) {
-              for (const e of err.errors) {
-                ctx.addIssue(e)
-              }
+              const { errors } = err as ZodError
+              for (const e of errors) ctx.addIssue(e)
               return z.NEVER
             }
           })
@@ -372,7 +315,7 @@ export const contact = {
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      id: z.string().cuid2(),
+      id: z.string().length(CUID_LENGTH),
     }),
     handler: async ({ id }, context) => {
       const user = context.locals.user!

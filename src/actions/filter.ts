@@ -1,8 +1,7 @@
-import { isCuid } from '@paralleldrive/cuid2'
 import { defineAction } from 'astro:actions'
 import { z, type ZodError } from 'astro:schema'
 
-import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
+import { CUID_LENGTH, CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { batchContactResponse, getContactFields } from '@/db/models/contact'
 import {
   buildDynamicFilter,
@@ -38,7 +37,7 @@ const filterConditionsSchema = z
               const contactFields = getContactFields()
               const contactField = contactFields.find(({ name }) => name === val)
 
-              return isCuid(val) || Boolean(contactField) || val === ''
+              return val.length === CUID_LENGTH || Boolean(contactField) || val === ''
             },
             () => ({
               message: 'Column name is not valid.',
@@ -119,9 +118,9 @@ export const filter = {
     input: z
       .object({
         csrfToken: z.string(),
-        projectId: z.string().cuid2(),
-        teamId: z.string().cuid2(),
-        filterId: z.string().cuid2().optional(),
+        projectId: z.string().length(CUID_LENGTH),
+        teamId: z.string().length(CUID_LENGTH),
+        filterId: z.string().length(CUID_LENGTH).optional(),
         name: z
           .string({
             required_error:
@@ -163,8 +162,8 @@ export const filter = {
     accept: 'form',
     input: z.object({
       csrfToken: z.string(),
-      projectId: z.string().cuid2(),
-      teamId: z.string().cuid2(),
+      projectId: z.string().length(CUID_LENGTH),
+      teamId: z.string().length(CUID_LENGTH),
       filterConditions: z.string().transform((val, ctx) => {
         try {
           const parsed: FilterCondition[] = JSON.parse(val)

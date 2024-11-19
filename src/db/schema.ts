@@ -2,15 +2,15 @@ import { init } from '@paralleldrive/cuid2'
 import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
-const createId = init({
-  length: 32,
-})
-
-import { CUSTOM_FIELD_TYPE_LIST } from '@/constants'
+import { CUID_LENGTH, CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { ContactSourceEnum, CustomFieldTypeEnum } from '@/enums'
 import type { UserRoles } from '@/lib/rbac'
 import type { ContentProps, EmailTemplateSettings, EmojiProps } from '@/stores/template-store'
 import type { ProviderType } from '@/types'
+
+const createId = init({
+  length: CUID_LENGTH,
+})
 
 export const usersTable = sqliteTable(
   'users',

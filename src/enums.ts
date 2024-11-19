@@ -75,3 +75,8 @@ export enum ConditionTypeEnum {
   AND = 0,
   OR = 1,
 }
+
+export enum ContactTabFilterEnum {
+  QUICK_SEARCH = 'quickSearch',
+  ADVANCED_FILTER = 'advancedFilter',
+}

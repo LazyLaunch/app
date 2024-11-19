@@ -1,4 +1,6 @@
 ---
+import { z } from 'astro:schema'
+
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
 
@@ -6,49 +8,63 @@ import { Badge } from '@/components/ui/badge'
 
 import { ContactTable } from '@/components/contacts/contact-table'
 
-import { getContactFields, batchContactResponse, buildContactConditions } from '@/db/models/contact'
-import { NewContactForm } from '@/components/contacts/new-contact-form'
-import { handleNumberInput } from '@/lib/utils'
 import {
-  DEFAULT_MAX_PAGE_SIZE,
-  DEFAULT_PAGE_INDEX,
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_PAGE_SIZES,
-} from '@/constants'
-
-const searchParams = Astro.url.searchParams
-
-let pageSize = searchParams.get('pageSize') ?? `${DEFAULT_PAGE_SIZE}`
-pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(pageSize))
-  ? pageSize
-  : `${DEFAULT_PAGE_SIZE}`
-const limit = handleNumberInput(pageSize, { min: DEFAULT_PAGE_SIZE, max: DEFAULT_MAX_PAGE_SIZE })
-
-const page = searchParams.get('page') ?? DEFAULT_PAGE_INDEX
-const pageIndex = handleNumberInput(`${page}`, { min: 1 }) - 1
-const pagination = {
-  pageIndex,
-  pageSize: limit,
-}
-const offset = pageIndex * limit
+  getContactFields,
+  batchContactResponse,
+  buildContactConditions,
+  type ContactColumnFilters,
+  type ContactCustomColumnFilters,
+} from '@/db/models/contact'
+import { NewContactForm } from '@/components/contacts/new-contact-form'
+import { snakeToCamel } from '@/lib/utils'
+import {
+  getSortingStateParser,
+  getViewStateParser,
+  getContactTabStateParser,
+  getFilterStateParser,
+  getGlobalFilterStateParser,
+  serverPaginationPageStateParser,
+  serverPaginationPageSizeStateParser,
+} from '@/lib/parsers'
 
 const csrfToken = Astro.locals.csrfToken!
 const team = Astro.locals.team!
 const project = Astro.locals.project!
+
 const ids = {
   teamId: team.id,
   projectId: project.id,
 }
 
 const contactFields = getContactFields()
+const contactFieldNames = contactFields.map((f) => snakeToCamel(f.name))
+
+const searchParams = Astro.url.searchParams
+const params = {
+  tab: getContactTabStateParser({ data: searchParams.get('tab'), z }),
+  view: getViewStateParser({ data: searchParams.get('view'), contactFields, z }),
+  sort: getSortingStateParser({ data: searchParams.get('sort'), contactFields, z }),
+  filter: getFilterStateParser({ data: searchParams.get('filter'), contactFields, z }),
+  search: getGlobalFilterStateParser({ data: searchParams.get('search'), z }),
+  page: serverPaginationPageStateParser({ data: searchParams.get('page'), z }),
+  pageSize: serverPaginationPageSizeStateParser({ data: searchParams.get('pageSize'), z }),
+}
+
 const { sortBy, whereConditions } = buildContactConditions({
-  columnFilters: [],
-  customColumnFilters: [],
+  sortFields: params.sort.filter((s) => contactFieldNames.includes(s.id)),
+  customFieldsSorting: params.sort.filter((s) => !contactFieldNames.includes(s.id)),
+  columnFilters: params.filter.filter((s) =>
+    contactFieldNames.includes(s.id)
+  ) as ContactColumnFilters,
+  customColumnFilters: params.filter.filter(
+    (s) => !contactFieldNames.includes(s.id)
+  ) as ContactCustomColumnFilters,
+  globalFilter: params.search,
 })
 const { contacts, customFields, contactsTotal } = await batchContactResponse({
   ...ids,
-  contactsLimit: limit,
-  contactsOffset: offset,
+  contactsLimit: params.pageSize,
+  contactsOffset: params.page * params.pageSize,
   contactsSortBy: sortBy,
   conditions: whereConditions,
 })
@@ -68,12 +84,11 @@ const { contacts, customFields, contactsTotal } = await batchContactResponse({
         ids={ids}
         csrfToken={csrfToken}
         total={contactsTotal}
-        pagination={pagination}
-        csrfToken={csrfToken}
         data={contacts}
         className="pt-6"
         customFields={customFields}
         contactFields={contactFields}
+        searchParams={params}
         client:load
       />
     </ProjectContactNav>

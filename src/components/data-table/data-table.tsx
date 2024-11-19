@@ -28,6 +28,13 @@ import { cn } from '@/lib/utils'
 import type { ContactFields, ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
+import { useFilterState } from '@/components/data-table/search-params-hooks/use-filter-state'
+import { useGlobalFilterState } from '@/components/data-table/search-params-hooks/use-global-filter-state'
+import { usePaginationState } from '@/components/data-table/search-params-hooks/use-pagination-state'
+import { useSortingState } from '@/components/data-table/search-params-hooks/use-sorting-state'
+import { useViewState } from '@/components/data-table/search-params-hooks/use-view-state'
+import type { ContactTabFilterEnum } from '@/enums'
+
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
     onDelete: (id: string) => void
@@ -54,6 +61,16 @@ export interface TablePaginationState {
   pageSize: number
 }
 
+export interface SearchParamProps {
+  tab: ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER
+  page: number
+  pageSize: number
+  search: GlobalContactColumnFilter[]
+  view: VisibilityState
+  filter: ColumnFiltersState
+  sort: SortingState
+}
+
 interface DataTableProps {
   columns: ColumnDef<ContactProps, any>[]
   data: ContactProps[]
@@ -64,10 +81,10 @@ interface DataTableProps {
     projectId: string
     teamId: string
   }
-  pagination: TablePaginationState
   total: number
   customFields: CustomFieldProps[]
   contactFields: ContactFields[]
+  searchParams: SearchParamProps
 }
 
 export function DataTable({
@@ -77,25 +94,28 @@ export function DataTable({
   reqFilter,
   total,
   csrfToken,
-  pagination,
   ids,
   customFields = [],
   contactFields = [],
+  searchParams,
 }: DataTableProps) {
   const isDry = useRef<boolean>(true)
   const [_data, setData] = useState<ContactProps[]>(data)
   const [_total, setTotal] = useState<number>(total)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
-  const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }])
+  const [globalFilter, setGlobalFilter] = useState<GlobalContactColumnFilter[]>(searchParams.search)
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(searchParams.view)
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(searchParams.filter)
+  const [sorting, setSorting] = useState<SortingState>(searchParams.sort)
   const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({
     left: ['select', 'email'],
     right: ['actions'],
   })
 
-  const [_pagination, setPagination] = useState<TablePaginationState>(pagination)
+  const [_pagination, setPagination] = useState<TablePaginationState>({
+    pageIndex: searchParams.page,
+    pageSize: searchParams.pageSize,
+  })
 
   const table = useReactTable<ContactProps>({
     data: _data,
@@ -115,7 +135,7 @@ export function DataTable({
       globalFilter,
     },
     onPaginationChange: setPagination,
-    getRowId: (row) => (row as unknown as { id: string }).id,
+    getRowId: (row) => row.id,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
@@ -124,8 +144,7 @@ export function DataTable({
     onColumnPinningChange: setColumnPinning,
     getCoreRowModel: getCoreRowModel(),
     meta: {
-      onDelete: (id: string) =>
-        setData((prevState) => prevState.filter((d) => (d as unknown as { id: string }).id !== id)),
+      onDelete: (id: string) => setData((prevState) => prevState.filter((d) => d.id !== id)),
       onApplyAdvancedFilter: (filteredData: ContactProps[]) => setData(filteredData),
       setTotal: (count: number) => setTotal(count),
     },
@@ -134,19 +153,19 @@ export function DataTable({
     // columnResizeMode: 'onChange',
   })
 
+  usePaginationState(_pagination)
+  useGlobalFilterState(globalFilter)
+  useViewState({ contactFields, columnVisibility })
+  useSortingState({ sorting, contactFields })
+  useFilterState({ columnFilters, contactFields })
+
   useEffect(() => {
     if (isDry.current) {
       isDry.current = false
       return
     }
 
-    // const filters = [{ id: 'firstName', desc: true }, { id: 'lastName', desc: false }];
-    // const encodedFilters = encodeURIComponent(JSON.stringify(filters));
-    // const url = `${window.location.pathname}?filters=${encodedFilters}`;
-    // window.history.replaceState(null, '', url);
-    // const parsedFilters = JSON.parse(decodeURIComponent(new URLSearchParams(window.location.search).get('filters')));
-
-    const customColumnTags = customFields.map((f) => f.tag)
+    const customColumnIds = customFields.map((f) => f.id)
     const formData = new FormData()
     for (const [key, value] of Object.entries({ ..._pagination, ...ids, csrfToken })) {
       formData.append(key, value?.toString() || '')
@@ -154,25 +173,20 @@ export function DataTable({
     globalFilter && formData.append('globalFilter', JSON.stringify(globalFilter))
     formData.append(
       'columnFilters',
-      JSON.stringify(columnFilters.filter((c) => !customColumnTags.includes(c.id)))
+      JSON.stringify(columnFilters.filter((c) => !customColumnIds.includes(c.id)))
     )
-    const customColumnFilters = []
-    for (const filter of columnFilters) {
-      const field = customFields.find((cf) => cf.tag === filter.id)
-      field && customColumnFilters.push({ ...filter, id: field.id })
-    }
-    formData.append('customColumnFilters', JSON.stringify(customColumnFilters))
-
+    formData.append(
+      'customColumnFilters',
+      JSON.stringify(columnFilters.filter((c) => customColumnIds.includes(c.id)))
+    )
     formData.append(
       'sorting',
-      JSON.stringify(sorting.filter((c) => !customColumnTags.includes(c.id)))
+      JSON.stringify(sorting.filter((c) => !customColumnIds.includes(c.id)))
     )
-    const customFieldsSorting = []
-    for (const sort of sorting) {
-      const field = customFields.find((cf) => cf.tag === sort.id)
-      field && customFieldsSorting.push({ ...sort, id: field.id })
-    }
-    formData.append('customFieldsSorting', JSON.stringify(customFieldsSorting))
+    formData.append(
+      'customFieldsSorting',
+      JSON.stringify(sorting.filter((c) => customColumnIds.includes(c.id)))
+    )
 
     const doRequest = async () => {
       const { data } = await reqFilter(formData)
@@ -185,7 +199,9 @@ export function DataTable({
 
   return (
     <div className={cn(className, 'space-y-4')}>
-      <ContactDataTableToolbar {...{ table, customFields, csrfToken, ids, contactFields }} />
+      <ContactDataTableToolbar
+        {...{ table, activeTab: searchParams.tab, customFields, csrfToken, ids, contactFields }}
+      />
       <div className="rounded-md overflow-hidden border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>

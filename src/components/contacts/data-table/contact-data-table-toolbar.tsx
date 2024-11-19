@@ -1,5 +1,6 @@
 import type { Table } from '@tanstack/react-table'
 import { FileText, ListFilter, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
+import { parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -18,13 +19,14 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command'
-
 import { Form, FormField } from '@/components/ui/form'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -32,8 +34,9 @@ import {
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 
-import { CSRF_TOKEN } from '@/constants'
-import { ContactSourceEnum, CustomFieldTypeEnum } from '@/enums'
+import { CONTACT_DEFAULT_SEARCH_FIELD, CONTACT_GLOBAL_SEARCH_FIELDS, CSRF_TOKEN } from '@/constants'
+import { ContactSourceEnum, ContactTabFilterEnum, CustomFieldTypeEnum } from '@/enums'
+import { formatCamelCaseToTitle } from '@/lib/utils'
 
 export interface ContactDataTableToolbarProps {
   table: Table<ContactProps>
@@ -44,9 +47,8 @@ export interface ContactDataTableToolbarProps {
     projectId: string
     teamId: string
   }
+  activeTab: ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER
 }
-
-const DEFAULT_SEARCH_FIELD: string = 'any' as const
 
 const booleanOptions = [
   {
@@ -91,28 +93,40 @@ export function ContactDataTableToolbar({
   csrfToken,
   contactFields,
   ids,
+  activeTab,
 }: ContactDataTableToolbarProps) {
+  const [, setTab] = useQueryState<
+    ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER
+  >(
+    'tab',
+    parseAsStringLiteral([
+      ContactTabFilterEnum.QUICK_SEARCH,
+      ContactTabFilterEnum.ADVANCED_FILTER,
+    ]).withDefault(ContactTabFilterEnum.QUICK_SEARCH)
+  )
+
   const isFiltered = table.getState().columnFilters.length > 0
-  const isGlobalFiltered = table.getState().globalFilter.length > 0
+  const globalFilter = table.getState().globalFilter
+  const isGlobalFiltered = globalFilter.length > 0
   const searchForm = useForm<FormValues>({
     defaultValues: {
       csrfToken,
-      field: DEFAULT_SEARCH_FIELD,
-      q: '',
+      field: isGlobalFiltered ? globalFilter[0].id : CONTACT_DEFAULT_SEARCH_FIELD,
+      q: isGlobalFiltered ? globalFilter[0].value : '',
     },
   })
 
   function onSearchSubmit({ field, q }: FormValues) {
-    const customField = customFields.find((f) => f.tag === field)
-    table.setGlobalFilter([
-      { field, id: customField?.id, value: q, isCustomField: Boolean(customField) },
-    ])
+    const customField = customFields.find((f) => f.id === field)
+    const value = [{ id: customField?.id || field, value: q }]
+    table.setGlobalFilter(value)
   }
 
   const filterColumns = useMemo(() => {
     const filterCustomFields = customFields
       .filter((f) => [CustomFieldTypeEnum.BOOLEAN, CustomFieldTypeEnum.DATE].includes(f.type))
       .map((f) => ({
+        id: f.id,
         tag: f.tag,
         name: f.name,
         type: f.type,
@@ -120,33 +134,57 @@ export function ContactDataTableToolbar({
       }))
 
     return [
-      { tag: 'source', name: 'Source', type: CustomFieldTypeEnum.ENUM, options: sourceOptions },
       {
+        id: 'source',
+        tag: 'source',
+        name: 'Source',
+        type: CustomFieldTypeEnum.ENUM,
+        options: sourceOptions,
+      },
+      {
+        id: 'subscribed',
         tag: 'subscribed',
         name: 'Subscribed',
         type: CustomFieldTypeEnum.BOOLEAN,
         options: booleanOptions,
       },
-      { tag: 'updatedAt', name: 'Updated At', type: CustomFieldTypeEnum.DATE, options: [] },
-      { tag: 'createdAt', name: 'Created At', type: CustomFieldTypeEnum.DATE, options: [] },
+      {
+        id: 'updatedAt',
+        tag: 'updatedAt',
+        name: 'Updated At',
+        type: CustomFieldTypeEnum.DATE,
+        options: [],
+      },
+      {
+        id: 'createdAt',
+        tag: 'createdAt',
+        name: 'Created At',
+        type: CustomFieldTypeEnum.DATE,
+        options: [],
+      },
       ...filterCustomFields,
     ]
   }, [customFields])
 
   return (
-    <Tabs defaultValue="advancedFilter">
+    <Tabs
+      onValueChange={(val) =>
+        setTab(val as ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER)
+      }
+      defaultValue={activeTab}
+    >
       <div className="flex justify-between w-full">
         <div className="w-[400px]">
           <TabsList className="h-9 p-0.5">
-            <TabsTrigger value="quickSearch">Quick Search</TabsTrigger>
-            <TabsTrigger value="advancedFilter">Advanced Filter</TabsTrigger>
+            <TabsTrigger value={ContactTabFilterEnum.QUICK_SEARCH}>Quick Search</TabsTrigger>
+            <TabsTrigger value={ContactTabFilterEnum.ADVANCED_FILTER}>Advanced Filter</TabsTrigger>
           </TabsList>
         </div>
         <div>
           <DataTableViewOptions table={table} customFields={customFields} />
         </div>
       </div>
-      <TabsContent value="quickSearch" className="mt-4">
+      <TabsContent value={ContactTabFilterEnum.QUICK_SEARCH} className="mt-4">
         <div className="flex items-center justify-between space-x-2 z-10 bg-muted/0">
           <div className="flex flex-wrap space-x-2 flex-1 -ml-2 -mt-2">
             <Form {...searchForm}>
@@ -176,41 +214,58 @@ export function ContactDataTableToolbar({
                   name="field"
                   render={({ field }) => (
                     <Select
-                      defaultValue={DEFAULT_SEARCH_FIELD}
+                      defaultValue={CONTACT_DEFAULT_SEARCH_FIELD}
                       value={field.value}
                       name={field.name}
-                      onValueChange={field.onChange}
+                      onValueChange={(val) => {
+                        field.onChange(val)
+                        if (searchForm.getValues('q')) {
+                          const values = { ...searchForm.getValues(), field: val }
+                          onSearchSubmit(values)
+                        }
+                      }}
                     >
                       <SelectTrigger className="hover:bg-accent h-8 absolute w-24 rounded-l-none focus:ring-0 right-0">
                         <SelectValue placeholder="Select field" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={DEFAULT_SEARCH_FIELD}>Any</SelectItem>
-                        {customFields
-                          .filter((f) =>
-                            [CustomFieldTypeEnum.STRING, CustomFieldTypeEnum.NUMBER].includes(
-                              f.type
-                            )
-                          )
-                          .map((customField) => (
-                            <SelectItem key={customField.tag} value={customField.tag}>
-                              {customField.name}
+                        <SelectItem value={CONTACT_DEFAULT_SEARCH_FIELD}>Any</SelectItem>
+                        <SelectGroup>
+                          <SelectLabel>Contact columns</SelectLabel>
+                          {CONTACT_GLOBAL_SEARCH_FIELDS.map((fieldId) => (
+                            <SelectItem key={fieldId} value={fieldId}>
+                              {formatCamelCaseToTitle(fieldId)}
                             </SelectItem>
                           ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel>Custom columns</SelectLabel>
+                          {customFields
+                            .filter((f) =>
+                              [CustomFieldTypeEnum.STRING, CustomFieldTypeEnum.NUMBER].includes(
+                                f.type
+                              )
+                            )
+                            .map((customField) => (
+                              <SelectItem key={customField.id} value={customField.id}>
+                                {customField.name}
+                              </SelectItem>
+                            ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   )}
                 />
               </form>
             </Form>
-            {filterColumns.map(({ tag, name, options, type }) => {
-              if (table.getColumn(tag)) {
+            {filterColumns.map(({ id, tag, name, options, type }) => {
+              if (table.getColumn(id)) {
                 return (
                   <DataTableFacetedFilter
                     className="mt-2"
                     key={tag}
                     type={type}
-                    column={table.getColumn(tag)}
+                    column={table.getColumn(id)}
                     title={name}
                     options={options}
                   />
@@ -234,7 +289,7 @@ export function ContactDataTableToolbar({
           </div>
         </div>
       </TabsContent>
-      <TabsContent value="advancedFilter" className="mt-4">
+      <TabsContent value={ContactTabFilterEnum.ADVANCED_FILTER} className="mt-4">
         <div className="flex space-x-2">
           <Popover>
             <PopoverTrigger asChild>

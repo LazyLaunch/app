@@ -19,13 +19,17 @@ import {
 } from 'drizzle-orm'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 
-import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
+import {
+  CONTACT_DEFAULT_SEARCH_FIELD,
+  CONTACT_GLOBAL_SEARCH_FIELDS,
+  CUID_LENGTH,
+  DEFAULT_PAGE_INDEX,
+  DEFAULT_PAGE_SIZE,
+} from '@/constants'
 import { db } from '@/db'
 import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
 import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
 import type { BatchItem } from 'drizzle-orm/batch'
-
-const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 
 export interface ContactCustomFields
   extends Pick<SelectCustomField, 'id' | 'name' | 'type' | 'tag'> {
@@ -49,15 +53,13 @@ export type ContactCustomColumnFilters = Array<{
   id: string
   value: string | number | boolean | Array<string | number | boolean | null>
 }>
-type AnyContactField = 'any'
 export interface GlobalContactColumnFilter {
-  id: 'string' | undefined
-  field: ContactColumn | AnyContactField
+  id: keyof typeof contactsTable | string
   value: string | number
-  isCustomField: boolean
 }
 export type ContactCustomFieldSort = { id: string; desc: boolean }
 
+const SKIP_CONTACT_COLUMNS: string[] = ['team_id', 'project_id', 'user_id', 'id'] as const
 const DATE_COLUMN_IDS: Array<keyof typeof contactsTable> = ['createdAt', 'updatedAt'] as const
 const CUSTOM_FIELDS = sql<ContactCustomFields[]>`
   json_group_array(
@@ -70,45 +72,48 @@ const CUSTOM_FIELDS = sql<ContactCustomFields[]>`
     )
   )`.as('custom_fields')
 
-function buildGlobalFilters(globalFilter: GlobalContactColumnFilter[]) {
+function buildGlobalFilters(globalFilter: GlobalContactColumnFilter[]): (SQL | undefined)[] {
   return globalFilter.map((filter) => {
-    if (filter.field === 'any') {
-      const contactFields = or(
-        like(contactsTable.email, `%${filter.value}%`),
-        like(contactsTable.firstName, `%${filter.value}%`),
-        like(contactsTable.lastName, `%${filter.value}%`)
-      )
+    if (filter.id && filter.id !== CONTACT_DEFAULT_SEARCH_FIELD) {
+      if (CONTACT_GLOBAL_SEARCH_FIELDS.includes(filter.id)) {
+        return like(contactsTable[filter.id as ContactColumn], `%${filter.value}%`)
+      }
 
-      // TODO: Needs to ignore date value
-      const customFields = exists(
-        db
-          .select({ results: sql`1` })
-          .from(contactCustomFieldsTable)
-          .where(
-            and(
-              eq(contactCustomFieldsTable.contactId, contactsTable.id),
-              like(contactCustomFieldsTable.value, `%${filter.value}%`)
+      if (filter.id.length === CUID_LENGTH) {
+        return exists(
+          db
+            .select({ results: sql`1` })
+            .from(contactCustomFieldsTable)
+            .where(
+              and(
+                eq(contactCustomFieldsTable.contactId, contactsTable.id),
+                eq(contactCustomFieldsTable.customFieldId, filter.id as string),
+                like(contactCustomFieldsTable.value, `%${filter.value}%`)
+              )
             )
-          )
-      )
-      return or(contactFields, customFields)
+        )
+      }
     }
 
-    if (filter.isCustomField) {
-      return exists(
-        db
-          .select({ results: sql`1` })
-          .from(contactCustomFieldsTable)
-          .where(
-            and(
-              eq(contactCustomFieldsTable.contactId, contactsTable.id),
-              eq(contactCustomFieldsTable.customFieldId, filter.id as string),
-              like(contactCustomFieldsTable.value, `%${filter.value}%`)
-            )
+    const contactFields = or(
+      like(contactsTable.email, `%${filter.value}%`),
+      like(contactsTable.firstName, `%${filter.value}%`),
+      like(contactsTable.lastName, `%${filter.value}%`)
+    )
+
+    // TODO: Needs to ignore date value
+    const customFields = exists(
+      db
+        .select({ results: sql`1` })
+        .from(contactCustomFieldsTable)
+        .where(
+          and(
+            eq(contactCustomFieldsTable.contactId, contactsTable.id),
+            like(contactCustomFieldsTable.value, `%${filter.value}%`)
           )
-      )
-    }
-    return like(contactsTable[filter.field], `%${filter.value}%`)
+        )
+    )
+    return or(contactFields, customFields)
   })
 }
 
@@ -206,17 +211,17 @@ const buildCustomFilters = (customColumnFilters: ContactCustomColumnFilters) => 
 }
 
 export function buildContactConditions({
-  sortFields = [{ id: 'createdAt', desc: true }],
-  columnFilters = [],
-  customFieldsSorting = [],
-  globalFilter = [],
-  customColumnFilters = [],
+  sortFields,
+  columnFilters,
+  customFieldsSorting,
+  globalFilter,
+  customColumnFilters,
 }: {
-  sortFields?: ContactSortFields
+  sortFields: ContactSortFields
   columnFilters: ContactColumnFilters
   customColumnFilters: ContactCustomColumnFilters
-  customFieldsSorting?: ContactCustomFieldSort[]
-  globalFilter?: GlobalContactColumnFilter[]
+  customFieldsSorting: ContactCustomFieldSort[]
+  globalFilter: GlobalContactColumnFilter[]
 }): { sortBy: SQL[]; whereConditions: (SQL<any> | undefined)[] } {
   const sortBy: SQL[] = [
     ...sortFields.map((field) =>

@@ -3,6 +3,8 @@ import { ViewTransitions } from 'astro:transitions'
 
 import { Toaster } from '@/components/ui/sonner'
 
+import { TailwindIndicator } from '@/components/tailwind-indicator'
+
 import '@/styles/globals.css'
 import '@melloware/coloris/dist/coloris.css'
 import '@/styles/app.css'
@@ -24,5 +26,6 @@ import '@/styles/app.css'
       <slot />
     </main>
     <Toaster transition:persist client:idle richColors />
+    <TailwindIndicator />
   </body>
 </html>

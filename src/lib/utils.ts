@@ -89,3 +89,9 @@ export function snakeToCamel(str: string | undefined | null): string {
   if (!str) return ''
   return str.replace(/_([a-z])/g, (_, char) => char.toUpperCase())
 }
+
+export function formatCamelCaseToTitle(str: string | undefined | null): string {
+  if (!str) return ''
+
+  return str.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (str) => str.toUpperCase())
+}
