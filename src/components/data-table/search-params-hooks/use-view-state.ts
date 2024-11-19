@@ -2,7 +2,7 @@ import { parseAsJson, useQueryState } from 'nuqs'
 import { useEffect } from 'react'
 import { z } from 'zod'
 
-import { viewItemSchema } from '@/validations'
+import { viewItemSchema } from '@/validations/contacts-page'
 
 import type { ContactFields } from '@/db/models/contact'
 import type { VisibilityState } from '@tanstack/react-table'

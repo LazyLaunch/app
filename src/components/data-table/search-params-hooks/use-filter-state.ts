@@ -2,7 +2,7 @@ import { parseAsJson, useQueryState } from 'nuqs'
 import { useEffect } from 'react'
 import { z } from 'zod'
 
-import { columnFiltersSchema } from '@/validations'
+import { columnFiltersSchema } from '@/validations/contacts-page'
 
 import type { ContactFields } from '@/db/models/contact'
 import type { ColumnFiltersState } from '@tanstack/react-table'

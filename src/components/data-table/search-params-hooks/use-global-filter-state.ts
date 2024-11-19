@@ -2,7 +2,7 @@ import { parseAsJson, useQueryState } from 'nuqs'
 import { useEffect } from 'react'
 import { z } from 'zod'
 
-import { globalFilterSchema } from '@/validations'
+import { globalFilterSchema } from '@/validations/contacts-page'
 
 import type { GlobalContactColumnFilter } from '@/db/models/contact'
 

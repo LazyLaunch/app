@@ -1,13 +1,7 @@
 import { ActionError, defineAction } from 'astro:actions'
 import { z, type ZodError } from 'astro:schema'
 
-import {
-  CUID_LENGTH,
-  DEFAULT_MAX_PAGE_SIZE,
-  DEFAULT_PAGE_INDEX,
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_PAGE_SIZES,
-} from '@/constants'
+import { CUID_LENGTH } from '@/constants'
 import {
   batchContactResponse,
   buildContactConditions,
@@ -26,9 +20,15 @@ import {
   type GlobalContactColumnFilter,
 } from '@/db/models/contact'
 import { ResponseStatusEnum, ResponseStatusMessageEnum } from '@/enums'
-import { handleNumberInput } from '@/lib/utils'
 import { validateEmails } from '@/lib/validate-emails'
-import { columnFiltersSchema, customFieldSortingSchema, sortingSchema } from '@/validations'
+import {
+  columnFiltersSchema,
+  customFieldSortingSchema,
+  globalFilterSchema,
+  paginationPageSchema,
+  paginationPageSizeSchema,
+  sortingSchema,
+} from '@/validations/contacts-page'
 
 export const contact = {
   filters: defineAction({
@@ -37,22 +37,8 @@ export const contact = {
       csrfToken: z.string(),
       projectId: z.string().length(CUID_LENGTH),
       teamId: z.string().length(CUID_LENGTH),
-      pageIndex: z.optional(
-        z.string().transform((val) => {
-          return handleNumberInput(val, { min: DEFAULT_PAGE_INDEX })
-        })
-      ),
-      pageSize: z.optional(
-        z.string().transform((val) => {
-          const pageSize = DEFAULT_PAGE_SIZES.includes(Number.parseInt(val))
-            ? val
-            : `${DEFAULT_PAGE_SIZE}`
-          return handleNumberInput(pageSize, {
-            min: DEFAULT_PAGE_SIZE,
-            max: DEFAULT_MAX_PAGE_SIZE,
-          })
-        })
-      ),
+      pageIndex: paginationPageSchema({ z }),
+      pageSize: paginationPageSizeSchema({ z }),
       customFieldsSorting: z.string().transform((val, ctx) => {
         try {
           const parsed: ContactCustomFieldSort[] = JSON.parse(val)
@@ -75,51 +61,40 @@ export const contact = {
           return z.NEVER
         }
       }),
-      globalFilter: z.optional(
-        z.string().transform((val, ctx) => {
-          try {
-            const parsed: GlobalContactColumnFilter[] = JSON.parse(val)
-            z.array(
-              z.object({
-                id: z.union([z.string(), z.string().length(CUID_LENGTH)]),
-                value: z.union([z.string(), z.number()]),
-              })
-            ).parse(parsed)
+      globalFilter: z.string().transform((val, ctx) => {
+        try {
+          const parsed: GlobalContactColumnFilter[] = JSON.parse(val)
+          globalFilterSchema({ z }).parse(parsed)
 
-            return parsed
-          } catch (err) {
-            const { errors } = err as ZodError
-            for (const e of errors) ctx.addIssue(e)
-            return z.NEVER
-          }
-        })
-      ),
-      columnFilters: z.optional(
-        z.string().transform((val, ctx) => {
-          try {
-            const parsed: ContactColumnFilters = JSON.parse(val)
-            columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
-            return parsed
-          } catch (err) {
-            const { errors } = err as ZodError
-            for (const e of errors) ctx.addIssue(e)
-            return z.NEVER
-          }
-        })
-      ),
-      customColumnFilters: z.optional(
-        z.string().transform((val, ctx) => {
-          try {
-            const parsed: ContactCustomColumnFilters = JSON.parse(val)
-            columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
-            return parsed
-          } catch (err) {
-            const { errors } = err as ZodError
-            for (const e of errors) ctx.addIssue(e)
-            return z.NEVER
-          }
-        })
-      ),
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
+      columnFilters: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactColumnFilters = JSON.parse(val)
+          columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
+      customColumnFilters: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactCustomColumnFilters = JSON.parse(val)
+          columnFiltersSchema({ z, contactFields: getContactFields() }).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
     }),
     handler: async (
       {
@@ -127,11 +102,11 @@ export const contact = {
         projectId,
         columnFilters = [],
         sorting,
-        pageSize = DEFAULT_PAGE_SIZE,
-        pageIndex = DEFAULT_PAGE_INDEX,
+        pageSize,
+        pageIndex,
         customFieldsSorting,
-        globalFilter = [],
-        customColumnFilters = [],
+        globalFilter,
+        customColumnFilters,
       },
       context
     ) => {

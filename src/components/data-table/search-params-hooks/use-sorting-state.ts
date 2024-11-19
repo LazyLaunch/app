@@ -2,7 +2,7 @@ import { parseAsJson, useQueryState } from 'nuqs'
 import { useEffect } from 'react'
 import { z } from 'zod'
 
-import { sortingSchema } from '@/validations'
+import { sortingSchema } from '@/validations/contacts-page'
 
 import type { ContactFields } from '@/db/models/contact'
 import type { SortingState } from '@tanstack/react-table'

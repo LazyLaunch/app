@@ -11,7 +11,7 @@ import {
   paginationPageSizeSchema,
   sortingSchema,
   viewItemSchema,
-} from '@/validations'
+} from '@/validations/contacts-page'
 
 import type {
   ContactColumnFilters,

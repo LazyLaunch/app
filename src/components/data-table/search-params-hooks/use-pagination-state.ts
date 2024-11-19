@@ -1,7 +1,7 @@
 import { parseAsInteger, useQueryState } from 'nuqs'
 import { useEffect } from 'react'
 
-import { paginationPageStateParser } from '@/lib/parsers'
+import { paginationPageStateParser } from '@/parsers/contacts-page'
 
 import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
 
