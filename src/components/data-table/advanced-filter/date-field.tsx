@@ -1,7 +1,7 @@
 import { UTCDate } from '@date-fns/utc'
 import { format, getTime } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Controller, type UseFormReturn } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,8 @@ function DatePicker({
   placeholder,
 }: { field: any; className: string; placeholder: string }) {
   const [open, setOpen] = useState(false)
+  const isValidValue = !Number.isNaN(Number.parseInt(field.value))
+  const value = isValidValue ? Number.parseInt(field.value) : ''
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -27,12 +29,12 @@ function DatePicker({
           variant="outline"
           className={cn(
             'pl-3 text-left font-normal flex w-full space-x-2 justify-between',
-            !field.value && 'text-muted-foreground',
+            !value && 'text-muted-foreground',
             className
           )}
         >
-          {field.value ? (
-            <span>{format(new UTCDate(field.value), DATE_TEXT_FORMAT)}</span>
+          {value ? (
+            <span>{format(new UTCDate(value), DATE_TEXT_FORMAT)}</span>
           ) : (
             <span>{placeholder}</span>
           )}
@@ -44,11 +46,11 @@ function DatePicker({
           defaultMonth={new UTCDate()}
           captionLayout="buttons"
           mode="single"
-          selected={field.value ? new UTCDate(field.value) : undefined}
+          selected={value ? new UTCDate(value) : undefined}
           onSelect={(date) => {
             setOpen(false)
-            const value = date && getTime(new UTCDate(date))
-            field.onChange({ target: { value } })
+            const _value = date && getTime(new UTCDate(date))
+            field.onChange({ target: { value: _value } })
           }}
           initialFocus
         />
@@ -84,13 +86,6 @@ export function DateField({
       Number(watchOperator)
     )
   const error = (errors.filterConditions as any)?.[index]
-
-  useEffect(() => {
-    return () => {
-      form.unregister(name)
-      form.unregister(secondaryName)
-    }
-  }, [form, name, secondaryName])
 
   if (showInputs)
     return (

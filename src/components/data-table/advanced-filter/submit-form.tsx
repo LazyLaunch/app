@@ -1,53 +1,56 @@
 import { actions, isInputError } from 'astro:actions'
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, type UseFormReturn } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import type { FilterCondition } from '@/db/models/filter'
-import type { CustomFieldTypeEnum } from '@/enums'
 
-interface FormValues {
+import type { ContactProps } from '@/db/models/contact'
+import type { Table } from '@tanstack/react-table'
+
+interface FormIds {
   csrfToken: string
   projectId: string
   teamId: string
-  filterConditions: (Omit<FilterCondition, 'operator'> & {
-    columnType?: CustomFieldTypeEnum
-    operator?: number | undefined
-  })[]
 }
 
-interface ExtendedFormValues extends FormValues {
+interface ExtendedFormValues extends FormIds {
   name: string
+  id?: string
 }
 
 interface Props {
-  defaultValues: FormValues
-  isValid: boolean
-  isSubmitFilter: boolean
+  filterForm: UseFormReturn<any>
+  ids: FormIds
+  deleteFilterConditionIds: string[]
+  table: Table<ContactProps>
 }
 
-export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
-  const isInvalidFilters = !isValid || !isSubmitFilter
+export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }: Props) {
+  const isSubmitFilter = filterForm.formState.isSubmitSuccessful
+  const isValid = filterForm.formState.isValid
+  const isDirty = filterForm.formState.isDirty
+
+  const segmentId = table.getState().segmentId
+  const segment = table.getSegment(segmentId)
+  const isInvalidFilters = segment?.id && !isDirty ? false : !isValid || !isSubmitFilter
   const form = useForm<ExtendedFormValues>({
-    defaultValues: {
-      ...defaultValues,
-      name: '',
+    values: {
+      ...ids,
+      id: segment?.id || '',
+      name: segment?.name || '',
     },
   })
 
-  useEffect(() => {
-    form.reset({ ...defaultValues, name: form.getValues().name })
-  }, [defaultValues, form.reset, form.getValues])
-
-  async function handleSubmit({ filterConditions, ...values }: ExtendedFormValues) {
+  async function handleSubmit(values: ExtendedFormValues) {
+    const filterConditions = filterForm.getValues().filterConditions
     if (isInvalidFilters) return
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
     }
+    formData.append('deleteFilterConditionIds', JSON.stringify(deleteFilterConditionIds))
     formData.append('filterConditions', JSON.stringify(filterConditions))
 
     const { error, data } = await actions.filter.save(formData)
@@ -56,10 +59,12 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
 
       for (const key of Object.keys(fields)) {
         const message = fields[key as keyof typeof fields]?.[0]
-        form.setError(key as keyof FormValues, { message })
+        form.setError(key as keyof ExtendedFormValues, { message })
       }
       return
     }
+    table.setFilterConditions(data!.filterConditions)
+    table.updateSegments(data!.filter.id, data!.filter)
   }
 
   return (
@@ -101,7 +106,7 @@ export function SubmitForm({ defaultValues, isValid, isSubmitFilter }: Props) {
                         form.resetField('name')
                       }}
                     >
-                      Clear
+                      Reset
                     </Button>
                   </div>
                 </FormControl>

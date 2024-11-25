@@ -28,7 +28,13 @@ import {
 } from '@/constants'
 import { db } from '@/db'
 import type { InsertContact, SelectContact, SelectCustomField } from '@/db/schema'
-import { contactCustomFieldsTable, contactsTable, customFieldsTable } from '@/db/schema'
+import {
+  contactCustomFieldsTable,
+  contactsTable,
+  customFieldsTable,
+  filterConditionsTable,
+  filtersTable,
+} from '@/db/schema'
 import type { BatchItem } from 'drizzle-orm/batch'
 
 export interface ContactCustomFields
@@ -430,11 +436,17 @@ export async function updateContact({
   })
 }
 
-type ContactBatchSkipQuery = 'contacts' | 'customFields' | 'contactsTotal'
+type ContactBatchSkipQuery =
+  | 'contacts'
+  | 'customFields'
+  | 'contactsTotal'
+  | 'filters'
+  | 'filterConditions'
 
 interface ContactBatchProps {
   projectId: string
   teamId: string
+  filterId?: string
   conditions: (SQL<any> | undefined)[]
   contactsLimit?: number
   contactsOffset?: number
@@ -446,6 +458,7 @@ export async function batchContactResponse({
   conditions,
   projectId,
   teamId,
+  filterId,
   contactsLimit = DEFAULT_PAGE_SIZE,
   contactsOffset = DEFAULT_PAGE_INDEX,
   contactsSortBy = [desc(contactsTable.createdAt)],
@@ -480,7 +493,6 @@ export async function batchContactResponse({
       .groupBy(contactsTable.id)
       .offset(contactsOffset)
       .limit(contactsLimit),
-
     customFields: db
       .select({
         id: customFieldsTable.id,
@@ -492,7 +504,6 @@ export async function batchContactResponse({
       })
       .from(customFieldsTable)
       .where(and(eq(customFieldsTable.projectId, projectId), eq(customFieldsTable.teamId, teamId))),
-
     contactsTotal: db
       .select({
         total: count(contactsTable.id),
@@ -501,6 +512,17 @@ export async function batchContactResponse({
       .where(
         and(eq(contactsTable.projectId, projectId), eq(contactsTable.teamId, teamId), ...conditions)
       ),
+    filters: db
+      .select({
+        id: filtersTable.id,
+        name: filtersTable.name,
+      })
+      .from(filtersTable)
+      .where(and(eq(filtersTable.projectId, projectId), eq(filtersTable.teamId, teamId))),
+    filterConditions: db
+      .select()
+      .from(filterConditionsTable)
+      .where(filterId ? eq(filterConditionsTable.filterId, filterId) : sql`1 = 0`),
   }
 
   const batchRequests = Object.keys(queries)
@@ -517,6 +539,8 @@ export async function batchContactResponse({
     contacts: skipData.includes('contacts') ? [] : results.shift(),
     customFields: skipData.includes('customFields') ? [] : results.shift(),
     contactsTotal: skipData.includes('contactsTotal') ? 0 : (results.shift()?.[0]?.total ?? 0),
+    filters: skipData.includes('filters') ? [] : results.shift(),
+    filterConditions: skipData.includes('filterConditions') ? [] : results.shift(),
   }
 
   return response

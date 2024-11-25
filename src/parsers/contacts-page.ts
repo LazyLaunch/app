@@ -1,6 +1,6 @@
-import { createParser, parseAsInteger } from 'nuqs'
+import { createParser, parseAsInteger, parseAsString } from 'nuqs'
 
-import { DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
+import { CUID_LENGTH, DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
 import { ContactTabFilterEnum } from '@/enums'
 import {
   columnFiltersSchema,
@@ -33,6 +33,30 @@ export function paginationPageStateParser() {
       return parseAsInteger.serialize(value + 1)
     },
   })
+}
+
+export function filterIdStateParser() {
+  return createParser({
+    parse: (query) => {
+      const filterId = parseAsString.parse(query)
+      return filterId?.length === CUID_LENGTH ? filterId : null
+    },
+    serialize: (value) => {
+      return parseAsString.serialize(value)
+    },
+  })
+}
+
+export function serverFilterIdStateParser({
+  z,
+  data,
+}: { z: ZNamespace; data: string | null }): string {
+  try {
+    z.string().length(CUID_LENGTH).parse(data)
+    return data as string
+  } catch {
+    return ''
+  }
 }
 
 export function serverPaginationPageStateParser({

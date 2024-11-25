@@ -1,5 +1,6 @@
 ---
 import { z } from 'astro:schema'
+import type { SQL } from 'drizzle-orm'
 
 import ProjectLayout from '@/layouts/project/project-layout.astro'
 import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
@@ -15,6 +16,8 @@ import {
   type ContactColumnFilters,
   type ContactCustomColumnFilters,
 } from '@/db/models/contact'
+import { getFilterConditions, buildDynamicFilter } from '@/db/models/filter'
+
 import { NewContactForm } from '@/components/contacts/new-contact-form'
 import { snakeToCamel } from '@/lib/utils'
 import {
@@ -25,7 +28,10 @@ import {
   getGlobalFilterStateParser,
   serverPaginationPageStateParser,
   serverPaginationPageSizeStateParser,
+  serverFilterIdStateParser,
 } from '@/parsers/contacts-page'
+
+import { ContactTabFilterEnum } from '@/enums'
 
 const csrfToken = Astro.locals.csrfToken!
 const team = Astro.locals.team!
@@ -48,7 +54,21 @@ const params = {
   search: getGlobalFilterStateParser({ data: searchParams.get('search'), z }),
   page: serverPaginationPageStateParser({ data: searchParams.get('page'), z }),
   pageSize: serverPaginationPageSizeStateParser({ data: searchParams.get('pageSize'), z }),
+  filterId: serverFilterIdStateParser({ data: searchParams.get('segmentId'), z }),
 }
+
+const isAdvancedTabWithFilter =
+  params.filterId && params.tab === ContactTabFilterEnum.ADVANCED_FILTER
+
+const filterWhereConditions: (SQL<any> | undefined)[] = isAdvancedTabWithFilter
+  ? [
+      buildDynamicFilter({
+        filterConditions: await getFilterConditions({ filterId: params.filterId }),
+        contactFields,
+        ...ids,
+      }),
+    ]
+  : []
 
 const { sortBy, whereConditions } = buildContactConditions({
   sortFields: params.sort.filter((s) => contactFieldNames.includes(s.id)),
@@ -61,13 +81,15 @@ const { sortBy, whereConditions } = buildContactConditions({
   ) as ContactCustomColumnFilters,
   globalFilter: params.search,
 })
-const { contacts, customFields, contactsTotal } = await batchContactResponse({
-  ...ids,
-  contactsLimit: params.pageSize,
-  contactsOffset: params.page * params.pageSize,
-  contactsSortBy: sortBy,
-  conditions: whereConditions,
-})
+const { contacts, customFields, contactsTotal, filters, filterConditions } =
+  await batchContactResponse({
+    ...ids,
+    filterId: params.filterId,
+    contactsLimit: params.pageSize,
+    contactsOffset: params.page * params.pageSize,
+    contactsSortBy: sortBy,
+    conditions: isAdvancedTabWithFilter ? filterWhereConditions : whereConditions,
+  })
 ---
 
 <ProjectLayout>
@@ -89,6 +111,8 @@ const { contacts, customFields, contactsTotal } = await batchContactResponse({
         customFields={customFields}
         contactFields={contactFields}
         searchParams={params}
+        filters={filters}
+        filterConditions={filterConditions}
         client:load
       />
     </ProjectContactNav>

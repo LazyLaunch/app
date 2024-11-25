@@ -1,5 +1,5 @@
 import { UTCDate } from '@date-fns/utc'
-import type { Column } from '@tanstack/react-table'
+import type { Column, Table } from '@tanstack/react-table'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { CalendarIcon, Check, CirclePlus } from 'lucide-react'
 
@@ -23,6 +23,7 @@ import type { ContactProps } from '@/db/models/contact'
 import { CustomFieldTypeEnum } from '@/enums'
 import { cn } from '@/lib/utils'
 
+import { updateOrInsert } from '@/lib/update-or-insert'
 import type { DateRange } from 'react-day-picker'
 
 interface DataTableFacetedFilterProps {
@@ -36,13 +37,15 @@ interface DataTableFacetedFilterProps {
     icon?: React.ComponentType<{ className?: string }>
   }[]
   className?: string
+  table: Table<ContactProps>
 }
 
 function CalendarFacet({
   title,
   className,
   column,
-}: Pick<DataTableFacetedFilterProps, 'title' | 'className' | 'column'>) {
+  table,
+}: Pick<DataTableFacetedFilterProps, 'title' | 'className' | 'column' | 'table'>) {
   const selectedDateFilter = new Map<'to' | 'from', number | undefined>(
     column?.getFilterValue() as Iterable<['from' | 'to', number | undefined]>
   )
@@ -88,7 +91,16 @@ function CalendarFacet({
               selectedDateFilter.set('from', undefined)
               selectedDateFilter.set('to', undefined)
             }
-            column?.setFilterValue(Array.from(selectedDateFilter))
+            const value = Array.from(selectedDateFilter)
+            column?.setFilterValue(value)
+            const values = updateOrInsert(
+              table.getState().columnFilters as any[],
+              column!.id,
+              value
+            )
+            table.doFilter({
+              columnFilters: value.length ? values : [],
+            })
           }}
           numberOfMonths={2}
         />
@@ -103,6 +115,7 @@ function DefaultFacet({
   options = [],
   withSearchCommand = false,
   className,
+  table,
 }: Omit<DataTableFacetedFilterProps, 'type'>) {
   const selectedValues = new Set<string | boolean>(column?.getFilterValue() as string[] | boolean[])
 
@@ -161,6 +174,14 @@ function DefaultFacet({
                       }
                       const filterValues = Array.from(selectedValues)
                       column?.setFilterValue(filterValues.length ? filterValues : undefined)
+                      const values = updateOrInsert(
+                        table.getState().columnFilters as any[],
+                        column!.id,
+                        filterValues
+                      )
+                      table.doFilter({
+                        columnFilters: filterValues.length ? values : [],
+                      })
                     }}
                   >
                     <div
@@ -184,7 +205,15 @@ function DefaultFacet({
                 <CommandSeparator />
                 <CommandGroup>
                   <CommandItem
-                    onSelect={() => column?.setFilterValue(undefined)}
+                    onSelect={() => {
+                      column?.setFilterValue(undefined)
+                      const values = updateOrInsert(
+                        table.getState().columnFilters as any[],
+                        column!.id,
+                        undefined
+                      )
+                      table.doFilter({ columnFilters: values })
+                    }}
                     className="cursor-pointer justify-center text-center"
                   >
                     Clear filters

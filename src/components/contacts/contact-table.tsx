@@ -7,6 +7,8 @@ import { DataTable } from '@/components/data-table'
 import type { SearchParamProps } from '@/components/data-table'
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
+import type { FilterCondition } from '@/db/models/filter'
+import type { SelectFilter } from '@/db/schema'
 
 export function ContactTable({
   data,
@@ -17,6 +19,8 @@ export function ContactTable({
   customFields,
   contactFields,
   searchParams,
+  filters,
+  filterConditions,
 }: {
   data: ContactProps[]
   className: string
@@ -29,6 +33,8 @@ export function ContactTable({
   customFields: CustomFieldProps[]
   contactFields: ContactFields[]
   searchParams: SearchParamProps
+  filters: SelectFilter[]
+  filterConditions: FilterCondition[]
 }) {
   return (
     <NuqsAdapter>
@@ -43,6 +49,8 @@ export function ContactTable({
         customFields={customFields}
         contactFields={contactFields}
         searchParams={searchParams}
+        filters={filters}
+        filterConditions={filterConditions}
       />
     </NuqsAdapter>
   )

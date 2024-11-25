@@ -1,5 +1,6 @@
 import { actions, isInputError } from 'astro:actions'
-import { Plus, PlusIcon, Trash2, X } from 'lucide-react'
+import { Plus, PlusIcon, Settings, Trash2, X } from 'lucide-react'
+import { useRef } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 
 import { BooleanField } from '@/components/data-table/advanced-filter/boolean-field'
@@ -7,6 +8,8 @@ import { DateField } from '@/components/data-table/advanced-filter/date-field'
 import { NumberField } from '@/components/data-table/advanced-filter/number-field'
 import { SubmitForm } from '@/components/data-table/advanced-filter/submit-form'
 import { TextField } from '@/components/data-table/advanced-filter/text-field'
+
+import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Select,
@@ -17,9 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -44,14 +47,15 @@ import type { CustomFieldProps } from '@/db/models/custom-field'
 import type { FilterCondition, FilterConditionColumnType } from '@/db/models/filter'
 import type { Table } from '@tanstack/react-table'
 
-interface FormValues {
+interface FilterConditionData extends Omit<FilterCondition, 'columnType'> {
+  columnType: FilterConditionColumnType
+}
+
+export interface FormValues {
   csrfToken: string
   projectId: string
   teamId: string
-  filterConditions: (Omit<FilterCondition, 'operator'> & {
-    columnType?: FilterConditionColumnType
-    operator?: number | undefined
-  })[]
+  filterConditions: FilterConditionData[]
 }
 
 interface Props {
@@ -86,26 +90,30 @@ export function DataTableAdvancedFilter({
   table,
   ids,
 }: Props) {
+  const deleteFilterConditionIdsRef = useRef<string[]>([])
+
+  const defaultCondition: FilterConditionData = {
+    filterId: table.getState().segmentId,
+    columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)?.name || '',
+    columnType: CustomFieldTypeEnum.STRING,
+    operator: OperatorEnum.CONTAINS,
+    value: '',
+    secondaryValue: '',
+    conditionType: ConditionTypeEnum.AND,
+  }
+  const conditions = table.getState().filterConditions
   const form = useForm<FormValues>({
-    defaultValues: {
+    values: {
       csrfToken,
       ...ids,
-      filterConditions: [
-        {
-          columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)?.name,
-          columnType: CustomFieldTypeEnum.STRING,
-          operator: OperatorEnum.CONTAINS,
-          value: '',
-          secondaryValue: '',
-          conditionType: ConditionTypeEnum.AND,
-        },
-      ],
+      filterConditions: conditions,
     },
   })
   const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: 'filterConditions',
     shouldUnregister: true,
+    keyName: 'uuid',
     rules: {
       minLength: {
         value: 1,
@@ -137,15 +145,35 @@ export function DataTableAdvancedFilter({
       }
       return
     }
+    table.setFilterConditions(filterConditions)
     table.options.meta!.onApplyAdvancedFilter?.(data!.contacts as ContactProps[])
     table.options.meta!.setTotal?.(data!.contactsTotal as number)
   }
+  const label =
+    conditions.length > 0 ? (
+      <>
+        <Settings className="size-4" />
+        Edit Filter
+      </>
+    ) : (
+      <>
+        <Plus className="size-4" />
+        Add Filter
+      </>
+    )
 
   return (
     <Sheet>
       <SheetTrigger className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'gap-2')}>
-        <Plus className="size-4" />
-        Add Filter
+        {label}
+        {conditions.length > 0 && (
+          <>
+            <Separator orientation="vertical" className="mx-2 h-4" />
+            <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+              {conditions.length} added
+            </Badge>
+          </>
+        )}
       </SheetTrigger>
       <SheetContent
         withOverlay={false}
@@ -176,7 +204,7 @@ export function DataTableAdvancedFilter({
               const _field = fields[index]
 
               return (
-                <div key={f.id} className="flex space-x-2">
+                <div key={f.uuid} className="flex space-x-2">
                   <Controller
                     control={form.control}
                     name={`filterConditions.${index}.conditionType`}
@@ -337,11 +365,15 @@ export function DataTableAdvancedFilter({
                     type="button"
                     variant="outline"
                     size="icon"
-                    disabled={fields.length <= 1}
                     onClick={() => {
                       form.unregister(`filterConditions.${index}.value`)
                       form.unregister(`filterConditions.${index}.secondaryValue`)
-                      fields.length > 1 && remove(index)
+                      if (_field.id) {
+                        const ids = deleteFilterConditionIdsRef.current
+                        ids.push(_field.id)
+                        deleteFilterConditionIdsRef.current = ids
+                      }
+                      remove(index)
                     }}
                   >
                     <Trash2 className="size-4" />
@@ -354,20 +386,7 @@ export function DataTableAdvancedFilter({
                 variant="outline"
                 type="button"
                 className="gap-2 w-24"
-                onClick={() => {
-                  append(
-                    {
-                      columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)!
-                        .name,
-                      columnType: CustomFieldTypeEnum.STRING,
-                      operator: OperatorEnum.CONTAINS,
-                      value: '',
-                      secondaryValue: '',
-                      conditionType: ConditionTypeEnum.AND,
-                    },
-                    { shouldFocus: false }
-                  )
-                }}
+                onClick={() => append(defaultCondition, { shouldFocus: false })}
               >
                 <PlusIcon />
                 Add
@@ -376,27 +395,32 @@ export function DataTableAdvancedFilter({
             </div>
           </div>
           <SheetFooter>
-            {form.formState.isDirty && (
+            {fields.length > 0 && (
               <Button
                 type="button"
                 variant="ghost"
-                disabled={!form.formState.isDirty}
                 className="space-x-2"
-                onClick={() => {
-                  if (!form.formState.isDirty) return
-
-                  form.reset()
-                  handleSubmit({ ...form.getValues(), filterConditions: [] })
+                onClick={async () => {
+                  const filterConditions = form.getValues().filterConditions
+                  await handleSubmit({ ...form.getValues(), filterConditions: [] })
+                  for (const condition of filterConditions) {
+                    if (condition.id) {
+                      const ids = deleteFilterConditionIdsRef.current
+                      ids.push(condition.id)
+                      deleteFilterConditionIdsRef.current = ids
+                    }
+                  }
+                  table.setFilterConditions([])
+                  form.resetField('filterConditions', { defaultValue: [] })
                 }}
               >
                 <X />
                 <span>Reset filters</span>
               </Button>
             )}
-            <SheetClose asChild>
-              <Button variant="secondary">Close</Button>
-            </SheetClose>
-            <Button type="submit">Apply {form.formState.isDirty && fields.length} filter(s)</Button>
+            {fields.length !== 0 && (
+              <Button type="submit">Apply {fields.length > 0 && fields.length} filter(s)</Button>
+            )}
           </SheetFooter>
         </form>
         <div className="flex items-center">
@@ -407,9 +431,10 @@ export function DataTableAdvancedFilter({
           <div className="h-px bg-muted-foreground w-full" />
         </div>
         <SubmitForm
-          defaultValues={form.getValues()}
-          isSubmitFilter={form.formState.isSubmitSuccessful}
-          isValid={form.formState.isValid}
+          ids={{ ...ids, csrfToken }}
+          deleteFilterConditionIds={deleteFilterConditionIdsRef.current}
+          filterForm={form}
+          table={table}
         />
       </SheetContent>
     </Sheet>

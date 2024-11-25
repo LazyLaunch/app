@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 import { Input } from '@/components/ui/input'
 
 import { CustomFieldTypeEnum, OperatorEnum } from '@/enums'
@@ -35,12 +33,6 @@ export function NumberField({
       OperatorEnum.LESS_THAN,
     ].includes(Number(watchOperator))
   const error = (errors.filterConditions as any)?.[index]?.value
-
-  useEffect(() => {
-    return () => {
-      form.unregister(name)
-    }
-  }, [form, name])
 
   if (showInputs)
     return (

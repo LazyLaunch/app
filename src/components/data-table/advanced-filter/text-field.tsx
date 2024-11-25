@@ -2,7 +2,6 @@ import { Input } from '@/components/ui/input'
 
 import { CustomFieldTypeEnum, OperatorEnum } from '@/enums'
 import { cn } from '@/lib/utils'
-import { useEffect } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 
 export function TextField({
@@ -31,12 +30,6 @@ export function TextField({
       OperatorEnum.NOT_CONTAIN,
     ].includes(Number(watchOperator))
   const error = (errors.filterConditions as any)?.[index]?.value
-
-  useEffect(() => {
-    return () => {
-      form.unregister(name)
-    }
-  }, [form, name])
 
   if (showInputs)
     return (

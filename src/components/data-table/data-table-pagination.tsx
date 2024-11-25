@@ -1,4 +1,4 @@
-import type { Table } from '@tanstack/react-table'
+import { functionalUpdate, type Table } from '@tanstack/react-table'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DEFAULT_PAGE_SIZES } from '@/constants'
+
+import type { TablePaginationState } from '@/components/contacts/data-table/features/submit-filter-feature'
 import type { ContactProps } from '@/db/models/contact'
 
 interface DataTablePaginationProps {
@@ -29,7 +31,23 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
-              table.setPageSize(Number(value))
+              let paginationData: TablePaginationState = {} as TablePaginationState
+              table.setPagination((old) => {
+                const pageSize = Math.max(1, functionalUpdate(Number(value), old.pageSize))
+                const topRowIndex = old.pageSize * old.pageIndex!
+                const pageIndex = Math.floor(topRowIndex / pageSize)
+                paginationData = {
+                  ...old,
+                  pageIndex,
+                  pageSize,
+                }
+
+                return paginationData
+              })
+
+              table.doFilter({
+                pagination: paginationData,
+              })
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
@@ -51,7 +69,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => table.firstPage()}
+            onClick={() => {
+              table.firstPage()
+              table.doFilter({
+                pagination: {
+                  pageIndex: 0,
+                  pageSize: table.getState().pagination.pageSize,
+                },
+              })
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Go to first page</span>
@@ -60,7 +86,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage()
+              table.doFilter({
+                pagination: {
+                  pageIndex: table.getState().pagination.pageIndex - 1,
+                  pageSize: table.getState().pagination.pageSize,
+                },
+              })
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Go to previous page</span>
@@ -69,7 +103,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Button
             variant="outline"
             className="h-8 w-8 p-0"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage()
+              table.doFilter({
+                pagination: {
+                  pageIndex: table.getState().pagination.pageIndex + 1,
+                  pageSize: table.getState().pagination.pageSize,
+                },
+              })
+            }}
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to next page</span>
@@ -78,7 +120,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Button
             variant="outline"
             className="hidden h-8 w-8 p-0 lg:flex"
-            onClick={() => table.lastPage()}
+            onClick={() => {
+              table.lastPage()
+              table.doFilter({
+                pagination: {
+                  pageIndex: table.getPageCount() - 1,
+                  pageSize: table.getState().pagination.pageSize,
+                },
+              })
+            }}
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Go to last page</span>

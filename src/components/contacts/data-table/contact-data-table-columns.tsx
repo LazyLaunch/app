@@ -1,5 +1,4 @@
 import { UTCDate } from '@date-fns/utc'
-import type { Column, Row } from '@tanstack/react-table'
 import { format } from 'date-fns'
 
 import { Checkbox } from '@/components/ui/checkbox'
@@ -9,7 +8,7 @@ import { DataTableColumnHeader } from '@/components/data-table/data-table-column
 
 import type { ContactCustomFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import type { ColumnDef } from '@tanstack/react-table'
+import type { Column, ColumnDef, Row, Table } from '@tanstack/react-table'
 
 import { DATE_TEXT_FORMAT } from '@/constants'
 import { CustomFieldTypeEnum } from '@/enums'
@@ -29,8 +28,8 @@ export function contactDataTableColumns({
   const newFields = customFields.map((field) => {
     return {
       accessorKey: field.id,
-      header: ({ column }: { column: Column<ContactProps> }) => (
-        <DataTableColumnHeader column={column} title={field.name} />
+      header: ({ column, table }: { column: Column<ContactProps>; table: Table<ContactProps> }) => (
+        <DataTableColumnHeader table={table} column={column} title={field.name} />
       ),
       cell: ({ row }: { row: Row<any> }) => {
         const fields = row.original.customFields
@@ -99,7 +98,9 @@ export function contactDataTableColumns({
     },
     {
       accessorKey: 'email',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Email" />
+      ),
       cell: ({ row }) => <div>{row.getValue('email')}</div>,
       enableSorting: true,
       enableHiding: false,
@@ -107,28 +108,36 @@ export function contactDataTableColumns({
     ...newFields,
     {
       accessorKey: 'firstName',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="First Name" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="First Name" />
+      ),
       cell: ({ row }) => <div>{row.getValue('firstName')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'lastName',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Last Name" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Last Name" />
+      ),
       cell: ({ row }) => <div>{row.getValue('lastName')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'source',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Source" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Source" />
+      ),
       cell: ({ row }) => <div>{row.getValue('source')}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
       accessorKey: 'subscribed',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Subscribed" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Subscribed" />
+      ),
       cell: ({ row }) => {
         const isSubscribed = row.getValue('subscribed')
         const label = isSubscribed ? 'Yes' : 'No'
@@ -142,7 +151,9 @@ export function contactDataTableColumns({
     },
     {
       accessorKey: 'updatedAt',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Updated At" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Updated At" />
+      ),
       cell: ({ row }) => (
         <div className="w-40">
           {format(new UTCDate(row.getValue('updatedAt')), DATE_TEXT_FORMAT)}
@@ -153,7 +164,9 @@ export function contactDataTableColumns({
     },
     {
       accessorKey: 'createdAt',
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
+      header: ({ column, table }) => (
+        <DataTableColumnHeader table={table} column={column} title="Created At" />
+      ),
       cell: ({ row }) => (
         <div className="w-40">
           {format(new UTCDate(row.getValue('createdAt')), DATE_TEXT_FORMAT)}

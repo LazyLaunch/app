@@ -1,5 +1,5 @@
 import { parseAsJson, useQueryState } from 'nuqs'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { z } from 'zod'
 
 import { columnFiltersSchema } from '@/validations/contacts-page'
@@ -14,12 +14,17 @@ export function useFilterState({
   columnFilters: ColumnFiltersState
   contactFields: ContactFields[]
 }) {
+  const isDry = useRef<boolean>(true)
   const [, setFilter] = useQueryState<ColumnFiltersState>(
     'filter',
     parseAsJson<ColumnFiltersState>(columnFiltersSchema({ z, contactFields }).parse).withDefault([])
   )
 
   useEffect(() => {
+    if (isDry.current) {
+      isDry.current = false
+      return
+    }
     setFilter(columnFilters)
   }, [columnFilters, setFilter])
 }

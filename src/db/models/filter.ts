@@ -1,6 +1,18 @@
 import { UTCDate } from '@date-fns/utc'
 import { endOfDay, startOfDay } from 'date-fns'
-import { and, eq, isNotNull, isNull, like, ne, notLike, or, sql, type SQL } from 'drizzle-orm'
+import {
+  and,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  like,
+  ne,
+  notLike,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 
 import {
   contactCustomFieldsTable,
@@ -27,6 +39,7 @@ import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
 export type FilterConditionColumnType = Exclude<CustomFieldTypeEnum, CustomFieldTypeEnum.ENUM>
 export interface FilterCondition
   extends Omit<SelectFilterCondition, 'id' | 'createdAt' | 'filterId' | 'columnType'> {
+  id?: string
   filterId?: string | undefined
   columnType: FilterConditionColumnType
 }
@@ -272,18 +285,21 @@ export interface ExtendedFilterCondition extends Omit<InsertFilterCondition, 'fi
 
 interface ExtendedFilter extends InsertFilter {
   filterConditions: ExtendedFilterCondition[]
-  filterId: string | SQL<undefined>
-  name: string
+  deleteFilterConditionIds: string[]
 }
 
 export async function saveFilters({
+  deleteFilterConditionIds,
   filterConditions,
   teamId,
   projectId,
   userId,
-  filterId,
+  id,
   name,
-}: ExtendedFilter): Promise<{ filter: SelectFilter; conditions: SelectFilterCondition[] }> {
+}: ExtendedFilter): Promise<{
+  filter: Pick<SelectFilter, 'id' | 'name'>
+  filterConditions: SelectFilterCondition[]
+}> {
   return await db.transaction(async (tx) => {
     const filter = await tx
       .insert(filtersTable)
@@ -292,7 +308,7 @@ export async function saveFilters({
         projectId,
         userId,
         name,
-        id: filterId,
+        id,
       })
       .onConflictDoUpdate({
         target: filtersTable.id,
@@ -304,7 +320,7 @@ export async function saveFilters({
 
     const conditions = []
     for (const condition of filterConditions) {
-      const { id, ...rest } = condition
+      const { id: conditionId, ...rest } = condition
       const newCondition = await tx
         .insert(filterConditionsTable)
         .values({ ...condition, filterId: filter.id })
@@ -318,8 +334,16 @@ export async function saveFilters({
 
       conditions.push(newCondition)
     }
+    await tx
+      .delete(filterConditionsTable)
+      .where(
+        and(
+          eq(filterConditionsTable.filterId, filter.id),
+          inArray(filterConditionsTable.id, deleteFilterConditionIds)
+        )
+      )
 
-    return { filter, conditions }
+    return { filter: { id: filter.id, name: filter.name }, filterConditions: conditions }
   })
 }
 
@@ -347,4 +371,15 @@ export async function isUniqFilterName({
     .get()
 
   return Number((obj ?? { exists: 0 }).exists) === 0
+}
+
+export async function getFilterConditions({
+  filterId,
+}: {
+  filterId: string
+}): Promise<SelectFilterCondition[]> {
+  return await db
+    .select()
+    .from(filterConditionsTable)
+    .where(eq(filterConditionsTable.filterId, filterId))
 }

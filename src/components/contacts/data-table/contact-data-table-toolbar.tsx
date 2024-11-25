@@ -1,26 +1,19 @@
-import type { Table } from '@tanstack/react-table'
-import { FileText, ListFilter, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
-import { parseAsStringLiteral, useQueryState } from 'nuqs'
+import { FileText, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
+import { parseAsJson, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { SegmentForm } from '@/components/contacts/data-table/segment-form'
 import { DataTableAdvancedFilter } from '@/components/data-table/data-table-advanced-filter'
 import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter'
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command'
+
 import { Form, FormField } from '@/components/ui/form'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -33,10 +26,13 @@ import {
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
+import type { SortingState, Table } from '@tanstack/react-table'
 
 import { CONTACT_DEFAULT_SEARCH_FIELD, CONTACT_GLOBAL_SEARCH_FIELDS, CSRF_TOKEN } from '@/constants'
 import { ContactSourceEnum, ContactTabFilterEnum, CustomFieldTypeEnum } from '@/enums'
 import { formatCamelCaseToTitle } from '@/lib/utils'
+import { filterIdStateParser } from '@/parsers/contacts-page'
+import { sortingSchema } from '@/validations/contacts-page'
 
 export interface ContactDataTableToolbarProps {
   table: Table<ContactProps>
@@ -104,12 +100,19 @@ export function ContactDataTableToolbar({
       ContactTabFilterEnum.ADVANCED_FILTER,
     ]).withDefault(ContactTabFilterEnum.QUICK_SEARCH)
   )
+  const [, setSegmentId] = useQueryState('segmentId', filterIdStateParser().withDefault(''))
+  const [, setSorting] = useQueryState<SortingState>(
+    'sort',
+    parseAsJson<SortingState>(sortingSchema({ z, contactFields }).parse).withDefault([
+      { id: 'createdAt', desc: true },
+    ])
+  )
 
   const isFiltered = table.getState().columnFilters.length > 0
   const globalFilter = table.getState().globalFilter
   const isGlobalFiltered = globalFilter.length > 0
   const searchForm = useForm<FormValues>({
-    defaultValues: {
+    values: {
       csrfToken,
       field: isGlobalFiltered ? globalFilter[0].id : CONTACT_DEFAULT_SEARCH_FIELD,
       q: isGlobalFiltered ? globalFilter[0].value : '',
@@ -120,6 +123,7 @@ export function ContactDataTableToolbar({
     const customField = customFields.find((f) => f.id === field)
     const value = [{ id: customField?.id || field, value: q }]
     table.setGlobalFilter(value)
+    table.doFilter({ globalFilter: value })
   }
 
   const filterColumns = useMemo(() => {
@@ -263,6 +267,7 @@ export function ContactDataTableToolbar({
                 return (
                   <DataTableFacetedFilter
                     className="mt-2"
+                    table={table}
                     key={tag}
                     type={type}
                     column={table.getColumn(id)}
@@ -276,9 +281,17 @@ export function ContactDataTableToolbar({
               <Button
                 variant="ghost"
                 onClick={() => {
-                  searchForm.reset()
+                  searchForm.reset({
+                    csrfToken,
+                    field: CONTACT_DEFAULT_SEARCH_FIELD,
+                    q: '',
+                  })
                   table.resetColumnFilters()
                   table.resetGlobalFilter()
+                  table.doFilter({
+                    globalFilter: [],
+                    columnFilters: [],
+                  })
                 }}
                 className="h-8 px-2 lg:px-3 mt-2"
               >
@@ -291,27 +304,7 @@ export function ContactDataTableToolbar({
       </TabsContent>
       <TabsContent value={ContactTabFilterEnum.ADVANCED_FILTER} className="mt-4">
         <div className="flex space-x-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <ListFilter />
-                Segments
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search a filter..." />
-                <CommandList>
-                  <CommandEmpty>No results found.</CommandEmpty>
-                  <CommandGroup>
-                    <CommandItem>Profile</CommandItem>
-                    <CommandItem>Billing</CommandItem>
-                    <CommandItem>Settings</CommandItem>
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
+          <SegmentForm setSegmentId={setSegmentId} table={table} csrfToken={csrfToken} ids={ids} />
           <DataTableAdvancedFilter
             table={table}
             ids={ids}
@@ -319,6 +312,20 @@ export function ContactDataTableToolbar({
             contactFields={contactFields}
             customFields={customFields}
           />
+          {table.getSegment(table.getState().segmentId) && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSegmentId('')
+                table.setSegmentId('')
+                table.setFilterConditions([])
+              }}
+              className="h-8 px-2 lg:px-3"
+            >
+              Reset
+              <X className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </TabsContent>
     </Tabs>

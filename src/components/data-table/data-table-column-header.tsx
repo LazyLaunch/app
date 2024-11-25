@@ -1,7 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react'
 
-import type { Column } from '@tanstack/react-table'
-
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -10,15 +8,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
 import type { ContactProps } from '@/db/models/contact'
+import type { Column, Table } from '@tanstack/react-table'
+
 import { cn } from '@/lib/utils'
 
 interface DataTableColumnHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<ContactProps, any>
   title: string
+  table: Table<ContactProps>
 }
 
-export function DataTableColumnHeader({ column, title, className }: DataTableColumnHeaderProps) {
+export function DataTableColumnHeader({
+  column,
+  title,
+  className,
+  table,
+}: DataTableColumnHeaderProps) {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
   }
@@ -39,11 +46,21 @@ export function DataTableColumnHeader({ column, title, className }: DataTableCol
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
+          <DropdownMenuItem
+            onClick={() => {
+              column.toggleSorting(false)
+              table.doFilter({ sorting: [{ id: column.id, desc: false }] })
+            }}
+          >
             <ArrowUp className="mr-2 size-3.5 text-muted-foreground/70" />
             Asc
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              column.toggleSorting(true)
+              table.doFilter({ sorting: [{ id: column.id, desc: true }] })
+            }}
+          >
             <ArrowDown className="mr-2 size-3.5 text-muted-foreground/70" />
             Desc
           </DropdownMenuItem>

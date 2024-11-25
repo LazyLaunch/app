@@ -1,5 +1,5 @@
 import { parseAsJson, useQueryState } from 'nuqs'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { z } from 'zod'
 
 import { sortingSchema } from '@/validations/contacts-page'
@@ -14,6 +14,7 @@ export function useSortingState({
   contactFields: ContactFields[]
   sorting: SortingState
 }) {
+  const isDry = useRef<boolean>(true)
   const [, setSorting] = useQueryState<SortingState>(
     'sort',
     parseAsJson<SortingState>(sortingSchema({ z, contactFields }).parse).withDefault([
@@ -22,6 +23,10 @@ export function useSortingState({
   )
 
   useEffect(() => {
+    if (isDry.current) {
+      isDry.current = false
+      return
+    }
     setSorting(sorting)
   }, [sorting, setSorting])
 }
