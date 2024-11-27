@@ -11,8 +11,9 @@ import {
 } from '@/components/ui/select'
 import { DEFAULT_PAGE_SIZES } from '@/constants'
 
-import type { TablePaginationState } from '@/components/contacts/data-table/features/submit-filter-feature'
+import type { TablePaginationState } from '@/components/contacts/data-table/features/submit-quick-filter-feature'
 import type { ContactProps } from '@/db/models/contact'
+import { ContactTabFilterEnum } from '@/enums'
 
 interface DataTablePaginationProps {
   table: Table<ContactProps>
@@ -31,23 +32,25 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
           <Select
             value={`${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
-              let paginationData: TablePaginationState = {} as TablePaginationState
+              let pagination: TablePaginationState = {} as TablePaginationState
               table.setPagination((old) => {
                 const pageSize = Math.max(1, functionalUpdate(Number(value), old.pageSize))
                 const topRowIndex = old.pageSize * old.pageIndex!
                 const pageIndex = Math.floor(topRowIndex / pageSize)
-                paginationData = {
+                pagination = {
                   ...old,
                   pageIndex,
                   pageSize,
                 }
 
-                return paginationData
+                return pagination
               })
 
-              table.doFilter({
-                pagination: paginationData,
-              })
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter({ pagination })
+              } else {
+                table.doSubmitFilterConditions({ pagination })
+              }
             }}
           >
             <SelectTrigger className="h-8 w-[70px]">
@@ -71,12 +74,16 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
             className="hidden h-8 w-8 p-0 lg:flex"
             onClick={() => {
               table.firstPage()
-              table.doFilter({
-                pagination: {
-                  pageIndex: 0,
-                  pageSize: table.getState().pagination.pageSize,
-                },
-              })
+              const pagination = {
+                pageIndex: 0,
+                pageSize: table.getState().pagination.pageSize,
+              }
+
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter({ pagination })
+              } else {
+                table.doSubmitFilterConditions({ pagination })
+              }
             }}
             disabled={!table.getCanPreviousPage()}
           >
@@ -88,12 +95,16 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
             className="h-8 w-8 p-0"
             onClick={() => {
               table.previousPage()
-              table.doFilter({
-                pagination: {
-                  pageIndex: table.getState().pagination.pageIndex - 1,
-                  pageSize: table.getState().pagination.pageSize,
-                },
-              })
+              const pagination = {
+                pageIndex: table.getState().pagination.pageIndex - 1,
+                pageSize: table.getState().pagination.pageSize,
+              }
+
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter({ pagination })
+              } else {
+                table.doSubmitFilterConditions({ pagination })
+              }
             }}
             disabled={!table.getCanPreviousPage()}
           >
@@ -105,12 +116,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
             className="h-8 w-8 p-0"
             onClick={() => {
               table.nextPage()
-              table.doFilter({
-                pagination: {
-                  pageIndex: table.getState().pagination.pageIndex + 1,
-                  pageSize: table.getState().pagination.pageSize,
-                },
-              })
+              const pagination = {
+                pageIndex: table.getState().pagination.pageIndex + 1,
+                pageSize: table.getState().pagination.pageSize,
+              }
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter({ pagination })
+              } else {
+                table.doSubmitFilterConditions({ pagination })
+              }
             }}
             disabled={!table.getCanNextPage()}
           >
@@ -122,12 +136,15 @@ export function DataTablePagination({ table }: DataTablePaginationProps) {
             className="hidden h-8 w-8 p-0 lg:flex"
             onClick={() => {
               table.lastPage()
-              table.doFilter({
-                pagination: {
-                  pageIndex: table.getPageCount() - 1,
-                  pageSize: table.getState().pagination.pageSize,
-                },
-              })
+              const pagination = {
+                pageIndex: table.getPageCount() - 1,
+                pageSize: table.getState().pagination.pageSize,
+              }
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter({ pagination })
+              } else {
+                table.doSubmitFilterConditions({ pagination })
+              }
             }}
             disabled={!table.getCanNextPage()}
           >

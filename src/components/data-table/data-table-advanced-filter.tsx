@@ -1,4 +1,3 @@
-import { actions, isInputError } from 'astro:actions'
 import { Plus, PlusIcon, Settings, Trash2, X } from 'lucide-react'
 import { useRef } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
@@ -93,7 +92,7 @@ export function DataTableAdvancedFilter({
   const deleteFilterConditionIdsRef = useRef<string[]>([])
 
   const defaultCondition: FilterConditionData = {
-    filterId: table.getState().segmentId,
+    filterId: table.getState().segmentId || undefined,
     columnName: contactFields.find((f) => f.type === CustomFieldTypeEnum.STRING)?.name || '',
     columnType: CustomFieldTypeEnum.STRING,
     operator: OperatorEnum.CONTAINS,
@@ -129,26 +128,10 @@ export function DataTableAdvancedFilter({
     Object.entries(form.formState.errors?.filterConditions ?? {})
   )
 
-  async function handleSubmit({ filterConditions, ...values }: FormValues) {
-    const formData = new FormData()
-    for (const [key, value] of Object.entries(values)) {
-      formData.append(key, value?.toString() || '')
-    }
-    formData.append('filterConditions', JSON.stringify(filterConditions))
-
-    const { error, data } = await actions.filter.contacts(formData)
-    if (isInputError(error)) {
-      const { issues } = error
-
-      for (const issue of issues) {
-        form.setError(issue.path.join('.') as keyof FormValues, { message: issue.message })
-      }
-      return
-    }
-    table.setFilterConditions(filterConditions)
-    table.options.meta!.onApplyAdvancedFilter?.(data!.contacts as ContactProps[])
-    table.options.meta!.setTotal?.(data!.contactsTotal as number)
+  async function handleSubmit({ filterConditions }: FormValues) {
+    table.doSubmitFilterConditions({ filterConditions })
   }
+
   const label =
     conditions.length > 0 ? (
       <>

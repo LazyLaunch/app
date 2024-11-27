@@ -1,5 +1,3 @@
-import { NuqsAdapter } from 'nuqs/adapters/react'
-
 import {
   flexRender,
   getCoreRowModel,
@@ -83,18 +81,14 @@ function contactDataTableColumns({
     },
     {
       accessorKey: 'name',
-      header: ({ column }) => (
-        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Column Name" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Column Name" />,
       cell: ({ row }) => <div className="font-medium">{formatFieldName(row.getValue('name'))}</div>,
       enableSorting: true,
       enableHiding: false,
     },
     {
       accessorKey: 'type',
-      header: ({ column }) => (
-        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Column Type" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Column Type" />,
       cell: ({ row }) => {
         const type = row.getValue('type') as CustomFieldTypeEnum
         const Icon = ICONS[type]
@@ -110,18 +104,14 @@ function contactDataTableColumns({
     },
     {
       accessorKey: 'tag',
-      header: ({ column }) => (
-        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Tag" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Tag" />,
       cell: ({ row }) => <div>{tagWithPlaceholder(row.getValue('tag'))}</div>,
       enableSorting: false,
       enableHiding: false,
     },
     {
       accessorKey: 'updatedAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Updated At" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Updated At" />,
       cell: ({ row }) =>
         row.original.isCustomField ? <div>{row.getValue('updatedAt')}</div> : '-',
       enableSorting: true,
@@ -129,9 +119,7 @@ function contactDataTableColumns({
     },
     {
       accessorKey: 'createdAt',
-      header: ({ column }) => (
-        <DataTableColumnHeader<CustomFieldList, any> column={column} title="Created At" />
-      ),
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Created At" />,
       cell: ({ row }) =>
         row.original.isCustomField ? <div>{row.getValue('createdAt')}</div> : '-',
       enableSorting: true,
@@ -192,51 +180,49 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
   })
 
   return (
-    <NuqsAdapter>
-      <div className={cn(className, 'space-y-4')}>
-        <CustomFieldTableToolbar
-          table={table}
-          csrfToken={csrfToken}
-          ids={Object.keys(rowSelection)}
-          setRowSelection={setRowSelection}
-        />
-        <div className="rounded-md border bg-background">
-          <Table className="overflow-x-scroll">
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead className="bg-background" key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableHead>
-                    )
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell className="bg-background" key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-between px-2">
-          <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
+    <div className={cn(className, 'space-y-4')}>
+      <CustomFieldTableToolbar
+        table={table}
+        csrfToken={csrfToken}
+        ids={Object.keys(rowSelection)}
+        setRowSelection={setRowSelection}
+      />
+      <div className="rounded-md border bg-background">
+        <Table className="overflow-x-scroll">
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead className="bg-background" key={header.id} colSpan={header.colSpan}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell className="bg-background" key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="flex items-center justify-between px-2">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
       </div>
-    </NuqsAdapter>
+    </div>
   )
 }

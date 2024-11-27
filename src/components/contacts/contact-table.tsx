@@ -1,5 +1,4 @@
 import { actions } from 'astro:actions'
-import { NuqsAdapter } from 'nuqs/adapters/react'
 
 import { contactDataTableColumns } from '@/components/contacts/data-table/contact-data-table-columns'
 import { DataTable } from '@/components/data-table'
@@ -37,21 +36,19 @@ export function ContactTable({
   filterConditions: FilterCondition[]
 }) {
   return (
-    <NuqsAdapter>
-      <DataTable
-        data={data}
-        columns={contactDataTableColumns({ csrfToken, customFields, ids })}
-        className={className}
-        total={total}
-        ids={ids}
-        csrfToken={csrfToken}
-        reqFilter={actions.contact.filters}
-        customFields={customFields}
-        contactFields={contactFields}
-        searchParams={searchParams}
-        filters={filters}
-        filterConditions={filterConditions}
-      />
-    </NuqsAdapter>
+    <DataTable
+      data={data}
+      columns={contactDataTableColumns({ csrfToken, customFields, ids })}
+      className={className}
+      total={total}
+      ids={ids}
+      csrfToken={csrfToken}
+      reqFilter={actions.contact.filters}
+      customFields={customFields}
+      contactFields={contactFields}
+      searchParams={searchParams}
+      filters={filters}
+      filterConditions={filterConditions}
+    />
   )
 }

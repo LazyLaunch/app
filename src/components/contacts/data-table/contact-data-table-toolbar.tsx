@@ -1,8 +1,6 @@
 import { FileText, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-react'
-import { parseAsJson, parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 
 import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
 import { Button } from '@/components/ui/button'
@@ -26,13 +24,11 @@ import {
 
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
-import type { SortingState, Table } from '@tanstack/react-table'
+import type { Table } from '@tanstack/react-table'
 
 import { CONTACT_DEFAULT_SEARCH_FIELD, CONTACT_GLOBAL_SEARCH_FIELDS, CSRF_TOKEN } from '@/constants'
 import { ContactSourceEnum, ContactTabFilterEnum, CustomFieldTypeEnum } from '@/enums'
 import { formatCamelCaseToTitle } from '@/lib/utils'
-import { filterIdStateParser } from '@/parsers/contacts-page'
-import { sortingSchema } from '@/validations/contacts-page'
 
 export interface ContactDataTableToolbarProps {
   table: Table<ContactProps>
@@ -91,23 +87,6 @@ export function ContactDataTableToolbar({
   ids,
   activeTab,
 }: ContactDataTableToolbarProps) {
-  const [, setTab] = useQueryState<
-    ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER
-  >(
-    'tab',
-    parseAsStringLiteral([
-      ContactTabFilterEnum.QUICK_SEARCH,
-      ContactTabFilterEnum.ADVANCED_FILTER,
-    ]).withDefault(ContactTabFilterEnum.QUICK_SEARCH)
-  )
-  const [, setSegmentId] = useQueryState('segmentId', filterIdStateParser().withDefault(''))
-  const [, setSorting] = useQueryState<SortingState>(
-    'sort',
-    parseAsJson<SortingState>(sortingSchema({ z, contactFields }).parse).withDefault([
-      { id: 'createdAt', desc: true },
-    ])
-  )
-
   const isFiltered = table.getState().columnFilters.length > 0
   const globalFilter = table.getState().globalFilter
   const isGlobalFiltered = globalFilter.length > 0
@@ -173,7 +152,9 @@ export function ContactDataTableToolbar({
   return (
     <Tabs
       onValueChange={(val) =>
-        setTab(val as ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER)
+        table.setTab(
+          val as ContactTabFilterEnum.QUICK_SEARCH | ContactTabFilterEnum.ADVANCED_FILTER
+        )
       }
       defaultValue={activeTab}
     >
@@ -304,7 +285,7 @@ export function ContactDataTableToolbar({
       </TabsContent>
       <TabsContent value={ContactTabFilterEnum.ADVANCED_FILTER} className="mt-4">
         <div className="flex space-x-2">
-          <SegmentForm setSegmentId={setSegmentId} table={table} csrfToken={csrfToken} ids={ids} />
+          <SegmentForm table={table} csrfToken={csrfToken} ids={ids} />
           <DataTableAdvancedFilter
             table={table}
             ids={ids}
@@ -316,7 +297,6 @@ export function ContactDataTableToolbar({
             <Button
               variant="ghost"
               onClick={() => {
-                setSegmentId('')
                 table.setSegmentId('')
                 table.setFilterConditions([])
               }}

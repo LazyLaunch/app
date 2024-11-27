@@ -1,4 +1,5 @@
 import type { SelectFilter } from '@/db/schema'
+import { updateOrInsert } from '@/lib/update-or-insert'
 import {
   functionalUpdate,
   makeStateUpdater,
@@ -50,9 +51,11 @@ export const SegmentsFeature: TableFeature<any> = {
       return table.getState().segments.find((segment) => segment.id === id)
     }
     table.updateSegments = (id: string, data: Pick<SelectFilter, 'id' | 'name'>) => {
-      const segments = table
-        .getState()
-        .segments.map((segment) => (segment.id === id ? { ...segment, ...data } : segment))
+      const segments = updateOrInsert<Pick<SelectFilter, 'id' | 'name'>>(
+        table.getState().segments,
+        { key: 'id', id },
+        data
+      )
       const safeUpdater: Updater<SegmentsState> = (old) => {
         return functionalUpdate(segments, old)
       }

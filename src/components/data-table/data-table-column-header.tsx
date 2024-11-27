@@ -12,6 +12,7 @@ import {
 import type { ContactProps } from '@/db/models/contact'
 import type { Column, Table } from '@tanstack/react-table'
 
+import { ContactTabFilterEnum } from '@/enums'
 import { cn } from '@/lib/utils'
 
 interface DataTableColumnHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -49,7 +50,12 @@ export function DataTableColumnHeader({
           <DropdownMenuItem
             onClick={() => {
               column.toggleSorting(false)
-              table.doFilter({ sorting: [{ id: column.id, desc: false }] })
+              const sorting = { sorting: [{ id: column.id, desc: false }] }
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter(sorting)
+              } else {
+                table.doSubmitFilterConditions(sorting)
+              }
             }}
           >
             <ArrowUp className="mr-2 size-3.5 text-muted-foreground/70" />
@@ -58,7 +64,12 @@ export function DataTableColumnHeader({
           <DropdownMenuItem
             onClick={() => {
               column.toggleSorting(true)
-              table.doFilter({ sorting: [{ id: column.id, desc: true }] })
+              const sorting = { sorting: [{ id: column.id, desc: true }] }
+              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
+                table.doFilter(sorting)
+              } else {
+                table.doSubmitFilterConditions(sorting)
+              }
             }}
           >
             <ArrowDown className="mr-2 size-3.5 text-muted-foreground/70" />

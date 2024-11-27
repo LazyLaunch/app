@@ -1,5 +1,5 @@
 import { UTCDate } from '@date-fns/utc'
-import type { Column, Table } from '@tanstack/react-table'
+import type { Column, ColumnFilter, Table } from '@tanstack/react-table'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { CalendarIcon, Check, CirclePlus } from 'lucide-react'
 
@@ -93,10 +93,10 @@ function CalendarFacet({
             }
             const value = Array.from(selectedDateFilter)
             column?.setFilterValue(value)
-            const values = updateOrInsert(
-              table.getState().columnFilters as any[],
-              column!.id,
-              value
+            const values = updateOrInsert<ColumnFilter>(
+              table.getState().columnFilters,
+              { key: 'id', id: column!.id },
+              { id: column!.id, value }
             )
             table.doFilter({
               columnFilters: value.length ? values : [],
@@ -174,10 +174,10 @@ function DefaultFacet({
                       }
                       const filterValues = Array.from(selectedValues)
                       column?.setFilterValue(filterValues.length ? filterValues : undefined)
-                      const values = updateOrInsert(
-                        table.getState().columnFilters as any[],
-                        column!.id,
-                        filterValues
+                      const values = updateOrInsert<ColumnFilter>(
+                        table.getState().columnFilters,
+                        { key: 'id', id: column!.id },
+                        { id: column!.id, value: filterValues }
                       )
                       table.doFilter({
                         columnFilters: filterValues.length ? values : [],
@@ -207,9 +207,9 @@ function DefaultFacet({
                   <CommandItem
                     onSelect={() => {
                       column?.setFilterValue(undefined)
-                      const values = updateOrInsert(
-                        table.getState().columnFilters as any[],
-                        column!.id,
+                      const values = updateOrInsert<ColumnFilter>(
+                        table.getState().columnFilters,
+                        { key: 'id', id: column!.id },
                         undefined
                       )
                       table.doFilter({ columnFilters: values })

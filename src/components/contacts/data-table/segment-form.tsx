@@ -1,4 +1,3 @@
-import { actions } from 'astro:actions'
 import { ListFilter } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
@@ -15,11 +14,11 @@ import {
 import type { ContactProps } from '@/db/models/contact'
 import type { Table } from '@tanstack/react-table'
 
-import { CSRF_TOKEN, DEFAULT_PAGE_INDEX, DEFAULT_PAGE_SIZE } from '@/constants'
+import { CSRF_TOKEN } from '@/constants'
+import { actions } from 'astro:actions'
 
 interface Props {
   table: Table<ContactProps>
-  setSegmentId: (id: string) => void
   csrfToken: string
   ids: {
     projectId: string
@@ -34,7 +33,7 @@ interface FormValues {
   teamId: string
 }
 
-export function SegmentForm({ table, ids, csrfToken, setSegmentId }: Props) {
+export function SegmentForm({ table, ids, csrfToken }: Props) {
   const filterId = table.getState().segmentId
   const form = useForm<FormValues>({
     values: {
@@ -45,24 +44,31 @@ export function SegmentForm({ table, ids, csrfToken, setSegmentId }: Props) {
   })
 
   async function handleSubmit(values: FormValues) {
-    setSegmentId(values.filterId)
     table.setSegmentId(values.filterId)
+
+    const { customColumnIds, pagination, sorting } = table.getState()
     const formData = new FormData()
-    for (const [key, value] of Object.entries(values)) {
+    for (const [key, value] of Object.entries({
+      ...values,
+      ...pagination,
+    })) {
       formData.append(key, value?.toString() || '')
     }
+    formData.append(
+      'sorting',
+      JSON.stringify(sorting.filter((c) => !customColumnIds.includes(c.id)))
+    )
+    formData.append(
+      'customFieldsSorting',
+      JSON.stringify(sorting.filter((c) => customColumnIds.includes(c.id)))
+    )
+
     const { data } = await actions.filter.contactsByFilterId(formData)
-    table.setFilterConditions(data?.filterConditions || [])
     table.options.meta!.onApplyAdvancedFilter?.(data!.contacts as ContactProps[])
     table.options.meta!.setTotal?.(data!.contactsTotal as number)
-
+    table.setFilterConditions(data!.filterConditions)
     table.setColumnFilters([])
     table.setGlobalFilter([])
-    table.setSorting([{ id: 'createdAt', desc: true }])
-    table.setPagination({
-      pageIndex: DEFAULT_PAGE_INDEX,
-      pageSize: DEFAULT_PAGE_SIZE,
-    })
   }
 
   return (
@@ -81,9 +87,9 @@ export function SegmentForm({ table, ids, csrfToken, setSegmentId }: Props) {
             const selectedName = table.getSegment(field.value)?.name
             return (
               <Select
-                defaultValue={filterId}
+                defaultValue={selectedName ? field.value : ''}
                 name={field.name}
-                value={field.value}
+                value={selectedName ? field.value : ''}
                 onValueChange={field.onChange}
               >
                 <SelectTrigger className="h-8 w-auto gap-2 hover:bg-accent hover:text-accent-foreground font-medium">

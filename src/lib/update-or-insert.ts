@@ -1,19 +1,24 @@
-type ArrayObject = {
-  id: string
-  value: any[]
+interface Options<T> {
+  key: keyof T
+  id: T[keyof T]
 }
 
-export function updateOrInsert(array: ArrayObject[], id: string, newValue?: any[]): ArrayObject[] {
-  const index = array.findIndex((obj) => obj.id === id)
+export function updateOrInsert<T extends Record<string, any>>(
+  array: T[],
+  options: Options<T>,
+  newValue?: T
+): T[] {
+  const { key, id } = options
+  const index = array.findIndex((obj) => obj[key] === id)
 
   if (newValue === undefined) {
     if (index !== -1) {
       array.splice(index, 1)
     }
   } else if (index !== -1) {
-    array[index].value = newValue
+    array[index] = { ...array[index], ...newValue }
   } else {
-    array.push({ id, value: newValue })
+    array.push(newValue)
   }
 
   return array

@@ -1,8 +1,13 @@
 import { defineAction } from 'astro:actions'
 import { z, type ZodError } from 'astro:schema'
 
-import { CUID_LENGTH, CUSTOM_FIELD_TYPE_LIST } from '@/constants'
-import { batchContactResponse, buildContactConditions, getContactFields } from '@/db/models/contact'
+import {
+  batchContactResponse,
+  buildContactConditions,
+  getContactFields,
+  type ContactCustomFieldSort,
+  type ContactSortFields,
+} from '@/db/models/contact'
 import {
   buildDynamicFilter,
   getFilterConditions,
@@ -11,7 +16,15 @@ import {
   type ExtendedFilterCondition,
   type FilterCondition,
 } from '@/db/models/filter'
+
+import { CUID_LENGTH, CUSTOM_FIELD_TYPE_LIST } from '@/constants'
 import { ConditionTypeEnum, OperatorEnum } from '@/enums'
+import {
+  customFieldSortingSchema,
+  paginationPageSchema,
+  paginationPageSizeSchema,
+  sortingSchema,
+} from '@/validations/contacts-page'
 
 const filterConditionsSchema = z
   .array(
@@ -145,17 +158,19 @@ export const filter = {
           .max(25, {
             message: 'Segment name cannot exceed 25 characters. Please use a shorter name.',
           }),
-        filterConditions: z.string().transform((val, ctx) => {
-          try {
-            const parsed: ExtendedFilterCondition[] = JSON.parse(val)
-            filterConditionsSchema.parse(parsed)
-            return parsed
-          } catch (err) {
-            const { errors } = err as ZodError
-            for (const e of errors) ctx.addIssue(e)
-            return z.NEVER
-          }
-        }),
+        filterConditions: z.optional(
+          z.string().transform((val, ctx) => {
+            try {
+              const parsed: ExtendedFilterCondition[] = JSON.parse(val)
+              filterConditionsSchema.parse(parsed)
+              return parsed
+            } catch (err) {
+              const { errors } = err as ZodError
+              for (const e of errors) ctx.addIssue(e)
+              return z.NEVER
+            }
+          })
+        ),
       })
       .superRefine(async ({ name, projectId, teamId, id }, ctx) => {
         if (id) return
@@ -169,9 +184,14 @@ export const filter = {
           })
         }
       }),
-    handler: async ({ csrfToken, id: filterId, ...input }, context) => {
+    handler: async ({ csrfToken, id: filterId, filterConditions, ...input }, context) => {
       const user = context.locals.user!
-      return await saveFilters({ ...input, id: filterId, userId: user.id })
+      return await saveFilters({
+        ...input,
+        id: filterId,
+        userId: user.id,
+        filterConditions: filterConditions || [],
+      })
     },
   }),
   contacts: defineAction({
@@ -180,6 +200,30 @@ export const filter = {
       csrfToken: z.string(),
       projectId: z.string().length(CUID_LENGTH),
       teamId: z.string().length(CUID_LENGTH),
+      pageIndex: paginationPageSchema({ z }),
+      pageSize: paginationPageSizeSchema({ z }),
+      sorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactSortFields = JSON.parse(val)
+          sortingSchema({ z, contactFields: getContactFields() }).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
+      customFieldsSorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactCustomFieldSort[] = JSON.parse(val)
+          customFieldSortingSchema(z).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
       filterConditions: z.string().transform((val, ctx) => {
         try {
           const parsed: FilterCondition[] = JSON.parse(val)
@@ -192,7 +236,10 @@ export const filter = {
         }
       }),
     }),
-    handler: async ({ filterConditions, teamId, projectId }, context) => {
+    handler: async (
+      { filterConditions, teamId, projectId, sorting, customFieldsSorting, pageSize, pageIndex },
+      context
+    ) => {
       const user = context.locals.user!
       const contactFields = getContactFields()
       const whereConditions = buildDynamicFilter({
@@ -201,10 +248,20 @@ export const filter = {
         projectId,
         contactFields,
       })
+      const { sortBy } = buildContactConditions({
+        sortFields: sorting,
+        customFieldsSorting: customFieldsSorting,
+        columnFilters: [],
+        customColumnFilters: [],
+        globalFilter: [],
+      })
 
       return await batchContactResponse({
         teamId,
         projectId,
+        contactsLimit: pageSize,
+        contactsOffset: pageIndex * pageSize,
+        contactsSortBy: sortBy,
         conditions: [whereConditions],
         skipData: ['customFields', 'filters'],
       })
@@ -216,14 +273,42 @@ export const filter = {
       csrfToken: z.string(),
       projectId: z.string().length(CUID_LENGTH),
       teamId: z.string().length(CUID_LENGTH),
-      filterId: z.string().length(CUID_LENGTH).optional(),
+      filterId: z.optional(z.string().length(CUID_LENGTH)),
+      pageIndex: paginationPageSchema({ z }),
+      pageSize: paginationPageSizeSchema({ z }),
+      sorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactSortFields = JSON.parse(val)
+          sortingSchema({ z, contactFields: getContactFields() }).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
+      customFieldsSorting: z.string().transform((val, ctx) => {
+        try {
+          const parsed: ContactCustomFieldSort[] = JSON.parse(val)
+          customFieldSortingSchema(z).parse(parsed)
+          return parsed
+        } catch (err) {
+          const { errors } = err as ZodError
+          for (const e of errors) ctx.addIssue(e)
+          return z.NEVER
+        }
+      }),
     }),
-    handler: async ({ filterId, teamId, projectId }, context) => {
+    handler: async (
+      { filterId, teamId, projectId, sorting, customFieldsSorting, pageSize, pageIndex },
+      context
+    ) => {
+      const _filterConditions = filterId ? await getFilterConditions({ filterId }) : []
       const contactFields = getContactFields()
       const filterWhereConditions = filterId
         ? [
             buildDynamicFilter({
-              filterConditions: await getFilterConditions({ filterId }),
+              filterConditions: _filterConditions,
               contactFields,
               teamId,
               projectId,
@@ -231,8 +316,8 @@ export const filter = {
           ]
         : []
       const { sortBy, whereConditions } = buildContactConditions({
-        sortFields: [{ id: 'createdAt', desc: true }],
-        customFieldsSorting: [],
+        sortFields: sorting,
+        customFieldsSorting: customFieldsSorting,
         columnFilters: [],
         customColumnFilters: [],
         globalFilter: [],
@@ -242,6 +327,8 @@ export const filter = {
         teamId,
         projectId,
         filterId,
+        contactsLimit: pageSize,
+        contactsOffset: pageIndex * pageSize,
         contactsSortBy: sortBy,
         conditions: filterId ? filterWhereConditions : whereConditions,
         skipData: ['customFields'],

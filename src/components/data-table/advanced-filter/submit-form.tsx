@@ -28,13 +28,9 @@ interface Props {
 }
 
 export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }: Props) {
-  const isSubmitFilter = filterForm.formState.isSubmitSuccessful
-  const isValid = filterForm.formState.isValid
-  const isDirty = filterForm.formState.isDirty
-
-  const segmentId = table.getState().segmentId
-  const segment = table.getSegment(segmentId)
-  const isInvalidFilters = segment?.id && !isDirty ? false : !isValid || !isSubmitFilter
+  const { isDirty: isDirtyFilterForm, isValid: isValidFilterForm } = filterForm.formState
+  const filterConditions = filterForm.getValues().filterConditions
+  const segment = table.getSegment(table.getState().segmentId)
   const form = useForm<ExtendedFormValues>({
     values: {
       ...ids,
@@ -42,10 +38,14 @@ export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }:
       name: segment?.name || '',
     },
   })
+  const canSubmit =
+    (isDirtyFilterForm || filterConditions?.length === 0 || form.formState.isDirty) &&
+    isValidFilterForm &&
+    form.formState.isValid
 
   async function handleSubmit(values: ExtendedFormValues) {
-    const filterConditions = filterForm.getValues().filterConditions
-    if (isInvalidFilters) return
+    if (!isValidFilterForm) filterForm.trigger()
+    if (!canSubmit) return
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
       formData.append(key, value?.toString() || '')
@@ -65,6 +65,7 @@ export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }:
     }
     table.setFilterConditions(data!.filterConditions)
     table.updateSegments(data!.filter.id, data!.filter)
+    table.setSegmentId(data!.filter.id)
   }
 
   return (
@@ -114,9 +115,7 @@ export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }:
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={isInvalidFilters}>
-            Save segment
-          </Button>
+          <Button type="submit">Save segment</Button>
         </div>
       </form>
     </Form>

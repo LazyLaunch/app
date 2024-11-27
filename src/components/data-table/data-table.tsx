@@ -1,5 +1,4 @@
-import { parseAsString, useQueryState } from 'nuqs'
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 import {
   flexRender,
@@ -26,16 +25,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+import { setQueryParams } from '@/lib/query-serializer'
 import { cn } from '@/lib/utils'
-
-import type { ContactFields, ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
-import type { CustomFieldProps } from '@/db/models/custom-field'
-
-import { useFilterState } from '@/components/data-table/search-params-hooks/use-filter-state'
-import { useGlobalFilterState } from '@/components/data-table/search-params-hooks/use-global-filter-state'
-import { usePaginationState } from '@/components/data-table/search-params-hooks/use-pagination-state'
-import { useSortingState } from '@/components/data-table/search-params-hooks/use-sorting-state'
-import { useViewState } from '@/components/data-table/search-params-hooks/use-view-state'
 
 import {
   FilterConditionsFeature,
@@ -57,12 +49,26 @@ import {
   type SegmentsTableState,
 } from '@/components/contacts/data-table/features/segments-feature'
 import {
-  SubmitFilterFeature,
-  type SubmitFilterInstance,
-  type SubmitFilterOptions,
-  type SubmitFilterTableState,
+  SubmitFilterConditionsFeature,
+  type SubmitFilterConditionsInstance,
+  type SubmitFilterConditionsOptions,
+  type SubmitFilterConditionsTableState,
+} from '@/components/contacts/data-table/features/submit-filter-conditions-feature'
+import {
+  SubmitQuickFilterFeature,
+  type SubmitQuickFilterInstance,
+  type SubmitQuickFilterOptions,
+  type SubmitQuickFilterTableState,
   type TablePaginationState,
-} from '@/components/contacts/data-table/features/submit-filter-feature'
+} from '@/components/contacts/data-table/features/submit-quick-filter-feature'
+import {
+  TabFeature,
+  type TabInstance,
+  type TabOptions,
+  type TabTableState,
+} from '@/components/contacts/data-table/features/tab-feature'
+import type { ContactFields, ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
+import type { CustomFieldProps } from '@/db/models/custom-field'
 import type { FilterCondition } from '@/db/models/filter'
 import type { SelectFilter } from '@/db/schema'
 import type { ContactTabFilterEnum } from '@/enums'
@@ -76,15 +82,21 @@ declare module '@tanstack/react-table' {
   interface TableState extends SegmentIdTableState {}
   interface TableState extends FilterConditionsTableState {}
   interface TableState extends SegmentsTableState {}
-  interface TableState extends SubmitFilterTableState {}
+  interface TableState extends SubmitQuickFilterTableState {}
+  interface TableState extends SubmitFilterConditionsTableState {}
+  interface TableState extends TabTableState {}
   interface TableOptionsResolved<TData extends RowData> extends SegmentIdOptions {}
   interface TableOptionsResolved<TData extends RowData> extends FilterConditionsOptions {}
   interface TableOptionsResolved<TData extends RowData> extends SegmentsOptions {}
-  interface TableOptionsResolved<TData extends RowData> extends SubmitFilterOptions {}
+  interface TableOptionsResolved<TData extends RowData> extends SubmitQuickFilterOptions {}
+  interface TableOptionsResolved<TData extends RowData> extends SubmitFilterConditionsOptions {}
+  interface TableOptionsResolved<TData extends RowData> extends TabOptions {}
   interface Table<TData extends RowData> extends SegmentIdInstance {}
   interface Table<TData extends RowData> extends FilterConditionsInstance {}
   interface Table<TData extends RowData> extends SegmentsInstance {}
-  interface Table<TData extends RowData> extends SubmitFilterInstance {}
+  interface Table<TData extends RowData> extends SubmitQuickFilterInstance {}
+  interface Table<TData extends RowData> extends SubmitFilterConditionsInstance {}
+  interface Table<TData extends RowData> extends TabInstance {}
 }
 
 export function getCommonPinningStyles(column: Column<ContactProps>): CSSProperties {
@@ -142,7 +154,6 @@ export function DataTable({
   filters,
   filterConditions,
 }: DataTableProps) {
-  const [, setSegmentId] = useQueryState('segmentId', parseAsString.withDefault(''))
   const [_data, setData] = useState<ContactProps[]>(data)
   const [_total, setTotal] = useState<number>(total)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -162,11 +173,19 @@ export function DataTable({
   const segmentId = searchParams.filterId
 
   const table = useReactTable<ContactProps>({
-    _features: [SegmentIdFeature, SegmentsFeature, FilterConditionsFeature, SubmitFilterFeature],
+    _features: [
+      SegmentIdFeature,
+      SegmentsFeature,
+      FilterConditionsFeature,
+      SubmitQuickFilterFeature,
+      SubmitFilterConditionsFeature,
+      TabFeature,
+    ],
     data: _data,
     columns,
     rowCount: _total,
     initialState: {
+      tab: searchParams.tab,
       globalFilter: [],
       columnFilters: [],
       segmentId,
@@ -187,13 +206,15 @@ export function DataTable({
     },
     onPaginationChange: setPagination,
     getRowId: (row) => row.id,
-    onSubmitFilter: (options) => !options?.skipOnChange && setSegmentId(''),
+    onSubmitQuickFilter: (options) => !options?.skipOnChange && setQueryParams({ segmentId: '' }),
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnPinningChange: setColumnPinning,
+    onTabChange: (tab) => setQueryParams({ tab } as TabTableState),
+    onSegmentIdChange: (segmentId) => setQueryParams({ segmentId } as { segmentId: string }),
     getCoreRowModel: getCoreRowModel(),
     meta: {
       onDelete: (id: string) => setData((prevState) => prevState.filter((d) => d.id !== id)),
@@ -205,11 +226,18 @@ export function DataTable({
     // columnResizeMode: 'onChange',
   })
 
-  usePaginationState(_pagination)
-  useGlobalFilterState(globalFilter)
-  useViewState({ contactFields, columnVisibility })
-  useSortingState({ sorting, contactFields })
-  useFilterState({ columnFilters, contactFields })
+  useEffect(() => {
+    setQueryParams({ filter: columnFilters }, { contactFields })
+  }, [columnFilters, contactFields])
+  useEffect(() => {
+    setQueryParams({ view: columnVisibility }, { contactFields })
+  }, [columnVisibility, contactFields])
+  useEffect(() => setQueryParams({ search: globalFilter }), [globalFilter])
+  useEffect(
+    () => setQueryParams({ page: _pagination.pageIndex, pageSize: _pagination.pageSize }),
+    [_pagination]
+  )
+  useEffect(() => setQueryParams({ sort: sorting }, { contactFields }), [sorting, contactFields])
 
   return (
     <div className={cn(className, 'space-y-4')}>

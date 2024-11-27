@@ -41,7 +41,8 @@ export const SegmentIdFeature: TableFeature<any> = {
       const safeUpdater: Updater<SegmentIdState> = (old) => {
         return functionalUpdate(updater, old)
       }
-      return table.options.onSegmentIdChange?.(safeUpdater)
+      if (table.options.onSegmentIdChange) makeStateUpdater('segmentId', table)(safeUpdater)
+      return table.options.onSegmentIdChange?.(updater)
     }
   },
 }

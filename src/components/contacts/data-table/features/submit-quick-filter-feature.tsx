@@ -14,30 +14,33 @@ export interface TablePaginationState {
   pageSize: number
 }
 
-export interface SubmitFilterProps {
+export interface SubmitQuickFilterProps {
   pagination?: TablePaginationState
   globalFilter?: GlobalContactColumnFilter[]
   columnFilters?: ColumnFiltersState
   sorting?: SortingState
 }
 
-export interface SubmitFilterTableState {
+export interface SubmitQuickFilterTableState {
   customColumnIds: string[]
   ids: object
   csrfToken: string
 }
 
-export interface SubmitFilterOptions {
-  enableSubmitFilter?: boolean
-  onSubmitFilter?: (options?: { skipOnChange: boolean } | undefined) => void
+export interface SubmitQuickFilterOptions {
+  enableSubmitQuickFilter?: boolean
+  onSubmitQuickFilter?: (options?: { skipOnChange: boolean } | undefined) => void
 }
 
-export interface SubmitFilterInstance {
-  doFilter: (filter: SubmitFilterProps, options?: { skipOnChange: boolean } | undefined) => void
+export interface SubmitQuickFilterInstance {
+  doFilter: (
+    filter: SubmitQuickFilterProps,
+    options?: { skipOnChange: boolean } | undefined
+  ) => void
 }
 
-export const SubmitFilterFeature: TableFeature<any> = {
-  getInitialState: (state): SubmitFilterTableState => {
+export const SubmitQuickFilterFeature: TableFeature<any> = {
+  getInitialState: (state): SubmitQuickFilterTableState => {
     return {
       customColumnIds: [],
       ids: {},
@@ -46,10 +49,10 @@ export const SubmitFilterFeature: TableFeature<any> = {
     }
   },
 
-  getDefaultOptions: <TData extends RowData>(table: Table<TData>): SubmitFilterOptions => {
+  getDefaultOptions: <TData extends RowData>(table: Table<TData>): SubmitQuickFilterOptions => {
     return {
-      enableSubmitFilter: true,
-    } as SubmitFilterOptions
+      enableSubmitQuickFilter: true,
+    } as SubmitQuickFilterOptions
   },
   createTable: <TData extends RowData>(table: Table<TData>): void => {
     table.doFilter = (filter, options) => {
@@ -94,7 +97,7 @@ export const SubmitFilterFeature: TableFeature<any> = {
       }
 
       doRequest()
-      table.options.onSubmitFilter?.(options)
+      table.options.onSubmitQuickFilter?.(options)
     }
   },
 }
