@@ -144,7 +144,7 @@ export function NewCustomFieldForm({ csrfToken, ids }: Props) {
                 name="type"
                 rules={{
                   required: 'Type is required.',
-                  validate: (val) => CUSTOM_FIELD_TYPE_LIST.includes(val as CustomFieldTypeEnum),
+                  validate: (val) => CUSTOM_FIELD_TYPE_LIST.includes(val as any),
                 }}
                 render={({ field }) => (
                   <FormItem className="space-y-1">

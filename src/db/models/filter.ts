@@ -2,6 +2,7 @@ import { UTCDate } from '@date-fns/utc'
 import { endOfDay, startOfDay } from 'date-fns'
 import {
   and,
+  desc,
   eq,
   inArray,
   isNotNull,
@@ -382,4 +383,38 @@ export async function getFilterConditions({
     .select()
     .from(filterConditionsTable)
     .where(eq(filterConditionsTable.filterId, filterId))
+}
+
+export async function getFilters({
+  projectId,
+  teamId,
+}: {
+  projectId: string
+  teamId: string
+}): Promise<Partial<SelectFilter>[]> {
+  return await db
+    .select({
+      id: filtersTable.id,
+      name: filtersTable.name,
+      createdAt: filtersTable.createdAt,
+    })
+    .from(filtersTable)
+    .where(and(eq(filtersTable.projectId, projectId), eq(filtersTable.teamId, teamId)))
+    .orderBy(desc(filtersTable.createdAt))
+}
+
+export async function bulkDeleteFilters({
+  ids,
+  projectId,
+  teamId,
+}: { ids: string[]; projectId: string; teamId: string }): Promise<void> {
+  await db
+    .delete(filtersTable)
+    .where(
+      and(
+        inArray(filtersTable.id, ids),
+        eq(filtersTable.projectId, projectId),
+        eq(filtersTable.teamId, teamId)
+      )
+    )
 }

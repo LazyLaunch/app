@@ -6,7 +6,7 @@ import { NewCustomFieldForm } from '@/components/custom-fields/new-custom-field-
 import { Badge } from '@/components/ui/badge'
 import { getCustomFields, type CustomFieldList } from '@/db/models/custom-field'
 import { getContactFields } from '@/db/models/contact'
-import { CustomFieldTable } from '@/components/custom-fields/custom-field-table'
+import { CustomFieldsTable } from '@/components/custom-fields/custom-fields-table'
 
 import { toTag } from '@/lib/to-tag'
 
@@ -50,7 +50,7 @@ const total = data.length
       <NewCustomFieldForm client:load csrfToken={csrfToken} ids={ids} />
     </div>
     <ProjectContactNav active="fields">
-      <CustomFieldTable
+      <CustomFieldsTable
         className="pt-6"
         csrfToken={csrfToken}
         data={data}

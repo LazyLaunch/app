@@ -8,7 +8,8 @@ const url = `/${teamSlug}/${projectSlug}/contacts`
 
 const tabs: { label: string; id: ContactNavLinkId; url: string }[] = [
   { label: 'All Contacts', id: 'contacts', url },
-  { label: 'Fields', id: 'fields', url: url + '/fields' },
+  { label: 'Fields', id: 'fields', url: `${url}/fields` },
+  { label: 'Segments', id: 'segments', url: `${url}/segments` },
 ]
 
 interface Props {

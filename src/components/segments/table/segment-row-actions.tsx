@@ -2,8 +2,7 @@ import { actions } from 'astro:actions'
 import { Ellipsis, Pencil, Trash2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 
-import type { Row, RowSelectionState, Table } from '@tanstack/react-table'
-
+import { SegmentForm } from '@/components/segments/segment-form'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,50 +23,59 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Form } from '@/components/ui/form'
+
 import { CSRF_TOKEN } from '@/constants'
 
-import { EditCustomFieldForm } from '@/components/custom-fields/edit-custom-field-form'
-import type { CustomFieldList } from '@/db/models/custom-field'
+import type { SelectFilter } from '@/db/schema'
+import type { Row, RowSelectionState, Table } from '@tanstack/react-table'
 
 interface RowActionsProps {
-  row: Row<CustomFieldList>
-  table: Table<CustomFieldList>
+  row: Row<SelectFilter>
+  table: Table<SelectFilter>
   [CSRF_TOKEN]: string
   setRowSelection: (state: RowSelectionState) => void
   rowSelection: Record<string, boolean>
-  projectId: string
+  ids: {
+    projectId: string
+    teamId: string
+  }
 }
 
 interface DeleteFormValues {
   id: string
   [CSRF_TOKEN]: string
+  projectId: string
+  teamId: string
 }
 
-export function CustomFieldRowActions({
+export function SegmentRowActions({
   row,
   table,
   csrfToken,
   rowSelection,
   setRowSelection,
-  projectId,
+  ids,
 }: RowActionsProps) {
   const rowId = row.original.id
   const deleteForm = useForm<DeleteFormValues>({
     defaultValues: {
       [CSRF_TOKEN]: csrfToken,
+      ...ids,
       id: rowId,
     },
   })
 
-  async function onDelete(values: DeleteFormValues) {
+  async function onDelete({ id, ...values }: DeleteFormValues) {
     const formData = new FormData()
-    formData.append(CSRF_TOKEN, values.csrfToken)
-    formData.append('ids', JSON.stringify([values.id]))
-    await actions.customField.deleteBulk(formData)
-    table.options.meta!.onDeleteCustomFields?.(({ data, setData }) =>
-      setData(data.filter((row) => row.id !== values.id))
+    for (const [key, value] of Object.entries(values)) {
+      formData.append(key, value?.toString() || '')
+    }
+    formData.append('ids', JSON.stringify([id]))
+    await actions.filter.deleteBulk(formData)
+    table.options.meta!.onDeleteSegments?.(({ data, setData }) =>
+      setData(data.filter((row) => row.id !== id))
     )
-    delete rowSelection[values.id]
+    delete rowSelection[id]
     setRowSelection(rowSelection)
   }
 
@@ -89,7 +97,7 @@ export function CustomFieldRowActions({
                   <span>Edit</span>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
-                  <EditCustomFieldForm projectId={projectId} csrfToken={csrfToken} row={row} />
+                  <SegmentForm ids={ids} csrfToken={csrfToken} row={row} />
                 </DialogContent>
               </>
             </DropdownMenuItem>
@@ -112,10 +120,10 @@ export function CustomFieldRowActions({
               value={csrfToken}
             />
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion of Custom Field</AlertDialogTitle>
+              <AlertDialogTitle>Confirm Deletion of Segment</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete the selected custom field? This action is permanent
-                and will remove all associated data from your contacts.
+                Are you sure you want to delete this segment? This action cannot be undone, and the
+                segment will be permanently removed.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

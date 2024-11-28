@@ -10,6 +10,7 @@ import {
 } from '@/db/models/contact'
 import {
   buildDynamicFilter,
+  bulkDeleteFilters,
   getFilterConditions,
   isUniqFilterName,
   saveFilters,
@@ -333,6 +334,31 @@ export const filter = {
         conditions: filterId ? filterWhereConditions : whereConditions,
         skipData: ['customFields'],
       })
+    },
+  }),
+  deleteBulk: defineAction({
+    accept: 'form',
+    input: z.object({
+      csrfToken: z.string(),
+      projectId: z.string().length(CUID_LENGTH),
+      teamId: z.string().length(CUID_LENGTH),
+      ids: z.string().transform((val, ctx) => {
+        try {
+          const parsed = JSON.parse(val)
+          z.array(z.string().length(CUID_LENGTH)).parse(parsed)
+          return parsed
+        } catch (err) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Segment ids is not valid JSON or does not match the expected structure.',
+          })
+          return z.NEVER
+        }
+      }),
+    }),
+    handler: async ({ ids, teamId, projectId }, context) => {
+      await bulkDeleteFilters({ ids, teamId, projectId })
+      return true
     },
   }),
 }

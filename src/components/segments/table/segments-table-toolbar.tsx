@@ -19,39 +19,54 @@ import { Form } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 
 import { CSRF_TOKEN } from '@/constants'
-import type { CustomFieldList } from '@/db/models/custom-field'
+import type { SelectFilter } from '@/db/schema'
 
 interface Props {
   csrfToken: string
   ids: string[]
+  teamId: string
+  projectId: string
   setRowSelection: (state: RowSelectionState) => void
-  table: Table<CustomFieldList>
+  table: Table<SelectFilter>
 }
 
 interface DeleteFormValues {
   csrfToken: string
   ids: string[]
+  teamId: string
+  projectId: string
 }
 
-export function CustomFieldTableToolbar({ csrfToken, ids, setRowSelection, table }: Props) {
+export function SegmentsTableToolbar({
+  csrfToken,
+  ids,
+  setRowSelection,
+  teamId,
+  projectId,
+  table,
+}: Props) {
   const deleteAllForm = useForm<DeleteFormValues>({
     values: {
       ids,
       csrfToken,
+      teamId,
+      projectId,
     },
     defaultValues: {
       ids: [],
     },
   })
 
-  async function onDeleteSubmit(values: DeleteFormValues) {
+  async function onDeleteSubmit({ ids, ...values }: DeleteFormValues) {
     const formData = new FormData()
-    formData.append(CSRF_TOKEN, values.csrfToken)
-    formData.append('ids', JSON.stringify(values.ids))
+    for (const [key, value] of Object.entries(values)) {
+      formData.append(key, value?.toString() || '')
+    }
+    formData.append('ids', JSON.stringify(ids))
 
-    await actions.customField.deleteBulk(formData)
-    table.options.meta!.onDeleteCustomFields?.(({ data, setData }) =>
-      setData(data.filter((row) => !values.ids.includes(row.id)))
+    await actions.filter.deleteBulk(formData)
+    table.options.meta!.onDeleteSegments?.(({ data, setData }) =>
+      setData(data.filter((row) => !ids.includes(row.id)))
     )
     setRowSelection({})
   }
@@ -60,7 +75,7 @@ export function CustomFieldTableToolbar({ csrfToken, ids, setRowSelection, table
     <div className="flex items-center justify-between">
       <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter fields..."
+          placeholder="Filter segments..."
           value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
           onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
@@ -86,10 +101,10 @@ export function CustomFieldTableToolbar({ csrfToken, ids, setRowSelection, table
                     value={csrfToken}
                   />
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Deletion of Custom Field(s)</AlertDialogTitle>
+                    <AlertDialogTitle>Confirm Deletion of Segment(s)</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete the selected custom field(s)? This action is
-                      permanent and will remove all associated data from your contacts.
+                      Are you sure you want to delete the selected segment(s)? This action cannot be
+                      undone, and all selected segments will be permanently removed.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

@@ -39,7 +39,7 @@ const ICONS: Record<CustomFieldTypeEnum, any> = {
   [CustomFieldTypeEnum.ENUM]: Layers3,
 }
 
-function contactDataTableColumns({
+function customFieldsDataTableColumns({
   csrfToken,
   setRowSelection,
   rowSelection,
@@ -148,7 +148,7 @@ function contactDataTableColumns({
 
 declare module '@tanstack/react-table' {
   interface TableMeta<TData> {
-    onDeleteCustomField: (
+    onDeleteCustomFields: (
       fn: (params: { data: CustomFieldList[]; setData: (data: CustomFieldList[]) => void }) => void
     ) => void
   }
@@ -162,14 +162,20 @@ interface DataTableProps {
   projectId: string
 }
 
-export function CustomFieldTable({ className, data, total, csrfToken, projectId }: DataTableProps) {
+export function CustomFieldsTable({
+  className,
+  data,
+  total,
+  csrfToken,
+  projectId,
+}: DataTableProps) {
   const [_data, setData] = useState<CustomFieldList[]>(data)
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const isAnyCustomFields = _data.some((d) => d.isCustomField)
 
   const table = useReactTable<CustomFieldList>({
     data: _data,
-    columns: contactDataTableColumns({
+    columns: customFieldsDataTableColumns({
       csrfToken,
       setRowSelection,
       rowSelection,
@@ -181,13 +187,13 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
       rowSelection,
     },
     enableRowSelection: (row) => row.original.isCustomField,
-    getRowId: (row) => (row as unknown as { id: string }).id,
+    getRowId: (row) => row.id,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     meta: {
-      onDeleteCustomField: (fn) => fn({ data: _data, setData }),
+      onDeleteCustomFields: (fn) => fn({ data: _data, setData }),
     } as TableMeta<CustomFieldList>,
   })
 
@@ -199,7 +205,7 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
         ids={Object.keys(rowSelection)}
         setRowSelection={setRowSelection}
       />
-      <div className="rounded-md border bg-background">
+      <div className="rounded-md overflow-hidden border bg-background">
         <Table className="overflow-x-scroll">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
