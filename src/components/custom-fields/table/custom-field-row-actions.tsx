@@ -64,7 +64,7 @@ export function CustomFieldRowActions({
     formData.append(CSRF_TOKEN, values.csrfToken)
     formData.append('ids', JSON.stringify([values.id]))
     await actions.customField.deleteBulk(formData)
-    table.options.meta!.onDelete?.(({ data, setData }) =>
+    table.options.meta!.onDeleteCustomField?.(({ data, setData }) =>
       setData(data.filter((row) => (row as unknown as { id: string }).id !== values.id))
     )
     delete rowSelection[values.id]

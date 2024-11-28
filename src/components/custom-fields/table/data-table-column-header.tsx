@@ -9,24 +9,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import type { ContactProps } from '@/db/models/contact'
-import type { Column, Table } from '@tanstack/react-table'
+import type { CustomFieldList } from '@/db/models/custom-field'
+import type { Column } from '@tanstack/react-table'
 
-import { ContactTabFilterEnum } from '@/enums'
 import { cn } from '@/lib/utils'
 
 interface DataTableColumnHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  column: Column<ContactProps, any>
+  column: Column<CustomFieldList, any>
   title: string
-  table: Table<ContactProps>
 }
 
-export function DataTableColumnHeader({
-  column,
-  title,
-  className,
-  table,
-}: DataTableColumnHeaderProps) {
+export function DataTableColumnHeader({ column, title, className }: DataTableColumnHeaderProps) {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>
   }
@@ -47,31 +40,11 @@ export function DataTableColumnHeader({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          <DropdownMenuItem
-            onClick={() => {
-              column.toggleSorting(false)
-              const sorting = { sorting: [{ id: column.id, desc: false }] }
-              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
-                table.doFilter(sorting)
-              } else {
-                table.doSubmitFilterConditions(sorting)
-              }
-            }}
-          >
+          <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
             <ArrowUp className="mr-2 size-3.5 text-muted-foreground/70" />
             Asc
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              column.toggleSorting(true)
-              const sorting = { sorting: [{ id: column.id, desc: true }] }
-              if (table.getState().tab === ContactTabFilterEnum.QUICK_SEARCH) {
-                table.doFilter(sorting)
-              } else {
-                table.doSubmitFilterConditions(sorting)
-              }
-            }}
-          >
+          <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
             <ArrowDown className="mr-2 size-3.5 text-muted-foreground/70" />
             Desc
           </DropdownMenuItem>

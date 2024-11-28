@@ -6,8 +6,9 @@ import {
   useReactTable,
   type ColumnDef,
   type RowSelectionState,
+  type TableMeta,
 } from '@tanstack/react-table'
-import { AlignLeft, Calendar, HashIcon, Lock, ToggleLeftIcon } from 'lucide-react'
+import { AlignLeft, Calendar, HashIcon, Layers3, Lock, ToggleLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { CustomFieldRowActions } from '@/components/custom-fields/table/custom-field-row-actions'
@@ -21,7 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
 import type { CustomFieldList } from '@/db/models/custom-field'
+
 import { tagWithPlaceholder } from '@/lib/to-tag'
 import { cn, formatFieldName } from '@/lib/utils'
 
@@ -33,6 +36,7 @@ const ICONS: Record<CustomFieldTypeEnum, any> = {
   [CustomFieldTypeEnum.NUMBER]: HashIcon,
   [CustomFieldTypeEnum.BOOLEAN]: ToggleLeftIcon,
   [CustomFieldTypeEnum.DATE]: Calendar,
+  [CustomFieldTypeEnum.ENUM]: Layers3,
 }
 
 function contactDataTableColumns({
@@ -142,6 +146,14 @@ function contactDataTableColumns({
   ]
 }
 
+declare module '@tanstack/react-table' {
+  interface TableMeta<TData> {
+    onDeleteCustomField: (
+      fn: (params: { data: CustomFieldList[]; setData: (data: CustomFieldList[]) => void }) => void
+    ) => void
+  }
+}
+
 interface DataTableProps {
   className?: string
   data: CustomFieldList[]
@@ -175,8 +187,8 @@ export function CustomFieldTable({ className, data, total, csrfToken, projectId 
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     meta: {
-      onDelete: (fn) => fn({ data: _data, setData }),
-    },
+      onDeleteCustomField: (fn) => fn({ data: _data, setData }),
+    } as TableMeta<CustomFieldList>,
   })
 
   return (

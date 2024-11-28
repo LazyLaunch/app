@@ -12,6 +12,7 @@ import {
   type RowData,
   type RowSelectionState,
   type SortingState,
+  type TableMeta,
   type VisibilityState,
 } from '@tanstack/react-table'
 
@@ -220,7 +221,7 @@ export function DataTable({
       onDelete: (id: string) => setData((prevState) => prevState.filter((d) => d.id !== id)),
       onApplyAdvancedFilter: (filteredData: ContactProps[]) => setData(filteredData),
       setTotal: (count: number) => setTotal(count),
-    },
+    } as TableMeta<ContactProps>,
     manualPagination: true,
     enableColumnPinning: true,
     // columnResizeMode: 'onChange',
