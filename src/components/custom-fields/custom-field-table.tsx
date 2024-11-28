@@ -12,7 +12,7 @@ import { useState } from 'react'
 
 import { CustomFieldRowActions } from '@/components/custom-fields/table/custom-field-row-actions'
 import { CustomFieldTableToolbar } from '@/components/custom-fields/table/custom-field-table-toolbar'
-import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
+import { DataTableColumnHeader } from '@/components/custom-fields/table/data-table-column-header'
 import {
   Table,
   TableBody,

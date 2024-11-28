@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select'
 import { DEFAULT_PAGE_SIZES } from '@/constants'
 
-import type { TablePaginationState } from '@/components/contacts/data-table/features/submit-quick-filter-feature'
+import type { TablePaginationState } from '@/components/contacts/contacts-table/features/submit-quick-filter-feature'
 import type { ContactProps } from '@/db/models/contact'
 import { ContactTabFilterEnum } from '@/enums'
 

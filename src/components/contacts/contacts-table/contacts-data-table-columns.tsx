@@ -3,8 +3,8 @@ import { format } from 'date-fns'
 
 import { Checkbox } from '@/components/ui/checkbox'
 
-import { ContactDataTableRowActions } from '@/components/contacts/data-table/contact-data-table-row-actions'
-import { DataTableColumnHeader } from '@/components/data-table/data-table-column-header'
+import { ContactsDataTableRowActions } from '@/components/contacts/contacts-table/contacts-data-table-row-actions'
+import { DataTableColumnHeader } from '@/components/contacts/data-table/data-table-column-header'
 
 import type { ContactCustomFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
@@ -13,7 +13,7 @@ import type { Column, ColumnDef, Row, Table } from '@tanstack/react-table'
 import { DATE_TEXT_FORMAT } from '@/constants'
 import { CustomFieldTypeEnum } from '@/enums'
 
-export function contactDataTableColumns({
+export function contactsDataTableColumns({
   csrfToken,
   customFields,
   ids,
@@ -178,7 +178,7 @@ export function contactDataTableColumns({
     {
       id: 'actions',
       cell: ({ row, table }) => (
-        <ContactDataTableRowActions
+        <ContactsDataTableRowActions
           customFields={customFields}
           ids={ids}
           row={row}

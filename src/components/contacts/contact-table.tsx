@@ -1,9 +1,9 @@
 import { actions } from 'astro:actions'
 
-import { contactDataTableColumns } from '@/components/contacts/data-table/contact-data-table-columns'
-import { DataTable } from '@/components/data-table'
+import { contactsDataTableColumns } from '@/components/contacts/contacts-table/contacts-data-table-columns'
+import { DataTable } from '@/components/contacts/data-table'
 
-import type { SearchParamProps } from '@/components/data-table'
+import type { SearchParamProps } from '@/components/contacts/data-table'
 import type { ContactFields, ContactProps } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 import type { FilterCondition } from '@/db/models/filter'
@@ -38,7 +38,7 @@ export function ContactTable({
   return (
     <DataTable
       data={data}
-      columns={contactDataTableColumns({ csrfToken, customFields, ids })}
+      columns={contactsDataTableColumns({ csrfToken, customFields, ids })}
       className={className}
       total={total}
       ids={ids}

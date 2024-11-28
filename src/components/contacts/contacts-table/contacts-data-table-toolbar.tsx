@@ -2,14 +2,14 @@ import { FileText, Monitor, Server, ToggleLeft, ToggleRight, X } from 'lucide-re
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 
-import { DataTableViewOptions } from '@/components/data-table/data-table-view-options'
+import { DataTableViewOptions } from '@/components/contacts/data-table/data-table-view-options'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { SegmentForm } from '@/components/contacts/data-table/segment-form'
-import { DataTableAdvancedFilter } from '@/components/data-table/data-table-advanced-filter'
-import { DataTableFacetedFilter } from '@/components/data-table/data-table-faceted-filter'
+import { SegmentForm } from '@/components/contacts/contacts-table/segment-form'
+import { DataTableAdvancedFilter } from '@/components/contacts/data-table/data-table-advanced-filter'
+import { DataTableFacetedFilter } from '@/components/contacts/data-table/data-table-faceted-filter'
 
 import { Form, FormField } from '@/components/ui/form'
 import {
@@ -30,7 +30,7 @@ import { CONTACT_DEFAULT_SEARCH_FIELD, CONTACT_GLOBAL_SEARCH_FIELDS, CSRF_TOKEN 
 import { ContactSourceEnum, ContactTabFilterEnum, CustomFieldTypeEnum } from '@/enums'
 import { formatCamelCaseToTitle } from '@/lib/utils'
 
-export interface ContactDataTableToolbarProps {
+export interface ContactsDataTableToolbarProps {
   table: Table<ContactProps>
   customFields: CustomFieldProps[]
   contactFields: ContactFields[]
@@ -79,14 +79,14 @@ interface FormValues {
   q: string
 }
 
-export function ContactDataTableToolbar({
+export function ContactsDataTableToolbar({
   table,
   customFields,
   csrfToken,
   contactFields,
   ids,
   activeTab,
-}: ContactDataTableToolbarProps) {
+}: ContactsDataTableToolbarProps) {
   const isFiltered = table.getState().columnFilters.length > 0
   const globalFilter = table.getState().globalFilter
   const isGlobalFiltered = globalFilter.length > 0

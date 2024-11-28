@@ -84,7 +84,7 @@ async function onSubmitSingleContactForm({ values, dirtyFields }: OnSubmitSingle
   return await actions.contact.update(formData)
 }
 
-interface ContactDataTableRowActionsProps {
+interface ContactsDataTableRowActionsProps {
   row: Row<ContactProps>
   table: Table<ContactProps>
   [CSRF_TOKEN]: string
@@ -100,13 +100,13 @@ interface DeleteFormValues {
   [CSRF_TOKEN]: string
 }
 
-export function ContactDataTableRowActions({
+export function ContactsDataTableRowActions({
   row,
   table,
   csrfToken,
   customFields,
   ids,
-}: ContactDataTableRowActionsProps) {
+}: ContactsDataTableRowActionsProps) {
   const [openSingleContactForm, setOpenSingleContactForm] = useState<boolean>(false)
 
   const deleteForm = useForm<DeleteFormValues>({

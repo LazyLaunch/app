@@ -1,9 +1,9 @@
 import { actions } from 'astro:actions'
 
+import type { TablePaginationState } from '@/components/contacts/contacts-table/features/submit-quick-filter-feature'
 import type { ContactProps } from '@/db/models/contact'
 import type { FilterCondition } from '@/db/models/filter'
 import type { RowData, SortingState, Table, TableFeature } from '@tanstack/react-table'
-import type { TablePaginationState } from './submit-quick-filter-feature'
 
 export interface SubmitFilterConditionsTableState {
   customColumnIds: string[]

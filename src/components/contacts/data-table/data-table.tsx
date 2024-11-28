@@ -15,8 +15,8 @@ import {
   type VisibilityState,
 } from '@tanstack/react-table'
 
-import { ContactDataTableToolbar } from '@/components/contacts/data-table/contact-data-table-toolbar'
-import { DataTablePagination } from '@/components/data-table/data-table-pagination'
+import { ContactsDataTableToolbar } from '@/components/contacts/contacts-table/contacts-data-table-toolbar'
+import { DataTablePagination } from '@/components/contacts/data-table/data-table-pagination'
 import {
   Table,
   TableBody,
@@ -34,39 +34,39 @@ import {
   type FilterConditionsInstance,
   type FilterConditionsOptions,
   type FilterConditionsTableState,
-} from '@/components/contacts/data-table/features/filter-conditions-feature'
+} from '@/components/contacts/contacts-table/features/filter-conditions-feature'
 import {
   SegmentIdFeature,
   type SegmentIdInstance,
   type SegmentIdOptions,
   type SegmentIdState,
   type SegmentIdTableState,
-} from '@/components/contacts/data-table/features/segment-id-feature'
+} from '@/components/contacts/contacts-table/features/segment-id-feature'
 import {
   SegmentsFeature,
   type SegmentsInstance,
   type SegmentsOptions,
   type SegmentsTableState,
-} from '@/components/contacts/data-table/features/segments-feature'
+} from '@/components/contacts/contacts-table/features/segments-feature'
 import {
   SubmitFilterConditionsFeature,
   type SubmitFilterConditionsInstance,
   type SubmitFilterConditionsOptions,
   type SubmitFilterConditionsTableState,
-} from '@/components/contacts/data-table/features/submit-filter-conditions-feature'
+} from '@/components/contacts/contacts-table/features/submit-filter-conditions-feature'
 import {
   SubmitQuickFilterFeature,
   type SubmitQuickFilterInstance,
   type SubmitQuickFilterOptions,
   type SubmitQuickFilterTableState,
   type TablePaginationState,
-} from '@/components/contacts/data-table/features/submit-quick-filter-feature'
+} from '@/components/contacts/contacts-table/features/submit-quick-filter-feature'
 import {
   TabFeature,
   type TabInstance,
   type TabOptions,
   type TabTableState,
-} from '@/components/contacts/data-table/features/tab-feature'
+} from '@/components/contacts/contacts-table/features/tab-feature'
 import type { ContactFields, ContactProps, GlobalContactColumnFilter } from '@/db/models/contact'
 import type { CustomFieldProps } from '@/db/models/custom-field'
 import type { FilterCondition } from '@/db/models/filter'
@@ -241,7 +241,7 @@ export function DataTable({
 
   return (
     <div className={cn(className, 'space-y-4')}>
-      <ContactDataTableToolbar
+      <ContactsDataTableToolbar
         {...{
           table,
           filters,
