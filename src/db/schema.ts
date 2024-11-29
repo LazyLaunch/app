@@ -374,6 +374,49 @@ export const filterConditionsTable = sqliteTable(
   })
 )
 
+export const groupsTable = sqliteTable(
+  'groups',
+  {
+    id: text('id', { length: 256 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    name: text('name', { length: 25 }).notNull(),
+    projectId: text('project_id', { length: 256 })
+      .notNull()
+      .references(() => projectsTable.id, { onDelete: 'cascade' }),
+    teamId: text('team_id', { length: 256 })
+      .notNull()
+      .references(() => teamsTable.id, { onDelete: 'cascade' }),
+    userId: text('user_id', { length: 256 })
+      .notNull()
+      .references(() => usersTable.id),
+    createdAt: text('created_at', { length: 50 }).notNull().default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    groupsProjectIdx: index('groups_project_idx').on(table.projectId),
+    groupsTeamIdx: index('groups_team_idx').on(table.teamId),
+    groupsName: uniqueIndex('groups_name').on(table.name, table.projectId),
+  })
+)
+
+export const contactGroupsTable = sqliteTable(
+  'contact_groups',
+  {
+    contactId: text('contact_id', { length: 256 })
+      .notNull()
+      .references(() => contactsTable.id, { onDelete: 'cascade' }),
+    groupId: text('group_id', { length: 256 })
+      .notNull()
+      .references(() => groupsTable.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    compositePk: primaryKey({
+      columns: [table.contactId, table.groupId],
+    }),
+  })
+)
+
 // export const campaignsTable = sqliteTable(
 //   'campaigns',
 //   {
@@ -445,6 +488,12 @@ export type SelectFilter = typeof filtersTable.$inferSelect
 
 export type InsertFilterCondition = typeof filterConditionsTable.$inferInsert
 export type SelectFilterCondition = typeof filterConditionsTable.$inferSelect
+
+export type InsertGroup = typeof groupsTable.$inferInsert
+export type SelectGroup = typeof groupsTable.$inferSelect
+
+export type InsertContactGroup = typeof contactGroupsTable.$inferInsert
+export type SelectContactGroup = typeof contactGroupsTable.$inferSelect
 
 // export type InsertCampaign = typeof campaignsTable.$inferInsert
 // export type SelectCampaign = typeof campaignsTable.$inferSelect

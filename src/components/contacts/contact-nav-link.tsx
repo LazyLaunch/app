@@ -1,4 +1,4 @@
-import { Database, Folders, Users } from 'lucide-react'
+import { Database, Folders, Layers3, Users } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,7 @@ const ICONS: Record<ContactNavLinkId, any> = {
   contacts: Users,
   fields: Database,
   segments: Folders,
+  groups: Layers3,
 } as const
 
 export function ContactNavLink({

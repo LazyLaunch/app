@@ -3,10 +3,10 @@ import ProjectLayout from '@/layouts/project/project-layout.astro'
 import ProjectContactNav from '@/layouts/project/project-contact-nav.astro'
 
 import { Badge } from '@/components/ui/badge'
-import { NewSegmentBtn } from '@/components/segments/new-segment-btn'
-import { SegmentsTable } from '@/components/segments/segments-table'
+import { NewGroupBtn } from '@/components/groups/new-group-btn'
+import { GroupsTable } from '@/components/groups/groups-table'
 
-import { getFilters } from '@/db/models/filter'
+import { getGroups } from '@/db/models/group'
 
 const csrfToken = Astro.locals.csrfToken!
 const team = Astro.locals.team!
@@ -16,24 +16,23 @@ const ids = {
   projectId: project.id,
 }
 
-const filters = await getFilters(ids)
-
-const total = filters.length
+const groups = await getGroups(ids)
+const total = groups.length
 ---
 <ProjectLayout>
   <div class="container space-y-6">
     <div class="flex items-center justify-between">
       <div class="inline-flex items-center space-x-2">
-        <h2 class="text-2xl font-bold tracking-tight">Segments</h2>
+        <h2 class="text-2xl font-bold tracking-tight">Groups</h2>
         <Badge className="mt-0.5">{total}</Badge>
       </div>
-      <NewSegmentBtn client:load csrfToken={csrfToken} ids={ids} />
+      <NewGroupBtn client:load csrfToken={csrfToken} ids={ids} />
     </div>
-    <ProjectContactNav active="segments">
-      <SegmentsTable
+    <ProjectContactNav active="groups">
+      <GroupsTable
         className="pt-6"
         csrfToken={csrfToken}
-        data={filters}
+        data={groups}
         total={total}
         ids={ids}
         client:load

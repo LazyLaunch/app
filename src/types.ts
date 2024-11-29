@@ -9,6 +9,6 @@ export type GoogleOAuthScope = (typeof GOOGLE_SCOPES)[number]
 export type ProviderType = `${ProviderTypeEnum}`
 export type OauthKeyName = `${OauthKeyNameEnum}`
 
-export type ContactNavLinkId = 'contacts' | 'fields' | 'segments'
+export type ContactNavLinkId = 'contacts' | 'fields' | 'segments' | 'groups'
 
 export type ZNamespace = typeof AstroZ | typeof ZodZ

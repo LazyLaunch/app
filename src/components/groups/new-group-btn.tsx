@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 
-import { SegmentForm } from '@/components/segments/segment-form'
+import { GroupForm } from '@/components/groups/group-form'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 
@@ -16,17 +16,17 @@ interface Props {
   }
 }
 
-export function NewSegmentForm(props: Props) {
+export function NewGroupBtn(props: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Add segment
+          Add group
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <SegmentForm {...props} />
+        <GroupForm {...props} />
       </DialogContent>
     </Dialog>
   )
