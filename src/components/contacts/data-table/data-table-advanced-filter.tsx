@@ -414,7 +414,8 @@ export function DataTableAdvancedFilter({
           <div className="h-px bg-muted-foreground w-full" />
         </div>
         <SubmitForm
-          ids={{ ...ids, csrfToken }}
+          ids={ids}
+          csrfToken={csrfToken}
           deleteFilterConditionIds={deleteFilterConditionIdsRef.current}
           filterForm={form}
           table={table}

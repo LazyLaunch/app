@@ -9,42 +9,42 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import type { ContactProps } from '@/db/models/contact'
 import type { Table } from '@tanstack/react-table'
 
-interface FormIds {
-  csrfToken: string
+interface FormValues {
   projectId: string
   teamId: string
-}
-
-interface ExtendedFormValues extends FormIds {
+  csrfToken: string
   name: string
   id?: string
 }
 
 interface Props {
   filterForm: UseFormReturn<any>
-  ids: FormIds
+  ids: {
+    projectId: string
+    teamId: string
+  }
+  csrfToken: string
   deleteFilterConditionIds: string[]
   table: Table<ContactProps>
 }
 
-export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }: Props) {
+export function SubmitForm({ deleteFilterConditionIds, csrfToken, table, ids, filterForm }: Props) {
   const { isDirty: isDirtyFilterForm, isValid: isValidFilterForm } = filterForm.formState
   const filterConditions = filterForm.getValues().filterConditions
   const segment = table.getSegment(table.getState().segmentId)
-  const form = useForm<ExtendedFormValues>({
+  const form = useForm<FormValues>({
     values: {
-      ...ids,
       id: segment?.id || '',
       name: segment?.name || '',
+      csrfToken,
+      ...ids,
     },
   })
-  const canSubmit =
-    (isDirtyFilterForm || filterConditions?.length === 0 || form.formState.isDirty) &&
-    isValidFilterForm &&
-    form.formState.isValid
 
-  async function handleSubmit(values: ExtendedFormValues) {
-    if (!isValidFilterForm) filterForm.trigger()
+  const canSubmit = isDirtyFilterForm || filterConditions?.length === 0 || form.formState.isDirty
+
+  async function handleSubmit(values: FormValues) {
+    if (!isValidFilterForm) return filterForm.trigger()
     if (!canSubmit) return
     const formData = new FormData()
     for (const [key, value] of Object.entries(values)) {
@@ -59,7 +59,7 @@ export function SubmitForm({ deleteFilterConditionIds, table, ids, filterForm }:
 
       for (const key of Object.keys(fields)) {
         const message = fields[key as keyof typeof fields]?.[0]
-        form.setError(key as keyof ExtendedFormValues, { message })
+        form.setError(key as keyof FormValues, { message })
       }
       return
     }
