@@ -1,0 +1,25 @@
+1. Fix global search - Search should ignore custom fields with date type.
+2. Astro 5 is supporting db. Migrate to astro db.
+3. Add ability to add subscribers to group.
+4. Ability to filter subscribers by group.
+5. Add https://tiptap.dev/docs editor. Extension example https://github.com/NiazMorshed2007/shadcn-tiptap
+6. https://reactflow.dev/ - for creating email automation
+
+==== Features
+https://mjml.io/ - for creating emails
+https://demo.react.email/preview/magic-links/aws-verify-email - email templates
+
+==== UI templates
+https://horizon-ui.com/shadcn-nextjs-boilerplate/dashboard/signin/password_signin
+https://astroship-pro.web3templates.com/pricing
+https://astro-agency02.vercel.app/
+
+https://table.sadmn.com/ - (https://github.com/sadmann7/shadcn-table/blob/fa6e82f7dc60ec87e60e34100b3c69c95c45658d/src/components/data-table/data-table-filter-list.tsx#L82)
+
+==== Similar projects
+https://github.com/knadh/listmonk?tab=readme-ov-file
+https://github.com/stalwartlabs/mail-server?tab=readme-ov-file
+https://remark42.com/
+
+https://www.mailerlite.com/
+https://loops.so/
